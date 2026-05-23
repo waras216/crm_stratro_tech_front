@@ -1,0 +1,67 @@
+<div class="space-y">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="search-wrap"><span class="search-icon">🔍</span><input class="input" placeholder="Buscar clientes..." [(ngModel)]="search" /></div>
+      <select class="select" [(ngModel)]="filterTipo">
+        <option value="todos">Todos</option><option value="empresa">Empresa</option><option value="persona">Persona</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" (click)="openNew()">+ Nuevo Cliente</button>
+  </div>
+
+  <div class="card-grid">
+    <div class="card" *ngFor="let c of filtered">
+      <div class="card-row">
+        <div class="flex-row gap-12">
+          <div class="type-icon" [class.empresa]="c.tipo==='empresa'" [class.persona]="c.tipo==='persona'">
+            {{ c.tipo === 'empresa' ? '🏢' : '👤' }}
+          </div>
+          <div>
+            <p class="fw-medium">{{ c.nombre }}</p>
+            <p class="text-muted text-sm">{{ c.sector_empresarial }}</p>
+          </div>
+        </div>
+        <div class="flex-row">
+          <button class="btn-ghost" (click)="handleEdit(c)">✏️</button>
+          <button class="btn-ghost" (click)="deleteCliente(c.id)">🗑️</button>
+        </div>
+      </div>
+      <div class="contact-info">
+        <p><span class="text-muted">Tel:</span> {{ c.telefono }}</p>
+        <p><span class="text-muted">Email:</span> {{ c.email }}</p>
+        <p><span class="text-muted">Dir:</span> {{ c.direccion }}</p>
+      </div>
+      <div class="card-footer">
+        <span class="badge" [class.badge-blue]="c.tipo==='empresa'" [class.badge-green]="c.tipo==='persona'">{{ c.tipo }}</span>
+        <span class="text-muted text-xs">Reg: {{ c.fecha_registro }}</span>
+      </div>
+    </div>
+    <div class="empty-state" *ngIf="filtered.length === 0">No se encontraron clientes</div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="dialogOpen" (click)="closeDialog()"></div>
+  <div class="modal" *ngIf="dialogOpen">
+    <div class="modal-header"><h2>{{ editingCliente ? 'Editar Cliente' : 'Nuevo Cliente' }}</h2><button class="btn-ghost" (click)="closeDialog()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre *</label><input class="input" [(ngModel)]="form.nombre" placeholder="Nombre o Razón Social" /></div>
+      <div class="form-row">
+        <div class="form-group"><label>Teléfono</label><input class="input" [(ngModel)]="form.telefono" placeholder="555-0000" /></div>
+        <div class="form-group"><label>Email</label><input class="input" [(ngModel)]="form.email" placeholder="correo@email.com" type="email" /></div>
+      </div>
+      <div class="form-group"><label>Dirección</label><input class="input" [(ngModel)]="form.direccion" placeholder="Dirección completa" /></div>
+      <div class="form-row">
+        <div class="form-group"><label>Sector</label>
+          <select class="select w-full" [(ngModel)]="form.sector_empresarial">
+            <option *ngFor="let s of sectorOptions" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Tipo</label>
+          <select class="select w-full" [(ngModel)]="form.tipo">
+            <option value="empresa">Empresa</option><option value="persona">Persona</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary w-full" (click)="handleSubmit()">{{ editingCliente ? 'Guardar Cambios' : 'Crear Cliente' }}</button>
+    </div>
+  </div>
+</div>

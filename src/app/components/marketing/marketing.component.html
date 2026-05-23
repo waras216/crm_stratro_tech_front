@@ -1,0 +1,60 @@
+<div class="space-y">
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input class="input" placeholder="Buscar campañas..." [(ngModel)]="search" /></div>
+    <button class="btn btn-primary" (click)="openNew()">+ Nueva Campaña</button>
+  </div>
+
+  <div class="card-grid">
+    <div class="card" *ngFor="let camp of filtered">
+      <div class="card-row">
+        <div>
+          <h3 class="fw-semibold">{{ camp.nombre_compania }}</h3>
+          <p class="text-muted text-sm">{{ camp.segmento }}</p>
+        </div>
+        <div class="flex-row">
+          <button class="btn-ghost" (click)="handleEdit(camp)">✏️</button>
+          <button class="btn-ghost" (click)="deleteCampana(camp.id)">🗑️</button>
+        </div>
+      </div>
+      <div class="flex-row mt-12">
+        <span class="badge" [ngClass]="estadoColors[camp.estado]">{{ camp.estado }}</span>
+        <span class="text-muted text-xs">Inicio: {{ camp.fecha_inicio }}</span>
+      </div>
+      <button class="expand-btn" (click)="toggleExpanded(camp.id)">
+        👥 {{ camp.n_contacto }} contactos
+      </button>
+      <div class="contact-list" *ngIf="expandedCamp===camp.id">
+        <div class="contact-item" *ngFor="let c of camp.lista_contactos">
+          <div class="contact-avatar">{{ c.nombre.charAt(0) }}</div>
+          <div>
+            <p class="fw-medium text-sm">{{ c.nombre }}</p>
+            <p class="text-muted text-xs">✉️ {{ c.email }} <span *ngIf="c.telefono"> · 📞 {{ c.telefono }}</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="empty-state" *ngIf="filtered.length===0">No se encontraron campañas</div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="dialogOpen" (click)="closeDialog()"></div>
+  <div class="modal" *ngIf="dialogOpen">
+    <div class="modal-header"><h2>{{ editingCamp ? 'Editar Campaña' : 'Nueva Campaña' }}</h2><button class="btn-ghost" (click)="closeDialog()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre *</label><input class="input" [(ngModel)]="form.nombre_compania" placeholder="Nombre de la campaña" /></div>
+      <div class="form-row">
+        <div class="form-group"><label>Segmento</label><input class="input" [(ngModel)]="form.segmento" placeholder="Ej: Empresas Tecnología" /></div>
+        <div class="form-group"><label>Fecha de Inicio</label><input class="input" type="date" [(ngModel)]="form.fecha_inicio" /></div>
+      </div>
+      <div class="form-group"><label>Estado</label>
+        <select class="select w-full" [(ngModel)]="form.estado">
+          <option value="activa">Activa</option><option value="pausada">Pausada</option><option value="finalizada">Finalizada</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Contactos (uno por línea: Nombre, Email, Teléfono)</label>
+        <textarea class="textarea" [(ngModel)]="contactosInput" placeholder="Juan Pérez, juan@email.com, 555-0000&#10;María García, maria@email.com" rows="4"></textarea>
+      </div>
+      <button class="btn btn-primary w-full" (click)="handleSubmit()">{{ editingCamp ? 'Guardar Cambios' : 'Crear Campaña' }}</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; @media (max-width: 768px) { grid-template-columns: repeat(2, 1fr); } }
+.sum-row { display: flex; align-items: center; gap: 12px; }
+.sum-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700;
+  &.blue { background: #dbeafe; color: #2563eb; } &.amber { background: #fef3c7; color: #d97706; } &.green { background: #dcfce7; color: #16a34a; } &.purple { background: #f3e8ff; color: #7c3aed; } }
+.kpi-value { font-size: 22px; font-weight: 700; color: #1e293b; margin: 0; }
+.kpi-label { font-size: 12px; color: #64748b; margin: 2px 0 0; }
+.chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; @media (max-width: 768px) { grid-template-columns: 1fr; } }
+.chart-title { font-size: 14px; font-weight: 600; margin: 0 0 16px; }
+.bar-row { margin-bottom: 12px; }
+.bar-label { display: flex; justify-content: space-between; font-size: 13px; color: #374151; margin-bottom: 4px; }
+.bar-bg { height: 8px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 999px; transition: width .3s;
+  &.blue { background: #3b82f6; } &.green { background: #22c55e; } &.amber { background: #f59e0b; }
+  &.purple { background: #a855f7; } &.teal { background: #14b8a6; } &.red { background: #ef4444; } }
+.act-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0; text-align: center; }
+.act-num { p { font-size: 24px; font-weight: 700; margin: 0; } span { font-size: 12px; color: #64748b; } }
+.act-num.green-num p { color: #16a34a; }
+.act-num.amber-num p { color: #d97706; }
+.value-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: center; @media (max-width: 640px) { grid-template-columns: repeat(2, 1fr); } }
+.value-cell { background: #f8fafc; padding: 16px; border-radius: 8px; span { font-size: 12px; color: #64748b; } }
+.value-num { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+.blue-num { color: #2563eb; } .green-num { color: #16a34a; } .amber-num { color: #d97706; } .slate-num { color: #374151; }

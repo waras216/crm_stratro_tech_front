@@ -1,0 +1,54 @@
+<div class="layout-wrapper">
+  <div class="mobile-overlay" *ngIf="mobileOpen" (click)="mobileOpen = false"></div>
+
+  <aside class="sidebar" [class.collapsed]="collapsed" [class.open]="mobileOpen">
+    <div class="sidebar-header">
+      <ng-container *ngIf="!collapsed">
+        <div class="brand">
+          <div class="brand-icon-box">🎯</div>
+          <span class="brand-name">CRM Pro</span>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="collapsed">
+        <div class="brand-icon-box-center">🎯</div>
+      </ng-container>
+      <button class="btn-icon mobile-close" (click)="mobileOpen = false">✕</button>
+      <button class="btn-icon desktop-collapse" (click)="collapsed = !collapsed">
+        {{ collapsed ? '›' : '‹' }}
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button
+        *ngFor="let item of menuItems"
+        class="nav-item"
+        [class.active]="moduloActivo === item.id"
+        [class.centered]="collapsed"
+        (click)="onNavigate(item.id)"
+        [title]="item.label"
+      >
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span class="nav-label" *ngIf="!collapsed">{{ item.label }}</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer" *ngIf="!collapsed">
+      <div class="avatar-circle">A</div>
+      <div class="user-info">
+        <p class="user-name">Administrador</p>
+        <p class="user-email">admin@crm.pro</p>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <header class="top-bar">
+      <button class="btn-icon mobile-menu-btn" (click)="mobileOpen = true">☰</button>
+      <h1 class="page-title">{{ getActiveLabel() }}</h1>
+      <div class="user-avatar-top">A</div>
+    </header>
+    <main class="content-area">
+      <ng-content></ng-content>
+    </main>
+  </div>
+</div>

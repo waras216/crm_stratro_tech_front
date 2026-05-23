@@ -1,0 +1,94 @@
+<div class="space-y">
+  <div class="toolbar">
+    <input class="input" style="max-width:300px" placeholder="Buscar oportunidades..." [(ngModel)]="search" />
+    <div class="flex-row">
+      <div class="view-toggle">
+        <button [class.active]="viewMode==='kanban'" (click)="viewMode='kanban'">Kanban</button>
+        <button [class.active]="viewMode==='lista'" (click)="viewMode='lista'">Lista</button>
+      </div>
+      <button class="btn btn-primary" (click)="openNew()">+ Nueva</button>
+    </div>
+  </div>
+
+  <!-- Kanban -->
+  <div class="kanban-grid" *ngIf="viewMode==='kanban'">
+    <div class="kanban-col" *ngFor="let etapa of etapas" [ngClass]="etapaColors[etapa]">
+      <div class="kanban-col-header">
+        <h3 class="capitalize">{{ etapa }}</h3>
+        <span class="count-badge">{{ opsByEtapa(etapa).length }}</span>
+      </div>
+      <div class="kanban-cards">
+        <div class="card kanban-card" *ngFor="let op of opsByEtapa(etapa)">
+          <p class="fw-medium text-sm">{{ op.nombre }}</p>
+          <p class="text-muted text-xs">{{ op.cliente }}</p>
+          <p class="op-value">${{ op.valor.toLocaleString() }}</p>
+          <div class="flex-row">
+            <button class="btn-ghost sm" (click)="handleMove(op.id, 'prev')">←</button>
+            <button class="btn-ghost sm" (click)="handleEdit(op)">✏️</button>
+            <button class="btn-ghost sm" (click)="deleteOp(op.id)">🗑️</button>
+            <button class="btn-ghost sm" (click)="handleMove(op.id, 'next')">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div class="card p-0" *ngIf="viewMode==='lista'">
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Nombre</th><th>Cliente</th><th>Pipeline</th><th>Etapa</th><th>Valor</th><th class="text-right">Acciones</th></tr></thead>
+        <tbody>
+          <ng-container *ngFor="let op of filtered">
+            <tr>
+              <td class="fw-medium">{{ op.nombre }}</td>
+              <td>{{ op.cliente }}</td>
+              <td>{{ op.pipeline }}</td>
+              <td><span class="badge" [ngClass]="etapaBadge[op.etapa]">{{ op.etapa }}</span></td>
+              <td class="fw-medium" style="color:#2563eb">${{ op.valor.toLocaleString() }}</td>
+              <td class="text-right">
+                <button class="btn-ghost" (click)="toggleExpanded(op.id)">{{ expandedOp===op.id ? '▲' : '▼' }}</button>
+                <button class="btn-ghost" (click)="handleEdit(op)">✏️</button>
+                <button class="btn-ghost" (click)="deleteOp(op.id)">🗑️</button>
+              </td>
+            </tr>
+            <tr *ngIf="expandedOp===op.id">
+              <td colspan="6" class="history-row">
+                <p class="text-muted text-xs fw-medium mb-4">Historial de Etapas</p>
+                <div *ngFor="let h of op.historial_etapas" class="history-item">
+                  <span class="history-dot"></span>
+                  <span class="capitalize">{{ h.etapa }}</span>
+                  <span class="text-muted">{{ h.fecha }}</span>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+          <tr *ngIf="filtered.length===0"><td colspan="6" class="empty-row">No se encontraron oportunidades</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="dialogOpen" (click)="closeDialog()"></div>
+  <div class="modal" *ngIf="dialogOpen">
+    <div class="modal-header"><h2>{{ editingOp ? 'Editar Oportunidad' : 'Nueva Oportunidad' }}</h2><button class="btn-ghost" (click)="closeDialog()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre *</label><input class="input" [(ngModel)]="form.nombre" placeholder="Nombre de la oportunidad" /></div>
+      <div class="form-group"><label>Cliente *</label>
+        <select class="select w-full" [(ngModel)]="form.cliente">
+          <option value="">Seleccionar cliente</option>
+          <option *ngFor="let c of clientes" [value]="c.nombre">{{ c.nombre }}</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Pipeline</label>
+          <select class="select w-full" [(ngModel)]="form.pipeline">
+            <option value="Ventas">Ventas</option><option value="Servicios">Servicios</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Valor ($)</label><input class="input" type="number" [(ngModel)]="form.valor" placeholder="0" /></div>
+      </div>
+      <button class="btn btn-primary w-full" (click)="handleSubmit()">{{ editingOp ? 'Guardar Cambios' : 'Crear Oportunidad' }}</button>
+    </div>
+  </div>
+</div>

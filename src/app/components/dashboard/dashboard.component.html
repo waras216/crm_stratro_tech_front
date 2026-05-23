@@ -1,0 +1,63 @@
+<div class="space-y">
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="card" *ngFor="let kpi of kpis">
+      <div class="kpi-content">
+        <div>
+          <p class="kpi-label">{{ kpi.title }}</p>
+          <p class="kpi-value">{{ kpi.value }}</p>
+        </div>
+        <div class="kpi-icon" [ngClass]="kpi.color">{{ kpi.icon }}</div>
+      </div>
+      <p class="kpi-trend" [class.up]="kpi.up" [class.down]="!kpi.up">{{ kpi.trend }} vs mes anterior</p>
+    </div>
+  </div>
+
+  <!-- 2-col -->
+  <div class="two-col">
+    <!-- Recent Leads -->
+    <div class="card">
+      <div class="card-header"><h2 class="card-title">Leads Recientes</h2></div>
+      <div class="list">
+        <div class="list-row" *ngFor="let lead of recentLeads">
+          <div class="avatar-blue">{{ lead.nombre.charAt(0) }}</div>
+          <div class="flex-1">
+            <p class="fw-medium">{{ lead.nombre }}</p>
+            <p class="text-muted text-sm">{{ lead.email }}</p>
+          </div>
+          <span class="text-muted text-sm mr-8">{{ lead.fuente }}</span>
+          <span class="badge" [ngClass]="estatusColors[lead.estatus]">{{ lead.estatus }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="card">
+      <div class="card-header"><h2 class="card-title">Actividades Recientes</h2></div>
+      <div class="list">
+        <div class="list-row" *ngFor="let act of recentActivities">
+          <div class="dot" [class.dot-green]="act.completada" [class.dot-amber]="!act.completada"></div>
+          <div class="flex-1">
+            <p class="fw-medium text-sm" [class.line-through]="act.completada" [class.text-muted]="act.completada">{{ act.actividad }}</p>
+            <p class="text-muted text-xs">{{ act.tipo_actividad }} • {{ act.fecha }}</p>
+          </div>
+          <span class="badge badge-amber" *ngIf="!act.completada">Pendiente</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pipeline overview -->
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">Estado del Pipeline</h2></div>
+    <div class="pipeline-grid">
+      <div class="pipeline-cell" *ngFor="let etapa of etapas" [ngClass]="etapaColors[etapa]">
+        <p class="pipeline-count">{{ etapaCount(etapa) }}</p>
+        <p class="pipeline-label">{{ etapa }}</p>
+        <p class="pipeline-value" *ngIf="etapaCount(etapa) > 0">${{ etapaValue(etapa).toLocaleString() }}</p>
+      </div>
+    </div>
+  </div>
+
+</div>

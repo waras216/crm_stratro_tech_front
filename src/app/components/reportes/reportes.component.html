@@ -1,0 +1,68 @@
+<div class="space-y">
+  <!-- Summary -->
+  <div class="summary-grid">
+    <div class="card"><div class="sum-row"><div class="sum-icon blue">👥</div><div><p class="kpi-value">{{ leads.length }}</p><p class="kpi-label">Total Leads</p></div></div></div>
+    <div class="card"><div class="sum-row"><div class="sum-icon amber">🎯</div><div><p class="kpi-value">{{ oportunidades.length }}</p><p class="kpi-label">Oportunidades</p></div></div></div>
+    <div class="card"><div class="sum-row"><div class="sum-icon green">$</div><div><p class="kpi-value">${{ totalValue.toLocaleString() }}</p><p class="kpi-label">Valor Total Pipeline</p></div></div></div>
+    <div class="card"><div class="sum-row"><div class="sum-icon purple">📊</div><div><p class="kpi-value">{{ completedActs }}/{{ actividades.length }}</p><p class="kpi-label">Actividades Completadas</p></div></div></div>
+  </div>
+
+  <div class="chart-grid">
+    <!-- Leads por fuente -->
+    <div class="card"><h3 class="chart-title">📊 Leads por Fuente</h3>
+      <div *ngFor="let item of leadsBySource" class="bar-row">
+        <div class="bar-label"><span>{{ item.key }}</span><span class="fw-medium">{{ item.val }}</span></div>
+        <div class="bar-bg"><div class="bar-fill blue" [style.width]="barWidth(item.val, leadsBySource)"></div></div>
+      </div>
+    </div>
+    <!-- Leads por estado -->
+    <div class="card"><h3 class="chart-title">📈 Leads por Estado</h3>
+      <div *ngFor="let item of leadsByStatus" class="bar-row">
+        <div class="bar-label"><span class="capitalize">{{ item.key }}</span><span class="fw-medium">{{ item.val }}</span></div>
+        <div class="bar-bg"><div class="bar-fill green" [style.width]="barWidth(item.val, leadsByStatus)"></div></div>
+      </div>
+    </div>
+    <!-- Oportunidades por etapa -->
+    <div class="card"><h3 class="chart-title">📊 Oportunidades por Etapa</h3>
+      <div *ngFor="let item of oppsByStage" class="bar-row">
+        <div class="bar-label"><span class="capitalize">{{ item.key }}</span><span class="fw-medium">{{ item.val }}</span></div>
+        <div class="bar-bg"><div class="bar-fill amber" [style.width]="barWidth(item.val, oppsByStage)"></div></div>
+      </div>
+    </div>
+    <!-- Por pipeline -->
+    <div class="card"><h3 class="chart-title">🔀 Oportunidades por Pipeline</h3>
+      <div *ngFor="let item of oppsByPipeline" class="bar-row">
+        <div class="bar-label"><span>{{ item.key }}</span><span class="fw-medium">{{ item.val }}</span></div>
+        <div class="bar-bg"><div class="bar-fill purple" [style.width]="barWidth(item.val, oppsByPipeline)"></div></div>
+      </div>
+    </div>
+    <!-- Clientes por sector -->
+    <div class="card"><h3 class="chart-title">🏢 Clientes por Sector</h3>
+      <div *ngFor="let item of clientsBySector" class="bar-row">
+        <div class="bar-label"><span>{{ item.key }}</span><span class="fw-medium">{{ item.val }}</span></div>
+        <div class="bar-bg"><div class="bar-fill teal" [style.width]="barWidth(item.val, clientsBySector)"></div></div>
+      </div>
+    </div>
+    <!-- Actividades -->
+    <div class="card"><h3 class="chart-title">⚡ Actividades por Tipo</h3>
+      <div *ngFor="let item of activitiesByType" class="bar-row">
+        <div class="bar-label"><span class="capitalize">{{ item.key }}</span><span class="fw-medium">{{ item.val }}</span></div>
+        <div class="bar-bg"><div class="bar-fill red" [style.width]="barWidth(item.val, activitiesByType)"></div></div>
+      </div>
+      <div class="act-summary">
+        <div class="act-num green-num"><p>{{ completedActs }}</p><span>Completadas</span></div>
+        <div class="act-num amber-num"><p>{{ pendingActs }}</p><span>Pendientes</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Values -->
+  <div class="card"><h3 class="chart-title">💵 Resumen de Valores</h3>
+    <div class="value-grid">
+      <div class="value-cell"><p class="value-num blue-num">${{ avgValue.toLocaleString() }}</p><span>Valor Promedio</span></div>
+      <div class="value-cell"><p class="value-num green-num">${{ ganadas().toLocaleString() }}</p><span>Ganadas</span></div>
+      <div class="value-cell"><p class="value-num amber-num">${{ enProgreso().toLocaleString() }}</p><span>En Progreso</span></div>
+      <div class="value-cell"><p class="value-num slate-num">{{ clientes.length }}</p><span>Total Clientes</span></div>
+    </div>
+  </div>
+</div>

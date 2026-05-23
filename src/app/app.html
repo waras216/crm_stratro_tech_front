@@ -1,0 +1,11 @@
+<app-layout [moduloActivo]="moduloActivo" (navigate)="navigate($event)">
+  <app-dashboard      *ngIf="moduloActivo === 'dashboard'"></app-dashboard>
+  <app-leads          *ngIf="moduloActivo === 'leads'"></app-leads>
+  <app-oportunidades  *ngIf="moduloActivo === 'oportunidades'"></app-oportunidades>
+  <app-clientes       *ngIf="moduloActivo === 'clientes'"></app-clientes>
+  <app-actividades    *ngIf="moduloActivo === 'actividades'"></app-actividades>
+  <app-marketing      *ngIf="moduloActivo === 'marketing'"></app-marketing>
+  <app-automatizar    *ngIf="moduloActivo === 'automatizar'"></app-automatizar>
+  <app-reportes       *ngIf="moduloActivo === 'reportes'"></app-reportes>
+  <app-integraciones  *ngIf="moduloActivo === 'integraciones'"></app-integraciones>
+</app-layout>

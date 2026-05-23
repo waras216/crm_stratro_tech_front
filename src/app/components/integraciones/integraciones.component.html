@@ -1,0 +1,78 @@
+<div class="space-y">
+  <div class="integ-grid">
+    <div class="card" *ngFor="let integ of integraciones" [class.disconnected]="integ.estado !== 'conectada'">
+      <div class="integ-header">
+        <div class="flex-row gap-12">
+          <div class="integ-icon" [style.background]="tipoConfig[integ.tipo]?.bg">
+            <span>{{ tipoConfig[integ.tipo]?.icon }}</span>
+          </div>
+          <div>
+            <h3 class="fw-semibold">{{ integ.nombre }}</h3>
+            <div class="estado-row">
+              <span>{{ estadoConfig[integ.estado]?.icon }}</span>
+              <span [style.color]="estadoConfig[integ.estado]?.color" class="text-sm">{{ estadoConfig[integ.estado]?.label }}</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-ghost" (click)="openConfig(integ)" title="Configuración">⚙️</button>
+      </div>
+
+      <div class="config-info" *ngIf="configEntries(integ).length > 0">
+        <div class="config-row" *ngFor="let entry of configEntries(integ)">
+          <span class="text-muted capitalize">{{ entry.k }}:</span>
+          <span class="fw-medium">{{ entry.v }}</span>
+        </div>
+      </div>
+
+      <div class="integ-footer">
+        <label class="switch-label">
+          <div class="toggle-switch" [class.on]="integ.estado === 'conectada'" (click)="toggle(integ.id)">
+            <div class="toggle-knob"></div>
+          </div>
+          <span class="text-sm">{{ integ.estado === 'conectada' ? 'Activada' : 'Desactivada' }}</span>
+        </label>
+        <button class="btn" [class.btn-danger]="integ.estado === 'conectada'" [class.btn-primary]="integ.estado !== 'conectada'" (click)="toggle(integ.id)">
+          🔌 {{ integ.estado === 'conectada' ? 'Desconectar' : 'Conectar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info card -->
+  <div class="info-card">
+    <div class="info-icon">💬</div>
+    <div>
+      <h4 class="fw-semibold" style="color:#1e40af;margin:0 0 4px">WhatsApp Business API</h4>
+      <p class="text-sm" style="color:#3b82f6;margin:0">Conecta WhatsApp Business para enviar mensajes automatizados, recibir notificaciones y gestionar conversaciones directamente desde el CRM.</p>
+    </div>
+  </div>
+
+  <!-- Config dialog -->
+  <div class="modal-backdrop" *ngIf="selected" (click)="closeConfig()"></div>
+  <div class="modal" *ngIf="selected">
+    <div class="modal-header">
+      <h2>Configuración: {{ selected.nombre }}</h2>
+      <button class="btn-ghost" (click)="closeConfig()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="config-detail-row">
+        <span class="text-muted">Estado</span>
+        <span [style.color]="estadoConfig[selected.estado]?.color" class="fw-medium">{{ estadoConfig[selected.estado]?.label }}</span>
+      </div>
+      <div class="config-detail-row">
+        <span class="text-muted">Tipo</span>
+        <span class="fw-medium capitalize">{{ selected.tipo }}</span>
+      </div>
+      <div class="config-detail-row" *ngFor="let entry of configEntries(selected)">
+        <span class="text-muted capitalize">{{ entry.k }}</span>
+        <span class="fw-medium">{{ entry.v }}</span>
+      </div>
+      <button class="btn w-full mt-16"
+        [class.btn-danger]="selected.estado === 'conectada'"
+        [class.btn-primary]="selected.estado !== 'conectada'"
+        (click)="toggle(selected.id); closeConfig()">
+        🔌 {{ selected.estado === 'conectada' ? 'Desconectar' : 'Conectar' }}
+      </button>
+    </div>
+  </div>
+</div>
