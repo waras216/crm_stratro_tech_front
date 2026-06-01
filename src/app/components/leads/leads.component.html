@@ -4,9 +4,9 @@
     <div class="toolbar-left">
       <div class="search-wrap">
         <span class="search-icon">🔍</span>
-        <input class="input" placeholder="Buscar leads..." [(ngModel)]="search" />
+        <input class="input" placeholder="Buscar leads..." [(ngModel)]="search" (ngModelChange)="onSearchChange()" />
       </div>
-      <select class="select" [(ngModel)]="filterEstatus">
+      <select class="select" [(ngModel)]="filterEstatus" (ngModelChange)="onFiltroChange()">
         <option value="todos">Todos</option>
         <option *ngFor="let e of estatusOptions" [value]="e">{{ e }}</option>
       </select>
@@ -14,75 +14,95 @@
     <button class="btn btn-primary" (click)="openNew()">+ Nuevo Lead</button>
   </div>
 
+  <!-- Error -->
+  <div class="alert-error" *ngIf="error">{{ error }}</div>
+
+  <!-- Loading -->
+  <div class="loading-row" *ngIf="cargando">Cargando leads...</div>
+
   <!-- Table -->
-  <div class="card p-0">
+  <div class="card p-0" *ngIf="!cargando">
     <div class="table-wrap">
       <table class="table">
         <thead>
           <tr>
-            <th>Nombre</th><th>Email</th><th>Teléfono</th><th>Fuente</th><th>Estatus</th><th>Fecha</th><th class="text-right">Acciones</th>
+            <th>Nombre</th>
+            <th>Fuente</th>
+            <th>Estatus</th>
+            <th>Fecha</th>
+            <th class="text-right">Acciones</th>
           </tr>
         </thead>
-        <tbody>
-          <tr *ngFor="let lead of filtered">
-            <td class="fw-medium">{{ lead.nombre }}</td>
-            <td>{{ lead.email }}</td>
-            <td>{{ lead.telefono }}</td>
-            <td>{{ lead.fuente }}</td>
-            <td><span class="badge" [ngClass]="estatusColors[lead.estatus]">{{ lead.estatus }}</span></td>
-            <td class="text-muted">{{ lead.fecha_creacion }}</td>
-            <td class="text-right">
-              <button class="btn-ghost" (click)="handleEdit(lead)">✏️</button>
-              <button class="btn-ghost" (click)="deleteLead(lead.id)">🗑️</button>
-            </td>
-          </tr>
-          <tr *ngIf="filtered.length === 0">
-            <td colspan="7" class="empty-row">No se encontraron leads</td>
-          </tr>
+          <tbody>
+            <tr *ngFor="let lead of (leads || [])">
+              <td class="fw-medium">{{ lead.titulo }}</td>
+              <td>{{ lead.fuente }}</td>
+              <td><span class="badge" [ngClass]="estatusColors[lead.estado]">{{ lead.estado }}</span></td>
+              <td class="text-muted">{{ lead.created_at | date:'dd/MM/yyyy' }}</td>
+              <td class="text-right">
+                <button class="btn-ghost" (click)="handleEdit(lead)">✏️</button>
+                <button class="btn-ghost" (click)="deleteLead(lead.id_lead)">🗑️</button>
+              </td>
+            </tr>
+            <tr *ngIf="!leads || leads.length === 0">
+              <td colspan="5" class="empty-row">No se encontraron leads</td>
+            </tr>
         </tbody>
       </table>
     </div>
+
+    <!-- Paginación -->
+    <div class="pagination" *ngIf="totalPaginas > 1">
+      <button class="btn-ghost" (click)="paginar(paginaActual - 1)" [disabled]="paginaActual === 1">‹</button>
+      <span class="text-muted">Página {{ paginaActual }} de {{ totalPaginas }} ({{ total }} registros)</span>
+      <button class="btn-ghost" (click)="paginar(paginaActual + 1)" [disabled]="paginaActual === totalPaginas">›</button>
+    </div>
   </div>
 
-  <!-- Dialog -->
+  <!-- Modal backdrop -->
   <div class="modal-backdrop" *ngIf="dialogOpen" (click)="closeDialog()"></div>
+
+  <!-- Modal -->
   <div class="modal" *ngIf="dialogOpen">
     <div class="modal-header">
       <h2>{{ editingLead ? 'Editar Lead' : 'Nuevo Lead' }}</h2>
       <button class="btn-ghost" (click)="closeDialog()">✕</button>
     </div>
     <div class="modal-body">
+
       <div class="form-group">
-        <label>Nombre *</label>
-        <input class="input" [(ngModel)]="form.nombre" placeholder="Nombre completo" />
+        <label>Nombre / Título *</label>
+        <input class="input" [(ngModel)]="form.titulo" placeholder="Ej. Interés en sistema ERP" />
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Email</label>
-          <input class="input" [(ngModel)]="form.email" placeholder="correo@email.com" type="email" />
-        </div>
-        <div class="form-group">
-          <label>Teléfono</label>
-          <input class="input" [(ngModel)]="form.telefono" placeholder="555-0000" />
-        </div>
+
+      <div class="form-group mt-3">
+        <label>Valor Estimado ($)</label>
+        <input type="number" class="input w-full" [(ngModel)]="form.valor_estimado" placeholder="Ej. 15000.00" min="0" step="0.01" />
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Fuente</label>
           <select class="select w-full" [(ngModel)]="form.fuente">
-            <option *ngFor="let f of fuenteOptions" [value]="f">{{ f }}</option>
+            <option *ngFor="let f of fuenteOptions" [value]="f">{{ f | titlecase}}</option>
           </select>
         </div>
         <div class="form-group">
           <label>Estatus</label>
-          <select class="select w-full" [(ngModel)]="form.estatus">
-            <option *ngFor="let e of estatusOptions" [value]="e">{{ e }}</option>
+          <select class="select w-full" [(ngModel)]="form.estado">
+            <option *ngFor="let e of estatusOptions" [value]="e">{{ e | titlecase}}</option>
           </select>
         </div>
+        <div class="form-group mt-3 mb-4">
+          <label>Descripcion</label>
+          <textarea class="input w-full h-full" [(ngModel)]="form.descripcion" rows="3" placeholder="Detalles adicionales o notas sobre este lead..."></textarea>
+        </div>        
       </div>
+
       <button class="btn btn-primary w-full" (click)="handleSubmit()">
         {{ editingLead ? 'Guardar Cambios' : 'Crear Lead' }}
       </button>
+
     </div>
   </div>
 </div>

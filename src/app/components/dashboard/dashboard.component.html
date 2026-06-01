@@ -21,13 +21,13 @@
       <div class="card-header"><h2 class="card-title">Leads Recientes</h2></div>
       <div class="list">
         <div class="list-row" *ngFor="let lead of recentLeads">
-          <div class="avatar-blue">{{ lead.nombre.charAt(0) }}</div>
+          <div class="avatar-blue">{{ lead.titulo.charAt(0) }}</div>
           <div class="flex-1">
-            <p class="fw-medium">{{ lead.nombre }}</p>
-            <p class="text-muted text-sm">{{ lead.email }}</p>
+            <p class="fw-medium">{{ lead.titulo }}</p>
+            <p class="text-muted text-sm">{{ lead.cliente?.email }}</p>
           </div>
           <span class="text-muted text-sm mr-8">{{ lead.fuente }}</span>
-          <span class="badge" [ngClass]="estatusColors[lead.estatus]">{{ lead.estatus }}</span>
+          <span class="badge" [ngClass]="estatusColors[lead.estado]">{{ lead.estado }}</span>
         </div>
       </div>
     </div>

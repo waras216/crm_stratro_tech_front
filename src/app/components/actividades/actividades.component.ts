@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { CrmService } from '../../services/crm.service';
+import { CrmService } from '../../core/services/crm-service';
 import { Actividad } from '../../models/crm.models';
 
 @Component({ selector: 'app-actividades', standalone: false, templateUrl: './actividades.component.html', styleUrls: ['./actividades.component.scss'] })
 export class ActividadesComponent implements OnInit {
   actividades: Actividad[] = [];
   search = ''; filterTipo = 'todos'; showCompleted = true; dialogOpen = false; editingAct: Actividad | null = null;
+  cargando = false;
+
   tipoOptions = ['llamada', 'correo', 'reunion', 'tarea', 'nota', 'seguimiento'];
   tipoColors: Record<string, string> = {
     llamada: 'badge-blue', correo: 'badge-purple', reunion: 'badge-green',
@@ -16,7 +18,16 @@ export class ActividadesComponent implements OnInit {
   form = { actividad: '', tipo_actividad: 'tarea' as Actividad['tipo_actividad'], recordatorio: '', fecha: '', completada: false };
 
   constructor(private crm: CrmService) {}
-  ngOnInit() { this.crm.actividades$.subscribe(a => this.actividades = a); }
+
+  ngOnInit() { this.cargar(); }
+
+  cargar() {
+    this.cargando = true;
+    this.crm.cargarActividades().subscribe({
+      next: res => { this.actividades = res.data ?? []; this.cargando = false; },
+      error: () => { this.cargando = false; }
+    });
+  }
 
   get filtered() {
     return this.actividades.filter(a => {
@@ -29,15 +40,23 @@ export class ActividadesComponent implements OnInit {
 
   resetForm() { this.form = { actividad: '', tipo_actividad: 'tarea', recordatorio: '', fecha: new Date().toISOString().split('T')[0], completada: false }; this.editingAct = null; }
   openNew() { this.resetForm(); this.dialogOpen = true; }
-  handleEdit(a: Actividad) { this.editingAct = a; this.form = { actividad: a.actividad, tipo_actividad: a.tipo_actividad, recordatorio: a.recordatorio, fecha: a.fecha, completada: a.completada }; this.dialogOpen = true; }
+
+  handleEdit(a: Actividad) {
+    this.editingAct = a;
+    this.form = { actividad: a.actividad, tipo_actividad: a.tipo_actividad, recordatorio: a.recordatorio ?? '', fecha: a.fecha ?? '', completada: a.completada ?? false };
+    this.dialogOpen = true;
+  }
+
   handleSubmit() {
     if (!this.form.actividad) return;
     const data = { ...this.form, fecha: this.form.fecha || new Date().toISOString().split('T')[0] };
-    if (this.editingAct) { this.crm.updateActividad(this.editingAct.id_pk, data); }
-    else { this.crm.addActividad(data); }
-    this.dialogOpen = false; this.resetForm();
+    const obs = this.editingAct
+      ? this.crm.updateActividad(this.editingAct.id_pk, data)
+      : this.crm.addActividad(data);
+    obs.subscribe({ next: () => { this.dialogOpen = false; this.resetForm(); this.cargar(); } });
   }
-  toggleActividad(id: number) { this.crm.toggleActividad(id); }
-  deleteActividad(id: number) { this.crm.deleteActividad(id); }
+
+  toggleActividad(id: number) { this.crm.toggleActividad(id).subscribe(() => this.cargar()); }
+  deleteActividad(id: number) { this.crm.deleteActividad(id).subscribe(() => this.cargar()); }
   closeDialog() { this.dialogOpen = false; this.resetForm(); }
 }

@@ -21,7 +21,7 @@
         <div class="card kanban-card" *ngFor="let op of opsByEtapa(etapa)">
           <p class="fw-medium text-sm">{{ op.nombre }}</p>
           <p class="text-muted text-xs">{{ op.cliente }}</p>
-          <p class="op-value">${{ op.valor.toLocaleString() }}</p>
+          <p class="op-value">${{ ( op.valor ?? 0).toLocaleString() }}</p>
           <div class="flex-row">
             <button class="btn-ghost sm" (click)="handleMove(op.id, 'prev')">←</button>
             <button class="btn-ghost sm" (click)="handleEdit(op)">✏️</button>
@@ -45,7 +45,7 @@
               <td>{{ op.cliente }}</td>
               <td>{{ op.pipeline }}</td>
               <td><span class="badge" [ngClass]="etapaBadge[op.etapa]">{{ op.etapa }}</span></td>
-              <td class="fw-medium" style="color:#2563eb">${{ op.valor.toLocaleString() }}</td>
+              <td class="fw-medium" style="color:#2563eb">${{ ( op.valor ?? 0).toLocaleString() }}</td>
               <td class="text-right">
                 <button class="btn-ghost" (click)="toggleExpanded(op.id)">{{ expandedOp===op.id ? '▲' : '▼' }}</button>
                 <button class="btn-ghost" (click)="handleEdit(op)">✏️</button>

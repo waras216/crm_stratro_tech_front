@@ -1,11 +1,20 @@
 export interface Lead {
   id: number;
-  nombre: string;
+  id_lead: number;
+  id_tenant?: number;
+  titulo: string;
+  estado: string;
   fuente: string;
-  estatus: 'nuevo' | 'contactado' | 'calificado' | 'perdido' | 'convertido';
+  nombre?: string;
+  estatus?: string;
   email?: string;
   telefono?: string;
-  fecha_creacion: string;
+  descripcion?: string;
+  valor_estimado?: number|string|null;
+  fecha_creacion?: string;
+  created_at?: string;
+  cliente?: Cliente;
+  usuario?: Usuario;
 }
 
 export interface HistorialEtapa {
@@ -16,33 +25,41 @@ export interface HistorialEtapa {
 
 export interface Oportunidad {
   id: number;
+  id_oportunidad: number;
   nombre: string;
   pipeline: string;
   etapa: 'prospeccion' | 'contacto' | 'propuesta' | 'negociacion' | 'cierre' | 'ganada' | 'perdida';
-  historial_etapas: HistorialEtapa[];
-  valor: number;
-  cliente: string;
-  fecha_creacion: string;
+  historial_etapas?: HistorialEtapa[];
+  valor?: number;
+  cliente?: string;
+  fecha_creacion?: string;
+  created_at?: string;
 }
 
 export interface Cliente {
   id: number;
+  id_cliente: number;
+  id_tenant?: number;
   nombre: string;
-  telefono: string;
-  email: string;
-  direccion: string;
-  sector_empresarial: string;
-  fecha_registro: string;
+  telefono?: string;
+  email?: string;
+  direccion?: string;
+  sector_empresarial?: string;
+  empresa?: string;
+  rfc?: string;
+  fecha_registro?: string;
   tipo: 'empresa' | 'persona';
+  activo?: number;
+  created_at?: string;
 }
 
 export interface Actividad {
   id_pk: number;
   actividad: string;
   tipo_actividad: 'llamada' | 'correo' | 'reunion' | 'tarea' | 'nota' | 'seguimiento';
-  recordatorio: string;
-  fecha: string;
-  completada: boolean;
+  recordatorio?: string;
+  fecha?: string;
+  completada?: boolean;
   entidad_tipo?: string;
   entidad_id?: number;
 }
@@ -60,8 +77,8 @@ export interface MarketingCampana {
   segmento: string;
   lista_contactos: ContactoMarketing[];
   n_contacto: number;
-  estado: 'activa' | 'pausada' | 'finalizada';
-  fecha_inicio: string;
+  estado?: string;
+  fecha_inicio?: string;
 }
 
 export interface Automatizacion {
@@ -71,7 +88,7 @@ export interface Automatizacion {
   evento: string;
   accion: string;
   activa: boolean;
-  fecha_creacion: string;
+  fecha_creacion?: string;
 }
 
 export interface Integracion {
@@ -82,13 +99,13 @@ export interface Integracion {
   configuracion?: Record<string, string | undefined>;
 }
 
+export interface Usuario {
+  id_usuario: number;
+  id_tenant:  number;
+  nombre:     string;
+  email:      string;
+}
+
 export type ModuloCRM =
-  | 'dashboard'
-  | 'leads'
-  | 'oportunidades'
-  | 'clientes'
-  | 'actividades'
-  | 'marketing'
-  | 'automatizar'
-  | 'reportes'
-  | 'integraciones';
+  | 'dashboard' | 'leads' | 'oportunidades' | 'clientes'
+  | 'actividades' | 'marketing' | 'automatizar' | 'reportes' | 'integraciones';

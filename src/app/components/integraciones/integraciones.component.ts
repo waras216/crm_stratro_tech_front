@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { CrmService } from '../../services/crm.service';
+import { CrmService } from '../../core/services/crm-service';
 import { Integracion } from '../../models/crm.models';
 
 @Component({ selector: 'app-integraciones', standalone: false, templateUrl: './integraciones.component.html', styleUrls: ['./integraciones.component.scss'] })
 export class IntegracionesComponent implements OnInit {
   integraciones: Integracion[] = [];
   selected: Integracion | null = null;
+  cargando = false;
 
   tipoConfig: Record<string, { icon: string; color: string; bg: string }> = {
     whatsapp:      { icon: '💬', color: '#16a34a', bg: '#dcfce7' },
@@ -22,16 +23,27 @@ export class IntegracionesComponent implements OnInit {
   };
 
   constructor(private crm: CrmService) {}
-  ngOnInit() { this.crm.integraciones$.subscribe(i => this.integraciones = i); }
 
-  toggle(id: number) { this.crm.toggleIntegracion(id); }
+  ngOnInit() { this.cargar(); }
+
+  cargar() {
+    this.cargando = true;
+    this.crm.cargarIntegraciones().subscribe({
+      next: res => { this.integraciones = res.data ?? []; this.cargando = false; },
+      error: () => { this.cargando = false; }
+    });
+  }
+
+  toggle(id: number) { this.crm.toggleIntegracion(id).subscribe(() => this.cargar()); }
   openConfig(integ: Integracion) { this.selected = integ; }
   closeConfig() { this.selected = null; }
+
   configEntries(integ: Integracion): {k: string; v: string}[] {
     if (!integ.configuracion) return [];
     return Object.entries(integ.configuracion)
       .filter(([, v]) => v && v.trim() !== '')
       .map(([k, v]) => ({ k, v: v as string }));
   }
+
   getIntegById(id: number) { return this.integraciones.find(i => i.id === id); }
 }

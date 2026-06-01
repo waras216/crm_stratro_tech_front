@@ -17,7 +17,7 @@
         </div>
       </div>
       <div class="flex-row mt-12">
-        <span class="badge" [ngClass]="estadoColors[camp.estado]">{{ camp.estado }}</span>
+        <span class="badge" [ngClass]="estadoColors[camp.estado || 'activa']">{{ camp.estado }}</span>
         <span class="text-muted text-xs">Inicio: {{ camp.fecha_inicio }}</span>
       </div>
       <button class="expand-btn" (click)="toggleExpanded(camp.id)">
