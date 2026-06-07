@@ -1,0 +1,107 @@
+<div class="flex flex-col gap-5 fade-up">
+
+  <!-- ── KPI GRID ── -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div *ngFor="let k of kpis"
+      class="relative overflow-hidden rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 cursor-default"
+      style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+      <div class="absolute -right-3 -top-3 w-16 h-16 rounded-full opacity-10" [ngClass]="k.color"></div>
+      <div class="flex justify-between items-start mb-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" [ngClass]="k.color">
+          <span [innerHTML]="k.svg"></span>
+        </div>
+        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none"
+          [class.bg-emerald-50]="k.up" [class.text-emerald-600]="k.up"
+          [class.bg-rose-50]="!k.up"  [class.text-rose-500]="!k.up">
+          {{ k.up ? '↑' : '↓' }} {{ k.trend }}
+        </span>
+      </div>
+      <p class="text-2xl font-extrabold leading-none m-0" style="color:#1e1b4b">{{ k.value }}</p>
+      <p class="text-[11px] text-slate-400 mt-1 mb-0 truncate">{{ k.title }}</p>
+    </div>
+  </div>
+
+  <!-- ── 2-COL ROW ── -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+    <!-- Recent Leads -->
+    <div class="rounded-2xl overflow-hidden" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+      <div class="flex items-center justify-between px-5 pt-5 pb-3">
+        <div>
+          <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Leads Recientes</h2>
+          <p class="text-[11px] text-slate-400 m-0 mt-0.5">Últimas entradas al pipeline</p>
+        </div>
+        <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full cursor-pointer hover:opacity-80"
+          style="background:#eef2ff;color:#6366f1">Ver todos</span>
+      </div>
+      <div class="px-3 pb-4 flex flex-col gap-0.5">
+        <div *ngFor="let lead of recentLeads"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-indigo-50/50 cursor-pointer group">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+            style="background:linear-gradient(135deg,#818cf8,#a78bfa)">{{ lead.titulo.charAt(0).toUpperCase() }}</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold text-slate-700 m-0 truncate">{{ lead.titulo }}</p>
+            <p class="text-[10px] text-slate-400 m-0 truncate">{{ lead.cliente?.email }}</p>
+          </div>
+          <span class="hidden sm:block text-[10px] text-slate-400 font-medium">{{ lead.fuente }}</span>
+          <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold" [ngClass]="estatusColors[lead.estado]">{{ lead.estado }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="rounded-2xl overflow-hidden" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+      <div class="flex items-center justify-between px-5 pt-5 pb-3">
+        <div>
+          <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Actividades Recientes</h2>
+          <p class="text-[11px] text-slate-400 m-0 mt-0.5">Pendientes y completadas</p>
+        </div>
+        <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full cursor-pointer hover:opacity-80"
+          style="background:#eef2ff;color:#6366f1">Ver todas</span>
+      </div>
+      <div class="px-3 pb-4 flex flex-col gap-0.5">
+        <div *ngFor="let act of recentActivities"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-indigo-50/50 cursor-pointer">
+          <div class="w-2.5 h-2.5 rounded-full flex-shrink-0 ring-2"
+            [class.bg-emerald-400]="act.completada" [class.ring-emerald-100]="act.completada"
+            [class.bg-amber-400]="!act.completada"  [class.ring-amber-100]="!act.completada"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-medium text-slate-700 m-0 truncate"
+              [class.line-through]="act.completada" [class.text-slate-400]="act.completada">{{ act.actividad }}</p>
+            <p class="text-[10px] text-slate-400 m-0">{{ act.tipo_actividad }} · {{ act.fecha }}</p>
+          </div>
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
+            [class.bg-emerald-50]="act.completada" [class.text-emerald-600]="act.completada"
+            [class.bg-amber-50]="!act.completada"  [class.text-amber-600]="!act.completada">
+            {{ act.completada ? 'Listo' : 'Pendiente' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PIPELINE ── -->
+  <div class="rounded-2xl p-5" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    <div class="mb-4">
+      <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Estado del Pipeline</h2>
+      <p class="text-[11px] text-slate-400 m-0 mt-0.5">Distribución de oportunidades por etapa</p>
+    </div>
+    <!-- Progress bar -->
+    <div class="flex h-3 rounded-full overflow-hidden mb-5 gap-px bg-slate-100">
+      <div *ngFor="let etapa of etapas"
+        class="transition-all hover:brightness-95"
+        [style.flex]="etapaCount(etapa)||0"
+        [ngClass]="etapaBarColor[etapa]"
+        [title]="etapa+': '+etapaCount(etapa)"></div>
+    </div>
+    <!-- Etapa cards -->
+    <div class="grid grid-cols-5 gap-3">
+      <div *ngFor="let etapa of etapas" class="rounded-xl p-3 text-center" [ngClass]="etapaColors[etapa]">
+        <p class="text-xl font-extrabold leading-none m-0">{{ etapaCount(etapa) }}</p>
+        <p class="text-[10px] capitalize font-semibold mt-1 mb-0 opacity-70">{{ etapa }}</p>
+        <p *ngIf="etapaCount(etapa)>0" class="text-[10px] font-bold mt-1 mb-0">${{ etapaValue(etapa).toLocaleString() }}</p>
+      </div>
+    </div>
+  </div>
+
+</div>

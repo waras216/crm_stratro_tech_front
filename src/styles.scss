@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f0f2ff;
+  color: #1e1b4b;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #818cf8; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translate(-50%, -46%) scale(0.96); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.fade-up   { animation: fadeUp 0.22s ease-out forwards; }
+.modal-in  { animation: modalIn 0.22s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+/* Reusable badge colours driven by Tailwind */
+.badge-blue     { @apply bg-blue-100 text-blue-700; }
+.badge-amber    { @apply bg-amber-100 text-amber-700; }
+.badge-green    { @apply bg-green-100 text-green-700; }
+.badge-emerald  { @apply bg-emerald-100 text-emerald-700; }
+.badge-red      { @apply bg-red-100 text-red-600; }
+.badge-purple   { @apply bg-purple-100 text-purple-700; }
+.badge-teal     { @apply bg-teal-100 text-teal-700; }
+.badge-slate    { @apply bg-slate-100 text-slate-600; }
+
+/* Kanban column colours */
+.col-slate  { @apply bg-slate-50  border border-slate-200; }
+.col-blue   { @apply bg-blue-50   border border-blue-200; }
+.col-amber  { @apply bg-amber-50  border border-amber-200; }
+.col-purple { @apply bg-purple-50 border border-purple-200; }
+.col-teal   { @apply bg-teal-50   border border-teal-200; }
+
+/* KPI icon bg */
+.kpi-blue   { @apply bg-blue-100 text-blue-600; }
+.kpi-amber  { @apply bg-amber-100 text-amber-600; }
+.kpi-green  { @apply bg-green-100 text-green-600; }
+.kpi-purple { @apply bg-purple-100 text-purple-600; }
+.kpi-red    { @apply bg-red-100   text-red-500; }
+.kpi-teal   { @apply bg-teal-100  text-teal-600; }

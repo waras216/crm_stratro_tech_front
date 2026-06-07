@@ -1,0 +1,89 @@
+<div class="flex flex-col gap-6">
+  <!-- Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div class="bg-white border border-slate-200 rounded-xl p-4" *ngFor="let integ of integraciones"
+      [class.opacity-60]="integ.estado !== 'conectada'">
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl" [style.background]="tipoConfig[integ.tipo]?.bg">
+            <span>{{ tipoConfig[integ.tipo]?.icon }}</span>
+          </div>
+          <div>
+            <h3 class="font-semibold text-sm m-0">{{ integ.nombre }}</h3>
+            <div class="flex items-center gap-1 mt-0.5">
+              <span>{{ estadoConfig[integ.estado]?.icon }}</span>
+              <span [style.color]="estadoConfig[integ.estado]?.color" class="text-xs">{{ estadoConfig[integ.estado]?.label }}</span>
+            </div>
+          </div>
+        </div>
+        <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100 text-base" (click)="openConfig(integ)" title="Configuración"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></button>
+      </div>
+
+      <div *ngIf="configEntries(integ).length > 0" class="flex flex-col gap-1 border-t border-slate-100 pt-3 mb-3">
+        <div class="flex justify-between text-xs" *ngFor="let entry of configEntries(integ)">
+          <span class="text-slate-400 capitalize">{{ entry.k }}:</span>
+          <span class="font-medium text-slate-700">{{ entry.v }}</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <div class="relative w-10 h-5 rounded-full transition-colors cursor-pointer"
+            [class.bg-blue-500]="integ.estado === 'conectada'" [class.bg-slate-200]="integ.estado !== 'conectada'"
+            (click)="toggle(integ.id)">
+            <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+              [class.translate-x-5]="integ.estado === 'conectada'" [class.translate-x-0.5]="integ.estado !== 'conectada'"></div>
+          </div>
+          <span class="text-xs text-slate-500">{{ integ.estado === 'conectada' ? 'Activada' : 'Desactivada' }}</span>
+        </label>
+        <button class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border-0 cursor-pointer"
+          [class.bg-red-100]="integ.estado === 'conectada'" [class.text-red-700]="integ.estado === 'conectada'"
+          [class.hover:bg-red-200]="integ.estado === 'conectada'"
+          [class.bg-blue-600]="integ.estado !== 'conectada'" [class.text-white]="integ.estado !== 'conectada'"
+          [class.hover:bg-blue-700]="integ.estado !== 'conectada'"
+          (click)="toggle(integ.id)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg> {{ integ.estado === 'conectada' ? 'Desconectar' : 'Conectar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info card -->
+  <div class="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+    <div class="text-2xl flex-shrink-0"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+    <div>
+      <h4 class="font-semibold text-blue-800 m-0 mb-1">WhatsApp Business API</h4>
+      <p class="text-sm text-blue-600 m-0">Conecta WhatsApp Business para enviar mensajes automatizados, recibir notificaciones y gestionar conversaciones directamente desde el CRM.</p>
+    </div>
+  </div>
+
+  <!-- Config dialog backdrop -->
+  <div *ngIf="selected" class="fixed inset-0 bg-black/45 z-[100]" (click)="closeConfig()"></div>
+  <!-- Config dialog -->
+  <div *ngIf="selected" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center px-6 pt-5">
+      <h2 class="m-0 text-lg font-semibold">Configuración: {{ selected.nombre }}</h2>
+      <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100" (click)="closeConfig()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="px-6 py-5 flex flex-col gap-3">
+      <div class="flex justify-between py-2 border-b border-slate-100 text-sm">
+        <span class="text-slate-400">Estado</span>
+        <span [style.color]="estadoConfig[selected.estado]?.color" class="font-medium">{{ estadoConfig[selected.estado]?.label }}</span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-slate-100 text-sm">
+        <span class="text-slate-400">Tipo</span>
+        <span class="font-medium capitalize">{{ selected.tipo }}</span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-slate-100 text-sm" *ngFor="let entry of configEntries(selected)">
+        <span class="text-slate-400 capitalize">{{ entry.k }}</span>
+        <span class="font-medium">{{ entry.v }}</span>
+      </div>
+      <button class="w-full mt-4 px-4 py-2.5 rounded-lg text-sm font-medium border-0 cursor-pointer"
+        [class.bg-red-100]="selected.estado === 'conectada'" [class.text-red-700]="selected.estado === 'conectada'"
+        [class.bg-blue-600]="selected.estado !== 'conectada'" [class.text-white]="selected.estado !== 'conectada'"
+        (click)="toggle(selected.id); closeConfig()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg> {{ selected.estado === 'conectada' ? 'Desconectar' : 'Conectar' }}
+      </button>
+    </div>
+  </div>
+</div>
