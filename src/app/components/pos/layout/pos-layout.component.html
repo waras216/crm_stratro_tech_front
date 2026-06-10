@@ -1,0 +1,20 @@
+<div class="flex flex-col h-screen" style="background:#f8fafc">
+  <!-- POS Header -->
+  <header class="h-14 flex items-center px-5 gap-4 flex-shrink-0 border-b border-slate-200"
+    style="background:linear-gradient(135deg,#059669,#10b981);color:#fff">
+    <div class="flex items-center gap-2.5">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+      <span class="text-sm font-bold tracking-tight">Punto de Venta</span>
+    </div>
+    <div class="ml-auto flex items-center gap-4 text-xs font-medium opacity-90">
+      <span>Cajero: {{ cajero }}</span>
+      <span>{{ now | date:'dd/MM/yyyy HH:mm' }}</span>
+    </div>
+  </header>
+  <!-- Content -->
+  <div class="flex-1 overflow-hidden p-4">
+    <ng-content></ng-content>
+  </div>
+</div>
