@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Oportunidad } from '../../models/crm.models';
+import { Oportunidad } from '../../../models/crm.models';
 
 @Component({ selector: 'app-oportunidades', standalone: false, templateUrl: './oportunidades.component.html', styleUrls: ['./oportunidades.component.scss'] })
 export class OportunidadesComponent {

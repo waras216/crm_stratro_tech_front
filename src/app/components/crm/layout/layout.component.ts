@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ModuloCRM } from '../../models/crm.models';
+import { ModuloCRM } from '../../../models/crm.models';
 
 interface MenuItem { id: ModuloCRM; label: string; svg: SafeHtml; }
 

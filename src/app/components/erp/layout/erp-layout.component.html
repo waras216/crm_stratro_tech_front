@@ -1,0 +1,25 @@
+<div class="flex flex-col h-screen" style="background:#f8fafc">
+  <!-- ERP Header -->
+  <header class="flex-shrink-0 border-b border-slate-200"
+    style="background:linear-gradient(135deg,#d97706,#f59e0b)">
+    <div class="h-14 flex items-center px-5 gap-4">
+      <div class="flex items-center gap-2.5 text-white">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+        <span class="text-sm font-bold tracking-tight">ERP</span>
+      </div>
+      <nav class="ml-6 flex gap-1">
+        <button *ngFor="let tab of tabs"
+          (click)="cambiarTab.emit(tab.id)"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold border-0 cursor-pointer transition-all"
+          [ngClass]="tabActivo===tab.id ? 'bg-white/20 text-white' : 'bg-transparent text-white/70 hover:text-white hover:bg-white/10'">
+          <span>{{ tab.icon }}</span> {{ tab.label }}
+        </button>
+      </nav>
+    </div>
+  </header>
+  <div class="flex-1 overflow-auto p-5">
+    <ng-content></ng-content>
+  </div>
+</div>

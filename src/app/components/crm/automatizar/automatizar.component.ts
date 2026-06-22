@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { CrmService } from '../../core/services/crm-service';
-import { Automatizacion } from '../../models/crm.models';
+import { CrmService } from '../../../core/services/crm-service';
+import { Automatizacion } from '../../../models/crm.models';
 
 @Component({ selector: 'app-automatizar', standalone: false, templateUrl: './automatizar.component.html', styleUrls: ['./automatizar.component.scss'] })
 export class AutomatizarComponent implements OnInit {

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { CrmService } from '../../core/services/crm-service';
-import { MarketingCampana } from '../../models/crm.models';
+import { CrmService } from '../../../core/services/crm-service';
+import { MarketingCampana } from '../../../models/crm.models';
 
 interface ContactoMarketing { id: number; nombre: string; email: string; telefono?: string; }
 

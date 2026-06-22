@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { CrmService } from '../../core/services/crm-service';
-import { Lead, Oportunidad, Cliente, Actividad } from '../../models/crm.models';
+import { CrmService } from '../../../core/services/crm-service';
+import { Lead, Oportunidad, Cliente, Actividad } from '../../../models/crm.models';
 
 @Component({ selector: 'app-reportes', standalone: false, templateUrl: './reportes.component.html', styleUrls: ['./reportes.component.scss'] })
 export class ReportesComponent implements OnInit {

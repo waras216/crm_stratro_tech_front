@@ -6,23 +6,46 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
-import { LayoutComponent } from './components/layout/layout.component';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { LeadsComponent } from './components/leads/leads.component';
-import { OportunidadesComponent } from './components/oportunidades/oportunidades.component';
-import { ClientesComponent } from './components/clientes/clientes.component';
-import { ActividadesComponent } from './components/actividades/actividades.component';
-import { MarketingComponent } from './components/marketing/marketing.component';
-import { AutomatizarComponent } from './components/automatizar/automatizar.component';
-import { ReportesComponent } from './components/reportes/reportes.component';
-import { IntegracionesComponent } from './components/integraciones/integraciones.component';
-import { AuthInterceptor } from '../app/core/interceptors/auth-interceptor-interceptor';
-import { ErrorInterceptor } from '../app/core/interceptors/error-interceptor-interceptor';
-import { Login } from './components/login/login';
+
+// Shared
+import { AppSwitcherComponent } from './components/shared/app-switcher.component';
+
+// CRM
+import { LayoutComponent } from './components/crm/layout/layout.component';
+import { DashboardComponent } from './components/crm/dashboard/dashboard.component';
+import { LeadsComponent } from './components/crm/leads/leads.component';
+import { OportunidadesComponent } from './components/crm/oportunidades/oportunidades.component';
+import { ClientesComponent } from './components/crm/clientes/clientes.component';
+import { ActividadesComponent } from './components/crm/actividades/actividades.component';
+import { MarketingComponent } from './components/crm/marketing/marketing.component';
+import { AutomatizarComponent } from './components/crm/automatizar/automatizar.component';
+import { ReportesComponent } from './components/crm/reportes/reportes.component';
+import { IntegracionesComponent } from './components/crm/integraciones/integraciones.component';
+import { Login } from './components/crm/login/login';
+
+// POS
+import { PosPageComponent } from './components/pos/pos-page.component';
+import { PosLayoutComponent } from './components/pos/layout/pos-layout.component';
+import { PosCatalogoComponent } from './components/pos/catalogo/catalogo.component';
+import { PosCarritoComponent } from './components/pos/carrito/carrito.component';
+import { PosTicketComponent } from './components/pos/ticket/ticket.component';
+
+// ERP
+import { ErpPageComponent } from './components/erp/erp-page.component';
+import { ErpLayoutComponent } from './components/erp/layout/erp-layout.component';
+import { ErpInventarioComponent } from './components/erp/inventario/inventario.component';
+import { ErpComprasComponent } from './components/erp/compras/compras.component';
+import { ErpFinanzasComponent } from './components/erp/finanzas/finanzas.component';
+
+// Interceptors
+import { AuthInterceptor } from './core/interceptors/auth-interceptor-interceptor';
+import { ErrorInterceptor } from './core/interceptors/error-interceptor-interceptor';
 
 @NgModule({
   declarations: [
     App,
+    AppSwitcherComponent,
+    // CRM
     Login,
     LayoutComponent,
     DashboardComponent,
@@ -34,6 +57,18 @@ import { Login } from './components/login/login';
     AutomatizarComponent,
     ReportesComponent,
     IntegracionesComponent,
+    // POS
+    PosPageComponent,
+    PosLayoutComponent,
+    PosCatalogoComponent,
+    PosCarritoComponent,
+    PosTicketComponent,
+    // ERP
+    ErpPageComponent,
+    ErpLayoutComponent,
+    ErpInventarioComponent,
+    ErpComprasComponent,
+    ErpFinanzasComponent,
   ],
   imports: [
     BrowserModule,

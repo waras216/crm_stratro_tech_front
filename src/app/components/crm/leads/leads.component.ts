@@ -1,7 +1,7 @@
 // src/app/components/leads/leads.component.ts
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CrmService } from '../../core/services/crm-service';
-import { Lead } from '../../models/crm.models';
+import { CrmService } from '../../../core/services/crm-service';
+import { Lead } from '../../../models/crm.models';
 
 @Component({ selector: 'app-leads', standalone: false, templateUrl: './leads.component.html', styleUrls: ['./leads.component.scss'] })
 export class LeadsComponent implements OnInit {

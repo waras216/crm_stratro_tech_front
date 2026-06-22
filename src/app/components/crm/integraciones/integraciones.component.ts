@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { CrmService } from '../../core/services/crm-service';
-import { Integracion } from '../../models/crm.models';
+import { CrmService } from '../../../core/services/crm-service';
+import { Integracion } from '../../../models/crm.models';
 
 @Component({ selector: 'app-integraciones', standalone: false, templateUrl: './integraciones.component.html', styleUrls: ['./integraciones.component.scss'] })
 export class IntegracionesComponent implements OnInit {

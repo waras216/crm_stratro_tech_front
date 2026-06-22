@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { CrmService } from '../../core/services/crm-service';
-import { Lead, Actividad, Oportunidad, Cliente } from '../../models/crm.models';
+import { CrmService } from '../../../core/services/crm-service';
+import { Lead, Actividad, Oportunidad, Cliente } from '../../../models/crm.models';
 
 const I = (p: string) =>
   `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">${p}</svg>`;
