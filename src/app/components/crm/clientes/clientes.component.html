@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-5 fade-up">
+<div class="flex flex-col gap-5 page-enter">
   <!-- Toolbar -->
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div class="flex items-center gap-2 flex-1 flex-wrap">
@@ -28,8 +28,9 @@
 
   <!-- Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-    <div *ngFor="let c of filtered"
-      class="rounded-2xl p-4 transition-all hover:-translate-y-0.5 group"
+    <div *ngFor="let c of filtered; let i = index"
+      class="rounded-2xl p-4 hover-lift group card-enter"
+      [style.animation-delay]="(i * 0.05) + 's'"
       style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
       <div class="flex items-start justify-between mb-3">
         <div class="flex items-center gap-3">

@@ -1,6 +1,5 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-
-export type AppMode = 'crm' | 'pos' | 'erp';
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-switcher',
@@ -9,6 +8,20 @@ export type AppMode = 'crm' | 'pos' | 'erp';
   styleUrls: ['./app-switcher.component.scss'],
 })
 export class AppSwitcherComponent {
-  @Input() activeApp: AppMode = 'crm';
-  @Output() switchApp = new EventEmitter<AppMode>();
+  open = false;
+
+  constructor(private router: Router) {}
+
+  isActive(path: string): boolean {
+    return this.router.url.startsWith('/' + path);
+  }
+
+  navigate(path: string) {
+    this.router.navigate(['/' + path]);
+    this.open = false;
+  }
+
+  toggle() {
+    this.open = !this.open;
+  }
 }

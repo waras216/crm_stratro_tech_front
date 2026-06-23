@@ -108,4 +108,4 @@ export interface Usuario {
 
 export type ModuloCRM =
   | 'dashboard' | 'leads' | 'oportunidades' | 'clientes'
-  | 'actividades' | 'marketing' | 'automatizar' | 'reportes' | 'integraciones';
+  | 'actividades' | 'marketing' | 'automatizar' | 'reportes' | 'integraciones' | 'configuracion';

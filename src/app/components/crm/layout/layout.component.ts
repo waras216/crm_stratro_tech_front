@@ -1,6 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ModuloCRM } from '../../../models/crm.models';
+import { AuthService } from '../../../core/auth/authservices';
+import { ThemeService } from '../../../core/theme.service';
 
 interface MenuItem { id: ModuloCRM; label: string; svg: SafeHtml; }
 
@@ -14,15 +17,16 @@ const I = (path: string) =>
   styleUrls: ['./layout.component.scss'],
 })
 export class LayoutComponent implements OnInit {
-  @Input() moduloActivo: ModuloCRM = 'dashboard';
-  @Output() navigate = new EventEmitter<ModuloCRM>();
-
   collapsed  = false;
   mobileOpen = false;
-  darkMode   = false;
   menuItems: MenuItem[];
+  logo: string | null = null;
+  userName = '';
+  userEmail = '';
 
-  constructor(private sanitizer: DomSanitizer) {
+  get darkMode() { return this.theme.isDark; }
+
+  constructor(private sanitizer: DomSanitizer, private router: Router, public auth: AuthService, public theme: ThemeService) {
     this.menuItems = ([
       { id: 'dashboard',     label: 'Dashboard',      svg: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>' },
       { id: 'leads',         label: 'Leads',           svg: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
@@ -40,20 +44,27 @@ export class LayoutComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.darkMode = localStorage.getItem('theme') === 'dark';
-    this.applyTheme();
+    this.theme.init();
+    this.logo = this.auth.getLogo();
+    const s = this.auth.session;
+    this.userName = s?.nombre || 'Usuario';
+    this.userEmail = s?.email || '';
   }
 
   toggleTheme() {
-    this.darkMode = !this.darkMode;
-    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
-    this.applyTheme();
+    this.theme.toggle();
   }
 
-  private applyTheme() {
-    document.documentElement.classList.toggle('dark', this.darkMode);
+  isActive(id: ModuloCRM): boolean {
+    return this.router.url.includes('/crm/' + id);
   }
 
-  onNavigate(id: ModuloCRM) { this.navigate.emit(id); this.mobileOpen = false; }
-  getActiveLabel() { return this.menuItems.find(m => m.id === this.moduloActivo)?.label ?? ''; }
+  getActiveLabel(): string {
+    return this.menuItems.find(m => this.isActive(m.id))?.label ?? '';
+  }
+
+  onNavigate(id: ModuloCRM) {
+    this.router.navigate(['/crm', id]);
+    this.mobileOpen = false;
+  }
 }

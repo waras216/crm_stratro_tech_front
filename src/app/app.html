@@ -1,26 +1,2 @@
-<app-switcher [activeApp]="appMode" (switchApp)="switchApp($event)"></app-switcher>
-
-<!-- CRM -->
-<div *ngIf="appMode==='crm'" class="h-screen">
-  <app-layout [moduloActivo]="moduloActivo" (navigate)="navigate($event)">
-    <app-dashboard      *ngIf="moduloActivo === 'dashboard'"></app-dashboard>
-    <app-leads          *ngIf="moduloActivo === 'leads'"></app-leads>
-    <app-oportunidades  *ngIf="moduloActivo === 'oportunidades'"></app-oportunidades>
-    <app-clientes       *ngIf="moduloActivo === 'clientes'"></app-clientes>
-    <app-actividades    *ngIf="moduloActivo === 'actividades'"></app-actividades>
-    <app-marketing      *ngIf="moduloActivo === 'marketing'"></app-marketing>
-    <app-automatizar    *ngIf="moduloActivo === 'automatizar'"></app-automatizar>
-    <app-reportes       *ngIf="moduloActivo === 'reportes'"></app-reportes>
-    <app-integraciones  *ngIf="moduloActivo === 'integraciones'"></app-integraciones>
-  </app-layout>
-</div>
-
-<!-- POS -->
-<div *ngIf="appMode==='pos'" class="h-screen">
-  <app-pos-page></app-pos-page>
-</div>
-
-<!-- ERP -->
-<div *ngIf="appMode==='erp'" class="h-screen">
-  <app-erp-page></app-erp-page>
-</div>
+<app-switcher *ngIf="showSwitcher"></app-switcher>
+<router-outlet></router-outlet>

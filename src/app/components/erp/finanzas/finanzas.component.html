@@ -1,15 +1,15 @@
-<div class="flex flex-col gap-5">
+<div class="flex flex-col gap-5 page-enter">
   <!-- KPIs -->
   <div class="grid grid-cols-3 gap-4">
-    <div class="bg-white rounded-xl p-4 border border-slate-100">
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1">
       <p class="text-xs text-slate-500 m-0">Ingresos</p>
       <p class="text-2xl font-bold text-emerald-600 m-0">${{ ingresos.toLocaleString() }}</p>
     </div>
-    <div class="bg-white rounded-xl p-4 border border-slate-100">
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2">
       <p class="text-xs text-slate-500 m-0">Egresos</p>
       <p class="text-2xl font-bold text-red-600 m-0">${{ egresos.toLocaleString() }}</p>
     </div>
-    <div class="bg-white rounded-xl p-4 border border-slate-100">
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3">
       <p class="text-xs text-slate-500 m-0">Balance</p>
       <p class="text-2xl font-bold m-0" [ngClass]="balance >= 0 ? 'text-emerald-600' : 'text-red-600'">${{ balance.toLocaleString() }}</p>
     </div>

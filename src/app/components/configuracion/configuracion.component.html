@@ -1,0 +1,284 @@
+<div class="flex flex-col gap-5 page-enter">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-lg font-bold m-0" style="color:#1e1b4b">Configuración</h1>
+      <p class="text-xs text-slate-400 m-0 mt-1">Administra las preferencias globales del sistema</p>
+    </div>
+    <button (click)="guardar()"
+      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
+      style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.4)">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Guardar
+    </button>
+  </div>
+
+  <!-- Toast -->
+  <div *ngIf="saved" class="fixed top-5 right-5 z-[300] flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-white scale-in"
+    style="background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 8px 24px rgba(16,185,129,.3)">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    Configuración guardada
+  </div>
+
+  <div class="flex gap-5">
+    <!-- Tabs lateral -->
+    <div class="w-52 flex-shrink-0 flex flex-col gap-1">
+      <button *ngFor="let tab of tabs" (click)="activeTab=tab.id"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all text-left w-full"
+        [ngClass]="activeTab===tab.id ? 'text-white' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'"
+        [style]="activeTab===tab.id ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.3)' : 'background:transparent'">
+        <span [innerHTML]="tab.icon"></span>
+        {{ tab.label }}
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 min-w-0">
+
+      <!-- General -->
+      <div *ngIf="activeTab==='general'" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
+        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        <div>
+          <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Información de la Empresa</h2>
+          <p class="text-[11px] text-slate-400 m-0 mt-1">Datos generales de tu organización</p>
+        </div>
+        <div class="flex items-center gap-5 pb-4" style="border-bottom:1px solid #eef2ff">
+          <div class="w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0"
+            style="background:#eef2ff;border:2px dashed #c7d2fe">
+            <img *ngIf="logoPreview" [src]="logoPreview" class="w-full h-full object-cover" />
+            <svg *ngIf="!logoPreview" width="24" height="24" fill="none" stroke="#a5b4fc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="flex flex-col gap-2">
+            <p class="text-xs font-medium m-0" style="color:#1e1b4b">Logo de la empresa</p>
+            <label class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all hover:scale-105"
+              style="background:#eef2ff;color:#6366f1">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Cambiar logo
+              <input type="file" accept="image/*" (change)="onLogoSelected($event)" class="hidden" />
+            </label>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] font-semibold" style="color:#6366f1">Nombre de la empresa</label>
+            <input [(ngModel)]="nombreEmpresa" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] font-semibold" style="color:#6366f1">Sector</label>
+            <input [(ngModel)]="sector" placeholder="Ej: Tecnología" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] font-semibold" style="color:#6366f1">Moneda</label>
+            <select [(ngModel)]="moneda" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
+              <option *ngFor="let m of monedas" [value]="m">{{ m }}</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] font-semibold" style="color:#6366f1">Idioma</label>
+            <select [(ngModel)]="idioma" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
+              <option *ngFor="let i of idiomas" [value]="i.val">{{ i.label }}</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] font-semibold" style="color:#6366f1">Zona horaria</label>
+            <select [(ngModel)]="zonaHoraria" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
+              <option *ngFor="let z of zonas" [value]="z">{{ z }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cuenta -->
+      <div *ngIf="activeTab==='cuenta'" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
+        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        <div>
+          <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Mi Cuenta</h2>
+          <p class="text-[11px] text-slate-400 m-0 mt-1">Información personal y acceso</p>
+        </div>
+        <div class="flex items-center gap-4 pb-4" style="border-bottom:1px solid #eef2ff">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold text-white"
+            style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">{{ nombre.charAt(0) || 'U' }}</div>
+          <div>
+            <p class="text-sm font-bold m-0" style="color:#1e1b4b">{{ nombre || 'Usuario' }}</p>
+            <p class="text-xs text-slate-400 m-0 mt-0.5">{{ email }}</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] font-semibold" style="color:#6366f1">Nombre</label>
+            <input [(ngModel)]="nombre" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] font-semibold" style="color:#6366f1">Teléfono</label>
+            <input [(ngModel)]="telefono" placeholder="+52 555 000 0000" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[11px] font-semibold" style="color:#6366f1">Email</label>
+          <input [(ngModel)]="email" type="email" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+        </div>
+        <div class="pt-3" style="border-top:1px solid #eef2ff">
+          <button (click)="logout()"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-all hover:scale-105"
+            style="background:#fff1f2;color:#e11d48">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+
+      <!-- Notificaciones -->
+      <div *ngIf="activeTab==='notificaciones'" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
+        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        <div>
+          <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Notificaciones</h2>
+          <p class="text-[11px] text-slate-400 m-0 mt-1">Controla cómo y cuándo recibes alertas</p>
+        </div>
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center justify-between py-3" style="border-bottom:1px solid #eef2ff">
+            <div>
+              <p class="text-sm font-medium m-0" style="color:#1e1b4b">Notificaciones por email</p>
+              <p class="text-[11px] text-slate-400 m-0 mt-0.5">Recibe alertas en tu correo electrónico</p>
+            </div>
+            <div (click)="notifEmail=!notifEmail" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
+              [style.background]="notifEmail ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#e2e8f0'">
+              <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-5]="notifEmail" [class.translate-x-0.5]="!notifEmail"></div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between py-3" style="border-bottom:1px solid #eef2ff">
+            <div>
+              <p class="text-sm font-medium m-0" style="color:#1e1b4b">Notificaciones push</p>
+              <p class="text-[11px] text-slate-400 m-0 mt-0.5">Alertas en tiempo real en el navegador</p>
+            </div>
+            <div (click)="notifPush=!notifPush" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
+              [style.background]="notifPush ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#e2e8f0'">
+              <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-5]="notifPush" [class.translate-x-0.5]="!notifPush"></div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between py-3" style="border-bottom:1px solid #eef2ff">
+            <div>
+              <p class="text-sm font-medium m-0" style="color:#1e1b4b">Nuevos leads</p>
+              <p class="text-[11px] text-slate-400 m-0 mt-0.5">Aviso cuando se registra un nuevo lead</p>
+            </div>
+            <div (click)="notifLeads=!notifLeads" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
+              [style.background]="notifLeads ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#e2e8f0'">
+              <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-5]="notifLeads" [class.translate-x-0.5]="!notifLeads"></div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between py-3" style="border-bottom:1px solid #eef2ff">
+            <div>
+              <p class="text-sm font-medium m-0" style="color:#1e1b4b">Recordatorios de actividades</p>
+              <p class="text-[11px] text-slate-400 m-0 mt-0.5">Alertas antes de actividades programadas</p>
+            </div>
+            <div (click)="notifActividades=!notifActividades" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
+              [style.background]="notifActividades ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#e2e8f0'">
+              <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-5]="notifActividades" [class.translate-x-0.5]="!notifActividades"></div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between py-3">
+            <div>
+              <p class="text-sm font-medium m-0" style="color:#1e1b4b">Reportes semanales</p>
+              <p class="text-[11px] text-slate-400 m-0 mt-0.5">Resumen semanal por email</p>
+            </div>
+            <div (click)="notifReportes=!notifReportes" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
+              [style.background]="notifReportes ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#e2e8f0'">
+              <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-5]="notifReportes" [class.translate-x-0.5]="!notifReportes"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Apariencia -->
+      <div *ngIf="activeTab==='apariencia'" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
+        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        <div>
+          <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Apariencia</h2>
+          <p class="text-[11px] text-slate-400 m-0 mt-1">Personaliza el aspecto visual del sistema</p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-[11px] font-semibold" style="color:#6366f1">Tema</label>
+          <div class="grid grid-cols-3 gap-3">
+            <button (click)="tema='light'"
+              class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all"
+              [style]="tema==='light' ? 'border-color:#6366f1;background:#eef2ff' : 'border-color:#e2e8f0;background:#fff'">
+              <svg width="24" height="24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              <span class="text-xs font-semibold" [style.color]="tema==='light' ? '#6366f1' : '#64748b'">Claro</span>
+            </button>
+            <button (click)="tema='dark'"
+              class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all"
+              [style]="tema==='dark' ? 'border-color:#6366f1;background:#eef2ff' : 'border-color:#e2e8f0;background:#fff'">
+              <svg width="24" height="24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              <span class="text-xs font-semibold" [style.color]="tema==='dark' ? '#6366f1' : '#64748b'">Oscuro</span>
+            </button>
+            <button (click)="tema='system'"
+              class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all"
+              [style]="tema==='system' ? 'border-color:#6366f1;background:#eef2ff' : 'border-color:#e2e8f0;background:#fff'">
+              <svg width="24" height="24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              <span class="text-xs font-semibold" [style.color]="tema==='system' ? '#6366f1' : '#64748b'">Sistema</span>
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center justify-between py-3" style="border-top:1px solid #eef2ff">
+          <div>
+            <p class="text-sm font-medium m-0" style="color:#1e1b4b">Sidebar compacto</p>
+            <p class="text-[11px] text-slate-400 m-0 mt-0.5">Inicia con el sidebar colapsado</p>
+          </div>
+          <div (click)="sidebarCompacto=!sidebarCompacto" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
+            [style.background]="sidebarCompacto ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#e2e8f0'">
+            <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-5]="sidebarCompacto" [class.translate-x-0.5]="!sidebarCompacto"></div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between py-3" style="border-top:1px solid #eef2ff">
+          <div>
+            <p class="text-sm font-medium m-0" style="color:#1e1b4b">Animaciones</p>
+            <p class="text-[11px] text-slate-400 m-0 mt-0.5">Efectos de transición en la interfaz</p>
+          </div>
+          <div (click)="animaciones=!animaciones" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
+            [style.background]="animaciones ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#e2e8f0'">
+            <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-5]="animaciones" [class.translate-x-0.5]="!animaciones"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seguridad -->
+      <div *ngIf="activeTab==='seguridad'" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
+        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        <div>
+          <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Seguridad</h2>
+          <p class="text-[11px] text-slate-400 m-0 mt-1">Protege tu cuenta y datos</p>
+        </div>
+        <div class="flex items-center justify-between py-3" style="border-bottom:1px solid #eef2ff">
+          <div>
+            <p class="text-sm font-medium m-0" style="color:#1e1b4b">Autenticación de dos factores</p>
+            <p class="text-[11px] text-slate-400 m-0 mt-0.5">Agrega una capa extra de seguridad</p>
+          </div>
+          <div (click)="dosFactores=!dosFactores" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
+            [style.background]="dosFactores ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#e2e8f0'">
+            <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-5]="dosFactores" [class.translate-x-0.5]="!dosFactores"></div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between py-3" style="border-bottom:1px solid #eef2ff">
+          <div>
+            <p class="text-sm font-medium m-0" style="color:#1e1b4b">Mantener sesión activa</p>
+            <p class="text-[11px] text-slate-400 m-0 mt-0.5">No cerrar sesión automáticamente</p>
+          </div>
+          <div (click)="sesionActiva=!sesionActiva" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
+            [style.background]="sesionActiva ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#e2e8f0'">
+            <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-5]="sesionActiva" [class.translate-x-0.5]="!sesionActiva"></div>
+          </div>
+        </div>
+        <div class="pt-3">
+          <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-all hover:scale-105"
+            style="background:#eef2ff;color:#6366f1">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Cambiar Contraseña
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

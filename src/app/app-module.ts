@@ -10,6 +10,11 @@ import { App } from './app';
 // Shared
 import { AppSwitcherComponent } from './components/shared/app-switcher.component';
 
+// Auth
+import { AuthLoginComponent } from './components/auth/login/login.component';
+import { AuthRegistroComponent } from './components/auth/registro/registro.component';
+import { AuthOnboardingComponent } from './components/auth/onboarding/onboarding.component';
+
 // CRM
 import { LayoutComponent } from './components/crm/layout/layout.component';
 import { DashboardComponent } from './components/crm/dashboard/dashboard.component';
@@ -21,7 +26,6 @@ import { MarketingComponent } from './components/crm/marketing/marketing.compone
 import { AutomatizarComponent } from './components/crm/automatizar/automatizar.component';
 import { ReportesComponent } from './components/crm/reportes/reportes.component';
 import { IntegracionesComponent } from './components/crm/integraciones/integraciones.component';
-import { Login } from './components/crm/login/login';
 
 // POS
 import { PosPageComponent } from './components/pos/pos-page.component';
@@ -33,9 +37,22 @@ import { PosTicketComponent } from './components/pos/ticket/ticket.component';
 // ERP
 import { ErpPageComponent } from './components/erp/erp-page.component';
 import { ErpLayoutComponent } from './components/erp/layout/erp-layout.component';
+import { ErpDashboardComponent } from './components/erp/dashboard/dashboard.component';
 import { ErpInventarioComponent } from './components/erp/inventario/inventario.component';
 import { ErpComprasComponent } from './components/erp/compras/compras.component';
 import { ErpFinanzasComponent } from './components/erp/finanzas/finanzas.component';
+import { ErpVentasComponent } from './components/erp/ventas/ventas.component';
+import { ErpFabricacionComponent } from './components/erp/fabricacion/fabricacion.component';
+import { ErpScmComponent } from './components/erp/scm/scm.component';
+import { ErpRrhhComponent } from './components/erp/rrhh/rrhh.component';
+import { ErpCrmComponent } from './components/erp/crm-erp/crm-erp.component';
+import { ErpProyectosComponent } from './components/erp/proyectos/proyectos.component';
+
+// Configuración
+import { ConfiguracionComponent } from './components/configuracion/configuracion.component';
+
+// Pricing
+import { PricingComponent } from './components/pricing/pricing.component';
 
 // Interceptors
 import { AuthInterceptor } from './core/interceptors/auth-interceptor-interceptor';
@@ -45,8 +62,11 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
   declarations: [
     App,
     AppSwitcherComponent,
+    // Auth
+    AuthLoginComponent,
+    AuthRegistroComponent,
+    AuthOnboardingComponent,
     // CRM
-    Login,
     LayoutComponent,
     DashboardComponent,
     LeadsComponent,
@@ -66,9 +86,20 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     // ERP
     ErpPageComponent,
     ErpLayoutComponent,
+    ErpDashboardComponent,
     ErpInventarioComponent,
     ErpComprasComponent,
     ErpFinanzasComponent,
+    ErpVentasComponent,
+    ErpFabricacionComponent,
+    ErpScmComponent,
+    ErpRrhhComponent,
+    ErpCrmComponent,
+    ErpProyectosComponent,
+    // Configuración
+    ConfiguracionComponent,
+    // Pricing
+    PricingComponent,
   ],
   imports: [
     BrowserModule,

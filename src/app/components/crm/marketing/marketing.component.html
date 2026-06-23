@@ -1,18 +1,10 @@
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-6 page-enter">
   <!-- Toolbar -->
-  <div class="flex items-center justify-between gap-3 flex-wrap">
-    <div class="relative flex items-center">
-      <span class="absolute left-2.5 text-sm pointer-events-none"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-      <input class="pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-sm w-56 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-        placeholder="Buscar campañas..." [(ngModel)]="search" />
-    </div>
-    <button class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 border-0 cursor-pointer"
-      (click)="openNew()">+ Nueva Campaña</button>
-  </div>
 
   <!-- Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-    <div class="bg-white border border-slate-200 rounded-xl p-4" *ngFor="let camp of filtered">
+    <div class="bg-white border border-slate-200 rounded-xl p-4 hover-lift card-enter" *ngFor="let camp of filtered; let i = index"
+      [style.animation-delay]="(i * 0.05) + 's'">
       <div class="flex items-start justify-between mb-3">
         <div>
           <h3 class="font-semibold text-sm m-0">{{ camp.nombre_compania }}</h3>

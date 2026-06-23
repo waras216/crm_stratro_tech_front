@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-5">
+<div class="flex flex-col gap-5 page-enter">
   <!-- Toolbar -->
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <input class="max-w-xs px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white"
@@ -36,8 +36,9 @@
 
       <!-- Cards -->
       <div class="flex flex-col gap-2 flex-1 min-h-[60px]">
-        <div class="bg-white border border-slate-100 rounded-lg p-3 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
-          *ngFor="let op of opsByEtapa(etapa)"
+        <div class="bg-white border border-slate-100 rounded-lg p-3 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-all hover-scale card-enter"
+          *ngFor="let op of opsByEtapa(etapa); let i = index"
+          [style.animation-delay]="(i * 0.04) + 's'"
           draggable="true"
           (dragstart)="onDragStart(op)">
           <p class="font-medium text-sm m-0 text-slate-800">{{ op.nombre }}</p>

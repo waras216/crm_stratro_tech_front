@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-6 page-enter">
   <!-- Toolbar -->
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div class="relative flex items-center">
@@ -12,7 +12,8 @@
 
   <!-- Grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-    <div class="bg-white border border-slate-200 rounded-xl p-4" *ngFor="let auto of filtered"
+    <div class="bg-white border border-slate-200 rounded-xl p-4 hover-lift card-enter" *ngFor="let auto of filtered; let i = index"
+      [style.animation-delay]="(i * 0.05) + 's'"
       [class.opacity-60]="!auto.activa">
       <div class="flex items-start justify-between mb-3">
         <div class="flex items-center gap-3">

@@ -1,1 +1,15 @@
-:host { display: block; height: 100%; }
+:host {
+  display: block;
+  height: 100%;
+}
+
+aside {
+  nav button:not([style*="gradient"]):hover {
+    background: rgba(16, 185, 129, 0.08) !important;
+    color: #d1fae5 !important;
+  }
+
+  nav::-webkit-scrollbar { width: 3px; }
+  nav::-webkit-scrollbar-track { background: transparent; }
+  nav::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.2); border-radius: 99px; }
+}

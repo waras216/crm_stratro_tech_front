@@ -1,0 +1,178 @@
+<div class="min-h-screen flex items-center justify-center p-4"
+  style="background:linear-gradient(135deg,#0f0a2e 0%,#1a1452 50%,#251b6e 100%)">
+  <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+    <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-10" style="background:radial-gradient(circle,#818cf8,transparent 70%)"></div>
+  </div>
+
+  <div class="relative w-full max-w-lg">
+    <!-- Progress -->
+    <div class="flex items-center justify-center gap-2 mb-8">
+      <div *ngFor="let s of [1,2,3]; let i = index" class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all"
+          [ngClass]="step > i ? 'text-white' : (step === i+1 ? 'text-white' : 'text-indigo-400')"
+          [style]="step > i ? 'background:linear-gradient(135deg,#10b981,#059669)' : (step === i+1 ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6)' : 'background:rgba(255,255,255,.08);border:1px solid rgba(129,140,248,.2)')">
+          <svg *ngIf="step > i+1" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <span *ngIf="step <= i+1">{{ i+1 }}</span>
+        </div>
+        <div *ngIf="i < 2" class="w-12 h-0.5 rounded-full transition-all duration-500" [style]="step > i+1 ? 'background:#10b981' : 'background:rgba(129,140,248,.2)'"></div>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white/[.04] backdrop-blur-xl rounded-2xl p-8 border border-white/10">
+
+      <!-- Step 1: Empresa -->
+      <div *ngIf="step===1" class="flex flex-col gap-5 fade-up">
+        <div class="text-center mb-2">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto icon-pop" style="background:rgba(99,102,241,.15)">
+            <svg width="24" height="24" fill="none" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21h18M3 7v14m6-14v14m6-14v14m6-14v14M6 7h12l-6-4-6 4z"/><path d="M6 11h.01M6 15h.01M6 19h.01M12 11h.01M12 15h.01M12 19h.01M18 11h.01M18 15h.01M18 19h.01"/></svg>
+          </div>
+          <h2 class="text-xl font-bold text-white m-0 mt-3">Tu Empresa</h2>
+          <p class="text-sm m-0 mt-1" style="color:#a5b4fc">Cuéntanos sobre tu negocio</p>
+        </div>
+        <div class="flex flex-col gap-1.5 slide-in stagger-1">
+          <label class="text-xs font-medium" style="color:#c7d2fe">Logo de la empresa</label>
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0"
+              style="background:rgba(255,255,255,.05);border:2px dashed rgba(129,140,248,.3)">
+              <img *ngIf="logoPreview" [src]="logoPreview" class="w-full h-full object-cover" />
+              <svg *ngIf="!logoPreview" width="20" height="20" fill="none" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <label class="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all hover:scale-105"
+              style="background:rgba(99,102,241,.15);color:#a5b4fc;border:1px solid rgba(129,140,248,.2)">
+              Subir logo
+              <input type="file" accept="image/*" (change)="onLogoSelected($event)" class="hidden" />
+            </label>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5 slide-in stagger-2">
+          <label class="text-xs font-medium" style="color:#c7d2fe">Nombre de la empresa *</label>
+          <input type="text" [(ngModel)]="empresa" placeholder="Mi Empresa SA"
+            class="w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+            style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)" />
+        </div>
+        <div class="flex flex-col gap-1.5 slide-in stagger-2">
+          <label class="text-xs font-medium" style="color:#c7d2fe">Sector</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button *ngFor="let s of sectores; let i = index" (click)="sector=s"
+              class="px-3 py-2.5 rounded-xl text-xs font-medium border cursor-pointer transition-all scale-in"
+              [ngClass]="sector===s ? 'text-white' : 'text-indigo-300 hover:text-white'"
+              [style]="sector===s ? 'background:rgba(99,102,241,.3);border-color:#6366f1' : 'background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)'">
+              {{ s }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Configuración -->
+      <div *ngIf="step===2" class="flex flex-col gap-5 fade-up">
+        <div class="text-center mb-2">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto icon-pop" style="background:rgba(99,102,241,.15)">
+            <svg width="24" height="24" fill="none" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <h2 class="text-xl font-bold text-white m-0 mt-3">Configuración</h2>
+          <p class="text-sm m-0 mt-1" style="color:#a5b4fc">Personaliza tu experiencia</p>
+        </div>
+        <div class="flex flex-col gap-1.5 slide-in stagger-1">
+          <label class="text-xs font-medium" style="color:#c7d2fe">Tamaño del equipo</label>
+          <div class="flex flex-col gap-2">
+            <button *ngFor="let t of tamanos; let i = index" (click)="tamano=t"
+              class="w-full px-4 py-3 rounded-xl text-sm font-medium border cursor-pointer transition-all text-left scale-in"
+              [ngClass]="tamano===t ? 'text-white' : 'text-indigo-300 hover:text-white'"
+              [style]="tamano===t ? 'background:rgba(99,102,241,.3);border-color:#6366f1' : 'background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)'">
+              {{ t }}
+            </button>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5 slide-in stagger-3">
+          <label class="text-xs font-medium" style="color:#c7d2fe">¿Cuántas sucursales tienes?</label>
+          <div class="flex flex-col gap-2">
+            <button *ngFor="let s of opcionesSucursales; let i = index" (click)="sucursales=s"
+              class="w-full px-4 py-3 rounded-xl text-sm font-medium border cursor-pointer transition-all text-left scale-in"
+              [ngClass]="sucursales===s ? 'text-white' : 'text-indigo-300 hover:text-white'"
+              [style]="sucursales===s ? 'background:rgba(99,102,241,.3);border-color:#6366f1' : 'background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)'">
+              {{ s }}
+            </button>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5 slide-in stagger-5">
+          <label class="text-xs font-medium" style="color:#c7d2fe">Moneda principal</label>
+          <select [(ngModel)]="moneda"
+            class="w-full px-4 py-3 rounded-xl border text-sm text-white focus:outline-none focus:border-indigo-400 cursor-pointer"
+            style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)">
+            <option *ngFor="let m of monedas" [value]="m" style="background:#1a1452">{{ m }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Step 3: Módulos -->
+      <div *ngIf="step===3" class="flex flex-col gap-5 fade-up">
+        <div class="text-center mb-2">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto icon-pop" style="background:rgba(99,102,241,.15)">
+            <svg width="24" height="24" fill="none" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          </div>
+          <h2 class="text-xl font-bold text-white m-0 mt-3">Módulos</h2>
+          <p class="text-sm m-0 mt-1" style="color:#a5b4fc">¿Qué necesitas para tu negocio?</p>
+        </div>
+        <div class="flex flex-col gap-3">
+          <label class="flex items-center gap-4 px-4 py-4 rounded-xl border cursor-pointer transition-all scale-in stagger-1"
+            [style]="modulos.crm ? 'background:rgba(99,102,241,.15);border-color:#6366f1' : 'background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)'">
+            <input type="checkbox" [(ngModel)]="modulos.crm" class="w-4 h-4 accent-indigo-500" />
+            <div>
+              <p class="m-0 text-sm font-semibold text-white">CRM</p>
+              <p class="m-0 text-xs" style="color:#a5b4fc">Gestión de clientes, leads y oportunidades</p>
+            </div>
+          </label>
+          <label class="flex items-center gap-4 px-4 py-4 rounded-xl border cursor-pointer transition-all scale-in stagger-2"
+            [style]="modulos.pos ? 'background:rgba(16,185,129,.15);border-color:#10b981' : 'background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)'">
+            <input type="checkbox" [(ngModel)]="modulos.pos" class="w-4 h-4 accent-emerald-500" />
+            <div>
+              <p class="m-0 text-sm font-semibold text-white">Punto de Venta</p>
+              <p class="m-0 text-xs" style="color:#a5b4fc">Terminal POS, catálogo y tickets</p>
+            </div>
+          </label>
+          <label class="flex items-center gap-4 px-4 py-4 rounded-xl border cursor-pointer transition-all scale-in stagger-3"
+            [style]="modulos.erp ? 'background:rgba(245,158,11,.15);border-color:#f59e0b' : 'background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)'">
+            <input type="checkbox" [(ngModel)]="modulos.erp" class="w-4 h-4 accent-amber-500" />
+            <div>
+              <p class="m-0 text-sm font-semibold text-white">ERP</p>
+              <p class="m-0 text-xs" style="color:#a5b4fc">Inventario, compras y finanzas</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-between mt-8" *ngIf="!showWelcome">
+        <button *ngIf="step > 1" (click)="prev()"
+          class="px-5 py-2.5 rounded-xl border-0 cursor-pointer text-sm font-medium transition-all"
+          style="background:rgba(255,255,255,.06);color:#c7d2fe">
+          ← Atrás
+        </button>
+        <div *ngIf="step===1"></div>
+        <button (click)="next()"
+          class="px-6 py-2.5 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all hover:opacity-90"
+          style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 20px rgba(99,102,241,.4)">
+          {{ step === totalSteps ? 'Comenzar' : 'Siguiente →' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de bienvenida -->
+<div *ngIf="showWelcome" class="fixed inset-0 z-50 flex items-center justify-center p-4 welcome-overlay">
+  <div class="absolute inset-0" style="background:rgba(15,10,46,.85);backdrop-filter:blur(8px)"></div>
+  <div class="relative w-full max-w-sm bg-white/[.06] backdrop-blur-2xl rounded-3xl p-8 border border-white/10 text-center welcome-card">
+    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 icon-pop" style="background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 8px 32px rgba(16,185,129,.4)">
+      <svg width="28" height="28" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2 class="text-2xl font-extrabold text-white m-0">¡Bienvenido!</h2>
+    <p class="text-sm mt-2 mb-6" style="color:#a5b4fc">Tu cuenta de <span class="font-semibold text-white">{{ empresa }}</span> está lista. Todo configurado para que comiences a trabajar.</p>
+    <button (click)="goToDashboard()"
+      class="w-full py-3.5 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all hover:opacity-90"
+      style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 20px rgba(99,102,241,.4)">
+      Ir al Dashboard →
+    </button>
+  </div>
+</div>

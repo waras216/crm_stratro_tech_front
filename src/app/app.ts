@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { ModuloCRM } from './models/crm.models';
-import { AppMode } from './components/shared/app-switcher.component';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -9,9 +9,11 @@ import { AppMode } from './components/shared/app-switcher.component';
   styleUrls: ['./app.scss']
 })
 export class App {
-  appMode: AppMode = 'crm';
-  moduloActivo: ModuloCRM = 'dashboard';
+  showSwitcher = false;
 
-  navigate(modulo: ModuloCRM) { this.moduloActivo = modulo; }
-  switchApp(mode: AppMode) { this.appMode = mode; }
+  constructor(private router: Router) {
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe((e: any) => {
+      this.showSwitcher = !e.url.startsWith('/auth');
+    });
+  }
 }

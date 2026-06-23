@@ -1,7 +1,8 @@
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-6 page-enter">
   <!-- Grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-    <div class="bg-white border border-slate-200 rounded-xl p-4" *ngFor="let integ of integraciones"
+    <div class="bg-white border border-slate-200 rounded-xl p-4 hover-lift card-enter" *ngFor="let integ of integraciones; let i = index"
+      [style.animation-delay]="(i * 0.06) + 's'"
       [class.opacity-60]="integ.estado !== 'conectada'">
       <div class="flex items-start justify-between mb-3">
         <div class="flex items-center gap-3">
