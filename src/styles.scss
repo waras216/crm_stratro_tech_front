@@ -5,6 +5,10 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  --accent: #6366f1;
+  --base-font: 16px;
+  --spacing: 0.5rem;
+  --radius: 0.75rem;
   --bg-page: linear-gradient(135deg,#f0f2ff 0%,#faf5ff 100%);
   --bg-card: #ffffff;
   --bg-card-hover: #f8fafc;
@@ -32,9 +36,60 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: var(--base-font) !important;
   background: var(--bg-page);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+}
+
+.text-xs { font-size: calc(var(--base-font) * 0.75) !important; }
+.text-sm { font-size: calc(var(--base-font) * 0.875) !important; }
+.text-base { font-size: var(--base-font) !important; }
+.text-lg { font-size: calc(var(--base-font) * 1.125) !important; }
+.text-xl { font-size: calc(var(--base-font) * 1.25) !important; }
+.text-2xl { font-size: calc(var(--base-font) * 1.5) !important; }
+.text-3xl { font-size: calc(var(--base-font) * 1.875) !important; }
+.text-4xl { font-size: calc(var(--base-font) * 2.25) !important; }
+.text-8xl { font-size: calc(var(--base-font) * 6) !important; }
+.text-\[11px\] { font-size: calc(var(--base-font) * 0.6875) !important; }
+.text-\[10px\] { font-size: calc(var(--base-font) * 0.625) !important; }
+.text-\[13px\] { font-size: calc(var(--base-font) * 0.8125) !important; }
+.text-\[15px\] { font-size: calc(var(--base-font) * 0.9375) !important; }
+
+/* Accent color applied globally */
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent), #000 20%)) !important;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent), transparent 60%) !important;
+}
+
+.accent-gradient {
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent), #000 20%)) !important;
+}
+
+.accent-text {
+  color: var(--accent) !important;
+}
+
+.accent-bg-soft {
+  background: color-mix(in srgb, var(--accent), transparent 88%) !important;
+}
+
+.accent-border {
+  border-color: var(--accent) !important;
+}
+
+/* Border radius from settings */
+.rounded-xl { border-radius: var(--radius) !important; }
+.rounded-2xl { border-radius: calc(var(--radius) * 1.5) !important; }
+
+/* Spacing from settings */
+.gap-5 { gap: calc(var(--spacing) * 2.5) !important; }
+.p-6 { padding: calc(var(--spacing) * 3) !important; }
+
+/* No animations mode */
+.no-animations *, .no-animations *::before, .no-animations *::after {
+  animation: none !important;
+  transition: none !important;
 }
 
 /* Dark mode overrides for cards with inline styles */

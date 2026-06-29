@@ -34,6 +34,19 @@ export class ConfiguracionComponent implements OnInit {
   tema: 'light' | 'dark' | 'system' = 'light';
   sidebarCompacto = false;
   animaciones = true;
+  colorAccent = '#6366f1';
+  fontSize: 'small' | 'medium' | 'large' = 'medium';
+  densidad: 'compact' | 'normal' | 'comfortable' = 'normal';
+  borderRadius: 'none' | 'small' | 'medium' | 'large' = 'medium';
+
+  colores = [
+    { val: '#6366f1', label: 'Indigo' },
+    { val: '#8b5cf6', label: 'Violeta' },
+    { val: '#ec4899', label: 'Rosa' },
+    { val: '#059669', label: 'Esmeralda' },
+    { val: '#0891b2', label: 'Cyan' },
+    { val: '#d97706', label: 'Ámbar' },
+  ];
 
   // Seguridad
   dosFactores = false;
@@ -63,9 +76,22 @@ export class ConfiguracionComponent implements OnInit {
       this.email = session.email;
       this.nombreEmpresa = session.empresa || '';
     }
-    this.tema = this.theme.isDark ? 'dark' : 'light';
+    this.tema = (localStorage.getItem('tema') as any) || (this.theme.isDark ? 'dark' : 'light');
+    this.sidebarCompacto = localStorage.getItem('sidebarCompacto') === 'true';
     this.animaciones = localStorage.getItem('animaciones') !== 'false';
+    this.colorAccent = localStorage.getItem('colorAccent') || '#6366f1';
+    this.fontSize = (localStorage.getItem('fontSize') as any) || 'medium';
+    this.densidad = (localStorage.getItem('densidad') as any) || 'normal';
+    this.borderRadius = (localStorage.getItem('borderRadius') as any) || 'medium';
+    this.notifEmail = localStorage.getItem('notifEmail') !== 'false';
+    this.notifPush = localStorage.getItem('notifPush') !== 'false';
+    this.notifLeads = localStorage.getItem('notifLeads') !== 'false';
+    this.notifActividades = localStorage.getItem('notifActividades') !== 'false';
+    this.notifReportes = localStorage.getItem('notifReportes') === 'true';
+    this.dosFactores = localStorage.getItem('dosFactores') === 'true';
+    this.sesionActiva = localStorage.getItem('sesionActiva') !== 'false';
     this.logoPreview = this.auth.getLogo();
+    this.applyStoredStyles();
   }
 
   onLogoSelected(event: Event) {
@@ -79,13 +105,92 @@ export class ConfiguracionComponent implements OnInit {
     reader.readAsDataURL(file);
   }
 
+  cambiarTema(t: 'light' | 'dark' | 'system') {
+    this.tema = t;
+  }
+
+  toggleSidebarCompacto() {
+    this.sidebarCompacto = !this.sidebarCompacto;
+  }
+
+  toggleAnimaciones() {
+    this.animaciones = !this.animaciones;
+  }
+
+  cambiarColor(color: string) {
+    this.colorAccent = color;
+  }
+
+  cambiarFontSize(size: 'small' | 'medium' | 'large') {
+    this.fontSize = size;
+  }
+
+  cambiarDensidad(d: 'compact' | 'normal' | 'comfortable') {
+    this.densidad = d;
+  }
+
+  cambiarBorderRadius(r: 'none' | 'small' | 'medium' | 'large') {
+    this.borderRadius = r;
+  }
+
   guardar() {
-    if ((this.tema === 'dark') !== this.theme.isDark) {
+    // Tema
+    const shouldBeDark = this.tema === 'dark' || (this.tema === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (shouldBeDark !== this.theme.isDark) {
       this.theme.toggle();
     }
+    localStorage.setItem('tema', this.tema);
+
+    // Apariencia
+    localStorage.setItem('colorAccent', this.colorAccent);
+    localStorage.setItem('fontSize', this.fontSize);
+    localStorage.setItem('densidad', this.densidad);
+    localStorage.setItem('borderRadius', this.borderRadius);
+    localStorage.setItem('sidebarCompacto', String(this.sidebarCompacto));
     localStorage.setItem('animaciones', String(this.animaciones));
+
+    // Aplicar CSS variables
+    document.documentElement.style.setProperty('--accent', this.colorAccent);
+    const sizes = { small: '14px', medium: '16px', large: '18px' };
+    document.documentElement.style.setProperty('--base-font', sizes[this.fontSize]);
+    const spacings = { compact: '0.25rem', normal: '0.5rem', comfortable: '0.75rem' };
+    document.documentElement.style.setProperty('--spacing', spacings[this.densidad]);
+    const radii = { none: '0', small: '0.375rem', medium: '0.75rem', large: '1.25rem' };
+    document.documentElement.style.setProperty('--radius', radii[this.borderRadius]);
+    document.documentElement.classList.toggle('no-animations', !this.animaciones);
+
+    // General
+    const session = this.auth.session;
+    if (session) {
+      session.nombre = this.nombre;
+      session.empresa = this.nombreEmpresa;
+      localStorage.setItem('crm_session', JSON.stringify(session));
+    }
+
+    // Notificaciones
+    localStorage.setItem('notifEmail', String(this.notifEmail));
+    localStorage.setItem('notifPush', String(this.notifPush));
+    localStorage.setItem('notifLeads', String(this.notifLeads));
+    localStorage.setItem('notifActividades', String(this.notifActividades));
+    localStorage.setItem('notifReportes', String(this.notifReportes));
+
+    // Seguridad
+    localStorage.setItem('dosFactores', String(this.dosFactores));
+    localStorage.setItem('sesionActiva', String(this.sesionActiva));
+
     this.saved = true;
     setTimeout(() => this.saved = false, 2500);
+  }
+
+  private applyStoredStyles() {
+    document.documentElement.style.setProperty('--accent', this.colorAccent);
+    const sizes = { small: '14px', medium: '16px', large: '18px' };
+    document.documentElement.style.setProperty('--base-font', sizes[this.fontSize]);
+    const spacings = { compact: '0.25rem', normal: '0.5rem', comfortable: '0.75rem' };
+    document.documentElement.style.setProperty('--spacing', spacings[this.densidad]);
+    const radii = { none: '0', small: '0.375rem', medium: '0.75rem', large: '1.25rem' };
+    document.documentElement.style.setProperty('--radius', radii[this.borderRadius]);
+    document.documentElement.classList.toggle('no-animations', !this.animaciones);
   }
 
   logout() {

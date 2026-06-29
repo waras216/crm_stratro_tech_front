@@ -1,6 +1,6 @@
 import {
   PlatformLocation
-} from "./chunk-FBSI6WWB.js";
+} from "./chunk-SDRLD3ZW.js";
 import {
   ApplicationRef,
   Attribute,
@@ -4665,4 +4665,4 @@ export {
   PRECONNECT_CHECK_BLOCKLIST,
   NgOptimizedImage
 };
-//# sourceMappingURL=chunk-AWER6Y74.js.map
+//# sourceMappingURL=chunk-22N6YM54.js.map

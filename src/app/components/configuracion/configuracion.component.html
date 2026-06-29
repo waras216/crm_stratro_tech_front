@@ -1,4 +1,5 @@
-<div class="flex flex-col gap-5 page-enter">
+<div class="min-h-screen bg-slate-50 p-6 md:p-10 page-enter">
+<div class="max-w-5xl mx-auto flex flex-col gap-5">
 
   <!-- Header -->
   <div class="flex items-center justify-between">
@@ -198,22 +199,24 @@
           <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Apariencia</h2>
           <p class="text-[11px] text-slate-400 m-0 mt-1">Personaliza el aspecto visual del sistema</p>
         </div>
+
+        <!-- Tema -->
         <div class="flex flex-col gap-2">
           <label class="text-[11px] font-semibold" style="color:#6366f1">Tema</label>
           <div class="grid grid-cols-3 gap-3">
-            <button (click)="tema='light'"
+            <button (click)="cambiarTema('light')"
               class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all"
               [style]="tema==='light' ? 'border-color:#6366f1;background:#eef2ff' : 'border-color:#e2e8f0;background:#fff'">
               <svg width="24" height="24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
               <span class="text-xs font-semibold" [style.color]="tema==='light' ? '#6366f1' : '#64748b'">Claro</span>
             </button>
-            <button (click)="tema='dark'"
+            <button (click)="cambiarTema('dark')"
               class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all"
               [style]="tema==='dark' ? 'border-color:#6366f1;background:#eef2ff' : 'border-color:#e2e8f0;background:#fff'">
               <svg width="24" height="24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
               <span class="text-xs font-semibold" [style.color]="tema==='dark' ? '#6366f1' : '#64748b'">Oscuro</span>
             </button>
-            <button (click)="tema='system'"
+            <button (click)="cambiarTema('system')"
               class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all"
               [style]="tema==='system' ? 'border-color:#6366f1;background:#eef2ff' : 'border-color:#e2e8f0;background:#fff'">
               <svg width="24" height="24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -221,12 +224,99 @@
             </button>
           </div>
         </div>
+
+        <!-- Color de acento -->
+        <div class="flex flex-col gap-2" style="border-top:1px solid #eef2ff;padding-top:1rem">
+          <label class="text-[11px] font-semibold" style="color:#6366f1">Color de acento</label>
+          <div class="flex gap-3">
+            <button *ngFor="let c of colores" (click)="cambiarColor(c.val)"
+              class="w-8 h-8 rounded-full cursor-pointer transition-all hover:scale-110 border-2"
+              [style.background]="c.val"
+              [style.border-color]="colorAccent===c.val ? '#1e1b4b' : 'transparent'"
+              [style.box-shadow]="colorAccent===c.val ? '0 0 0 3px ' + c.val + '40' : 'none'"
+              [title]="c.label">
+            </button>
+          </div>
+        </div>
+
+        <!-- Tamaño de fuente -->
+        <div class="flex flex-col gap-2" style="border-top:1px solid #eef2ff;padding-top:1rem">
+          <label class="text-[11px] font-semibold" style="color:#6366f1">Tamaño de fuente</label>
+          <div class="grid grid-cols-3 gap-3">
+            <button (click)="cambiarFontSize('small')"
+              class="px-4 py-2.5 rounded-xl text-xs font-semibold border-2 cursor-pointer transition-all"
+              [style]="fontSize==='small' ? 'border-color:#6366f1;background:#eef2ff;color:#6366f1' : 'border-color:#e2e8f0;background:#fff;color:#64748b'">
+              Pequeño
+            </button>
+            <button (click)="cambiarFontSize('medium')"
+              class="px-4 py-2.5 rounded-xl text-xs font-semibold border-2 cursor-pointer transition-all"
+              [style]="fontSize==='medium' ? 'border-color:#6366f1;background:#eef2ff;color:#6366f1' : 'border-color:#e2e8f0;background:#fff;color:#64748b'">
+              Mediano
+            </button>
+            <button (click)="cambiarFontSize('large')"
+              class="px-4 py-2.5 rounded-xl text-xs font-semibold border-2 cursor-pointer transition-all"
+              [style]="fontSize==='large' ? 'border-color:#6366f1;background:#eef2ff;color:#6366f1' : 'border-color:#e2e8f0;background:#fff;color:#64748b'">
+              Grande
+            </button>
+          </div>
+        </div>
+
+        <!-- Densidad -->
+        <div class="flex flex-col gap-2" style="border-top:1px solid #eef2ff;padding-top:1rem">
+          <label class="text-[11px] font-semibold" style="color:#6366f1">Densidad de la interfaz</label>
+          <div class="grid grid-cols-3 gap-3">
+            <button (click)="cambiarDensidad('compact')"
+              class="px-4 py-2.5 rounded-xl text-xs font-semibold border-2 cursor-pointer transition-all"
+              [style]="densidad==='compact' ? 'border-color:#6366f1;background:#eef2ff;color:#6366f1' : 'border-color:#e2e8f0;background:#fff;color:#64748b'">
+              Compacta
+            </button>
+            <button (click)="cambiarDensidad('normal')"
+              class="px-4 py-2.5 rounded-xl text-xs font-semibold border-2 cursor-pointer transition-all"
+              [style]="densidad==='normal' ? 'border-color:#6366f1;background:#eef2ff;color:#6366f1' : 'border-color:#e2e8f0;background:#fff;color:#64748b'">
+              Normal
+            </button>
+            <button (click)="cambiarDensidad('comfortable')"
+              class="px-4 py-2.5 rounded-xl text-xs font-semibold border-2 cursor-pointer transition-all"
+              [style]="densidad==='comfortable' ? 'border-color:#6366f1;background:#eef2ff;color:#6366f1' : 'border-color:#e2e8f0;background:#fff;color:#64748b'">
+              Cómoda
+            </button>
+          </div>
+        </div>
+
+        <!-- Border Radius -->
+        <div class="flex flex-col gap-2" style="border-top:1px solid #eef2ff;padding-top:1rem">
+          <label class="text-[11px] font-semibold" style="color:#6366f1">Bordes redondeados</label>
+          <div class="grid grid-cols-4 gap-3">
+            <button (click)="cambiarBorderRadius('none')"
+              class="px-3 py-2.5 rounded-xl text-xs font-semibold border-2 cursor-pointer transition-all"
+              [style]="borderRadius==='none' ? 'border-color:#6366f1;background:#eef2ff;color:#6366f1' : 'border-color:#e2e8f0;background:#fff;color:#64748b'">
+              Ninguno
+            </button>
+            <button (click)="cambiarBorderRadius('small')"
+              class="px-3 py-2.5 rounded-xl text-xs font-semibold border-2 cursor-pointer transition-all"
+              [style]="borderRadius==='small' ? 'border-color:#6366f1;background:#eef2ff;color:#6366f1' : 'border-color:#e2e8f0;background:#fff;color:#64748b'">
+              Suave
+            </button>
+            <button (click)="cambiarBorderRadius('medium')"
+              class="px-3 py-2.5 rounded-xl text-xs font-semibold border-2 cursor-pointer transition-all"
+              [style]="borderRadius==='medium' ? 'border-color:#6366f1;background:#eef2ff;color:#6366f1' : 'border-color:#e2e8f0;background:#fff;color:#64748b'">
+              Medio
+            </button>
+            <button (click)="cambiarBorderRadius('large')"
+              class="px-3 py-2.5 rounded-xl text-xs font-semibold border-2 cursor-pointer transition-all"
+              [style]="borderRadius==='large' ? 'border-color:#6366f1;background:#eef2ff;color:#6366f1' : 'border-color:#e2e8f0;background:#fff;color:#64748b'">
+              Grande
+            </button>
+          </div>
+        </div>
+
+        <!-- Toggles -->
         <div class="flex items-center justify-between py-3" style="border-top:1px solid #eef2ff">
           <div>
             <p class="text-sm font-medium m-0" style="color:#1e1b4b">Sidebar compacto</p>
             <p class="text-[11px] text-slate-400 m-0 mt-0.5">Inicia con el sidebar colapsado</p>
           </div>
-          <div (click)="sidebarCompacto=!sidebarCompacto" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
+          <div (click)="toggleSidebarCompacto()" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
             [style.background]="sidebarCompacto ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#e2e8f0'">
             <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-5]="sidebarCompacto" [class.translate-x-0.5]="!sidebarCompacto"></div>
           </div>
@@ -236,7 +326,7 @@
             <p class="text-sm font-medium m-0" style="color:#1e1b4b">Animaciones</p>
             <p class="text-[11px] text-slate-400 m-0 mt-0.5">Efectos de transición en la interfaz</p>
           </div>
-          <div (click)="animaciones=!animaciones" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
+          <div (click)="toggleAnimaciones()" class="w-10 h-5 rounded-full transition-colors cursor-pointer relative"
             [style.background]="animaciones ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#e2e8f0'">
             <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-5]="animaciones" [class.translate-x-0.5]="!animaciones"></div>
           </div>
@@ -281,4 +371,5 @@
 
     </div>
   </div>
+</div>
 </div>

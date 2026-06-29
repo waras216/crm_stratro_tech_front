@@ -22,6 +22,7 @@ import { ConfiguracionComponent } from './components/configuracion/configuracion
 import { PricingComponent } from './components/pricing/pricing.component';
 
 import { AuthGuard } from './core/auth/auth.guard';
+import { NotFoundComponent } from './components/shared/not-found/not-found.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
@@ -44,9 +45,11 @@ const routes: Routes = [
       { path: 'automatizar', component: AutomatizarComponent },
       { path: 'reportes', component: ReportesComponent },
       { path: 'integraciones', component: IntegracionesComponent },
-      { path: 'configuracion', component: ConfiguracionComponent },
     ]
   },
+
+  // Configuración (protegido, sin sidebar)
+  { path: 'crm/configuracion', component: ConfiguracionComponent, canActivate: [AuthGuard] },
 
   // POS (protegido)
   { path: 'pos', component: PosPageComponent, canActivate: [AuthGuard] },
@@ -57,7 +60,7 @@ const routes: Routes = [
   // Pricing (público)
   { path: 'pricing', component: PricingComponent },
 
-  { path: '**', redirectTo: 'auth/login' },
+  { path: '**', component: NotFoundComponent },
 ];
 
 @NgModule({

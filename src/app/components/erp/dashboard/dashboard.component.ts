@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { NichoService } from '../../../core/services/nicho.service';
 
 @Component({
   selector: 'app-erp-dashboard',
@@ -51,31 +52,20 @@ import { Component } from '@angular/core';
     </div>
   `,
 })
-export class ErpDashboardComponent {
-  kpis = [
-    { value: '$2.4M', label: 'Ingresos del Mes', bg: 'bg-emerald-100', color: 'text-emerald-600', icon: '<svg width="18" height="18" fill="none" stroke="#059669" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>' },
-    { value: '847', label: 'Órdenes Activas', bg: 'bg-amber-100', color: 'text-amber-600', icon: '<svg width="18" height="18" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>' },
-    { value: '12,450', label: 'Productos en Stock', bg: 'bg-blue-100', color: 'text-blue-600', icon: '<svg width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>' },
-    { value: '56', label: 'Empleados Activos', bg: 'bg-purple-100', color: 'text-purple-600', icon: '<svg width="18" height="18" fill="none" stroke="#7c3aed" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' },
-  ];
+export class ErpDashboardComponent implements OnInit {
+  kpis: any[] = [];
+  modulos: any[] = [];
+  actividad: any[] = [];
 
-  modulos = [
-    { titulo: 'Gestión Financiera', subtitulo: 'Contabilidad y tesorería', emoji: '💰', bg: 'bg-emerald-100', stat: '+12% este mes', statColor: 'text-emerald-600', extra: '3 facturas pendientes' },
-    { titulo: 'Compras', subtitulo: 'Órdenes y proveedores', emoji: '🛒', bg: 'bg-amber-100', stat: '15 órdenes pendientes', statColor: 'text-amber-600', extra: '8 proveedores activos' },
-    { titulo: 'Ventas', subtitulo: 'Pedidos y facturación', emoji: '📈', bg: 'bg-blue-100', stat: '$580K facturado', statColor: 'text-blue-600', extra: '24 pedidos hoy' },
-    { titulo: 'Inventario', subtitulo: 'Stock y almacenes', emoji: '📦', bg: 'bg-indigo-100', stat: '7 alertas stock bajo', statColor: 'text-red-500', extra: '3 almacenes' },
-    { titulo: 'Fabricación', subtitulo: 'Producción y BOM', emoji: '🏭', bg: 'bg-slate-100', stat: '12 órdenes en proceso', statColor: 'text-slate-600', extra: '98% calidad' },
-    { titulo: 'Cadena de Suministro', subtitulo: 'Logística y entregas', emoji: '🚚', bg: 'bg-teal-100', stat: '45 envíos en tránsito', statColor: 'text-teal-600', extra: '96% a tiempo' },
-    { titulo: 'Recursos Humanos', subtitulo: 'Nómina y personal', emoji: '👥', bg: 'bg-purple-100', stat: '56 empleados', statColor: 'text-purple-600', extra: 'Nómina al día' },
-    { titulo: 'CRM', subtitulo: 'Clientes y prospectos', emoji: '🤝', bg: 'bg-pink-100', stat: '320 contactos', statColor: 'text-pink-600', extra: '18 oportunidades' },
-    { titulo: 'Proyectos', subtitulo: 'Planificación y recursos', emoji: '📋', bg: 'bg-orange-100', stat: '5 proyectos activos', statColor: 'text-orange-600', extra: '2 por entregar' },
-  ];
+  constructor(private nichoSvc: NichoService) {}
 
-  actividad = [
-    { texto: 'Orden de compra #1045 aprobada', dot: 'bg-emerald-400', tiempo: 'Hace 5 min' },
-    { texto: 'Nuevo empleado registrado: Carlos M.', dot: 'bg-blue-400', tiempo: 'Hace 20 min' },
-    { texto: 'Stock bajo en producto SKU-4421', dot: 'bg-red-400', tiempo: 'Hace 1h' },
-    { texto: 'Factura #2890 enviada a cliente', dot: 'bg-amber-400', tiempo: 'Hace 2h' },
-    { texto: 'Orden de fabricación OF-120 completada', dot: 'bg-purple-400', tiempo: 'Hace 3h' },
-  ];
+  ngOnInit() {
+    const cfg = this.nichoSvc.config;
+    this.kpis = cfg.erpKpis.map(k => ({
+      ...k,
+      icon: `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">${k.svg}</svg>`
+    }));
+    this.modulos = cfg.erpModulos;
+    this.actividad = cfg.erpActividad;
+  }
 }

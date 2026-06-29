@@ -1,11 +1,24 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
+export interface NichoData {
+  nicho: string;
+  moneda: string;
+  modulos: { crm: boolean; pos: boolean; erp: boolean };
+  hotelTipo?: string; hotelHabitaciones?: string; hotelAmenidades?: string[];
+  restTipo?: string; restMesas?: string; restCanales?: string[];
+  almacenTipo?: string; almacenSkus?: string; almacenOps?: string[];
+  farmTipo?: string; farmAtencion?: string[]; farmEspecialidades?: string[];
+  startupEtapa?: string; startupModelo?: string; startupMetricas?: string[];
+  tiendaTipo?: string; tiendaCanales?: string[];
+}
+
 export interface UserSession {
   email: string;
   nombre: string;
   empresa?: string;
   onboardingCompleto: boolean;
+  nichoData?: NichoData;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -52,16 +65,16 @@ export class AuthService {
     return true;
   }
 
-  completarOnboarding(data: { empresa: string; sector: string; tamano: string; sucursales?: string }) {
+  completarOnboarding(data: { empresa: string; nichoData: NichoData }) {
     const session = this.session;
     if (!session) return;
     session.empresa = data.empresa;
+    session.nichoData = data.nichoData;
     session.onboardingCompleto = true;
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
-    // Actualizar también en users
     const users = JSON.parse(localStorage.getItem('crm_users') || '[]');
     const idx = users.findIndex((u: any) => u.email === session.email);
-    if (idx > -1) { users[idx] = { ...users[idx], ...data, onboardingCompleto: true }; localStorage.setItem('crm_users', JSON.stringify(users)); }
+    if (idx > -1) { users[idx] = { ...users[idx], empresa: data.empresa, nichoData: data.nichoData, onboardingCompleto: true }; localStorage.setItem('crm_users', JSON.stringify(users)); }
   }
 
   logout() {

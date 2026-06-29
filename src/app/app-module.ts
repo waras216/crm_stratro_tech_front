@@ -33,6 +33,9 @@ import { PosLayoutComponent } from './components/pos/layout/pos-layout.component
 import { PosCatalogoComponent } from './components/pos/catalogo/catalogo.component';
 import { PosCarritoComponent } from './components/pos/carrito/carrito.component';
 import { PosTicketComponent } from './components/pos/ticket/ticket.component';
+import { PosTerminalFarmaciaComponent } from './components/pos/terminal-farmacia/terminal-farmacia.component';
+import { PosTerminalHotelComponent } from './components/pos/terminal-hotel/terminal-hotel.component';
+import { PosTerminalRestauranteComponent } from './components/pos/terminal-restaurante/terminal-restaurante.component';
 
 // ERP
 import { ErpPageComponent } from './components/erp/erp-page.component';
@@ -53,6 +56,9 @@ import { ConfiguracionComponent } from './components/configuracion/configuracion
 
 // Pricing
 import { PricingComponent } from './components/pricing/pricing.component';
+
+// 404
+import { NotFoundComponent } from './components/shared/not-found/not-found.component';
 
 // Interceptors
 import { AuthInterceptor } from './core/interceptors/auth-interceptor-interceptor';
@@ -83,6 +89,9 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     PosCatalogoComponent,
     PosCarritoComponent,
     PosTicketComponent,
+    PosTerminalFarmaciaComponent,
+    PosTerminalHotelComponent,
+    PosTerminalRestauranteComponent,
     // ERP
     ErpPageComponent,
     ErpLayoutComponent,
@@ -107,6 +116,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     FormsModule,
     HttpClientModule,
     AppRoutingModule,
+    NotFoundComponent,
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },

@@ -1,5 +1,31 @@
 <div class="flex flex-col gap-5 page-enter">
 
+  <!-- ── GREETING HEADER ── -->
+  <div class="rounded-2xl px-6 py-5 flex items-center justify-between card-enter"
+    [style.background]="'linear-gradient(135deg,' + nicho.config.color + '18, ' + nicho.config.color + '06)'"
+    [style.border]="'1px solid ' + nicho.config.color + '30'">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+        [style.background]="nicho.config.color + '20'">{{ saludoIcon }}</div>
+      <div>
+        <h1 class="text-lg font-extrabold m-0 leading-tight" style="color:#1e1b4b">
+          {{ saludo }}, {{ nombre }}
+        </h1>
+        <p class="text-xs text-slate-500 m-0 mt-0.5">
+          <span *ngIf="empresa" class="font-semibold" [style.color]="nicho.config.color">{{ empresa }}</span>
+          <span *ngIf="empresa"> · </span>
+          {{ fechaHoy | titlecase }}
+        </p>
+      </div>
+    </div>
+    <div class="hidden sm:flex flex-col items-end gap-1.5">
+      <span class="text-[11px] font-semibold px-3 py-1 rounded-full"
+        [style.background]="nicho.config.color + '18'"
+        [style.color]="nicho.config.color">{{ nicho.config.nicho | titlecase }}</span>
+      <span class="text-[10px] text-slate-400">{{ leads.length }} {{ nicho.config.leadLabel | lowercase }} activos</span>
+    </div>
+  </div>
+
   <!-- ── KPI GRID ── -->
   <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
     <div *ngFor="let k of kpis; let i = index"
@@ -90,17 +116,17 @@
     <!-- Progress bar -->
     <div class="flex h-3 rounded-full overflow-hidden mb-5 gap-px bg-slate-100">
       <div *ngFor="let etapa of etapas"
-        class="transition-all hover:brightness-95"
+        class="transition-all hover:brightness-90"
         [style.flex]="etapaCount(etapa)||0"
-        [ngClass]="etapaBarColor[etapa]"
+        [style]="etapaBarStyle(etapa)"
         [title]="etapa+': '+etapaCount(etapa)"></div>
     </div>
     <!-- Etapa cards -->
     <div class="grid grid-cols-5 gap-3">
-      <div *ngFor="let etapa of etapas" class="rounded-xl p-3 text-center" [ngClass]="etapaColors[etapa]">
-        <p class="text-xl font-extrabold leading-none m-0">{{ etapaCount(etapa) }}</p>
-        <p class="text-[10px] capitalize font-semibold mt-1 mb-0 opacity-70">{{ etapa }}</p>
-        <p *ngIf="etapaCount(etapa)>0" class="text-[10px] font-bold mt-1 mb-0">${{ etapaValue(etapa).toLocaleString() }}</p>
+      <div *ngFor="let etapa of etapas" class="rounded-xl p-3 text-center" [style]="etapaCardStyle(etapa)">
+        <p class="text-xl font-extrabold leading-none m-0" [style]="etapaValueStyle(etapa)">{{ etapaCount(etapa) }}</p>
+        <p class="text-[10px] capitalize font-semibold mt-1 mb-0 text-slate-500">{{ etapa }}</p>
+        <p *ngIf="etapaCount(etapa)>0" class="text-[10px] font-bold mt-1 mb-0" [style]="etapaValueStyle(etapa)">${{ etapaValue(etapa).toLocaleString() }}</p>
       </div>
     </div>
   </div>
