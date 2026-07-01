@@ -72,52 +72,52 @@
       <p class="text-sm font-semibold text-slate-400">No hay actividades</p>
     </div>
   </div>
+</div>
 
-  <!-- Modal -->
-  <div *ngIf="dialogOpen" class="fixed inset-0 z-[100]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="closeDialog()"></div>
-  <div *ngIf="dialogOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] max-h-[90vh] overflow-y-auto" style="background:#fff;border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
-    <div class="px-6 pt-6 pb-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border-radius:24px 24px 0 0">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="m-0 text-sm font-bold" style="color:#1e1b4b">{{ editingAct ? 'Editar Actividad' : 'Nueva Actividad' }}</h2>
-          <p class="text-[11px] text-slate-400 m-0 mt-0.5">Registra una actividad en el CRM</p>
-        </div>
-        <button (click)="closeDialog()" class="w-8 h-8 rounded-xl flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all" style="background:rgba(99,102,241,.1);color:#6366f1">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
+<!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
+<div *ngIf="dialogOpen" class="fixed inset-0 z-[100]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="closeDialog()"></div>
+<div *ngIf="dialogOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] max-h-[90vh] overflow-y-auto" style="background:#fff;border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
+  <div class="px-6 pt-6 pb-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border-radius:24px 24px 0 0">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="m-0 text-sm font-bold" style="color:#1e1b4b">{{ editingAct ? 'Editar Actividad' : 'Nueva Actividad' }}</h2>
+        <p class="text-[11px] text-slate-400 m-0 mt-0.5">Registra una actividad en el CRM</p>
       </div>
-    </div>
-    <div class="px-6 py-5 flex flex-col gap-4">
-      <div class="flex flex-col gap-1.5">
-        <label class="text-[11px] font-semibold" style="color:#6366f1">Actividad *</label>
-        <input [(ngModel)]="form.actividad" placeholder="Descripción de la actividad" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div class="flex flex-col gap-1.5">
-          <label class="text-[11px] font-semibold" style="color:#6366f1">Tipo</label>
-          <select [(ngModel)]="form.tipo_actividad" class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
-            <option *ngFor="let t of tipoOptions" [value]="t">{{ t | titlecase }}</option>
-          </select>
-        </div>
-        <div class="flex flex-col gap-1.5">
-          <label class="text-[11px] font-semibold" style="color:#6366f1">Fecha</label>
-          <input [(ngModel)]="form.fecha" type="date" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
-        </div>
-      </div>
-      <div class="flex flex-col gap-1.5">
-        <label class="text-[11px] font-semibold" style="color:#6366f1">Recordatorio</label>
-        <input [(ngModel)]="form.recordatorio" type="datetime-local" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
-      </div>
-      <div *ngIf="editingAct" class="flex items-center gap-3">
-        <div (click)="form.completada=!form.completada" class="w-9 h-5 rounded-full transition-colors cursor-pointer relative flex-shrink-0"
-          [style.background]="form.completada?'linear-gradient(135deg,#6366f1,#8b5cf6)':'#e2e8f0'">
-          <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-4]="form.completada" [class.translate-x-0.5]="!form.completada"></div>
-        </div>
-        <span class="text-xs font-medium text-slate-600">Marcar como completada</span>
-      </div>
-      <button (click)="handleSubmit()" class="w-full py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-95" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 14px rgba(99,102,241,.4)">
-        {{ editingAct ? 'Guardar Cambios' : 'Crear Actividad' }}
+      <button (click)="closeDialog()" class="w-8 h-8 rounded-xl flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all" style="background:rgba(99,102,241,.1);color:#6366f1">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
+  </div>
+  <div class="px-6 py-5 flex flex-col gap-4">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-semibold" style="color:#6366f1">Actividad *</label>
+      <input [(ngModel)]="form.actividad" placeholder="Descripción de la actividad" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-semibold" style="color:#6366f1">Tipo</label>
+        <select [(ngModel)]="form.tipo_actividad" class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
+          <option *ngFor="let t of tipoOptions" [value]="t">{{ t | titlecase }}</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-semibold" style="color:#6366f1">Fecha</label>
+        <input [(ngModel)]="form.fecha" type="date" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+      </div>
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-semibold" style="color:#6366f1">Recordatorio</label>
+      <input [(ngModel)]="form.recordatorio" type="datetime-local" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+    </div>
+    <div *ngIf="editingAct" class="flex items-center gap-3">
+      <div (click)="form.completada=!form.completada" class="w-9 h-5 rounded-full transition-colors cursor-pointer relative flex-shrink-0"
+        [style.background]="form.completada?'linear-gradient(135deg,#6366f1,#8b5cf6)':'#e2e8f0'">
+        <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" [class.translate-x-4]="form.completada" [class.translate-x-0.5]="!form.completada"></div>
+      </div>
+      <span class="text-xs font-medium text-slate-600">Marcar como completada</span>
+    </div>
+    <button (click)="handleSubmit()" class="w-full py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-95" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 14px rgba(99,102,241,.4)">
+      {{ editingAct ? 'Guardar Cambios' : 'Crear Actividad' }}
+    </button>
   </div>
 </div>

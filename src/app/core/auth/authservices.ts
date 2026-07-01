@@ -1,5 +1,9 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { Observable, of } from 'rxjs';
+import { map, catchError, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 export interface NichoData {
   nicho: string;
@@ -19,50 +23,64 @@ export interface UserSession {
   empresa?: string;
   onboardingCompleto: boolean;
   nichoData?: NichoData;
+  id_usuario?: number;
+  id_tenant?: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly STORAGE_KEY = 'crm_session';
+  private readonly TOKEN_KEY   = 'api_token';
 
-  constructor(private router: Router) {
-    this.seedDefaultUser();
-  }
-
-  private seedDefaultUser() {
-    const users = JSON.parse(localStorage.getItem('crm_users') || '[]');
-    if (!users.find((u: any) => u.email === 'israel@strato.com')) {
-      users.push({ nombre: 'Israel', email: 'israel@strato.com', password: '123456', empresa: 'Stratro Tech', sector: 'Tecnología', tamano: '1-10 empleados', onboardingCompleto: false });
-      localStorage.setItem('crm_users', JSON.stringify(users));
-    }
-  }
+  constructor(private http: HttpClient, private router: Router) {}
 
   get session(): UserSession | null {
     const raw = localStorage.getItem(this.STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
   }
 
-  get isLoggedIn(): boolean { return !!this.session; }
+  get isLoggedIn(): boolean { return !!this.session && !!this.getToken(); }
   get isOnboarded(): boolean { return !!this.session?.onboardingCompleto; }
 
-  login(email: string, password: string): boolean {
-    // Mock: cualquier credencial funciona
-    const users = JSON.parse(localStorage.getItem('crm_users') || '[]');
-    const user = users.find((u: any) => u.email === email && u.password === password);
-    if (!user) return false;
-    const session: UserSession = { email: user.email, nombre: user.nombre, empresa: user.empresa, onboardingCompleto: user.onboardingCompleto ?? false };
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
-    return true;
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  registro(nombre: string, email: string, password: string): boolean {
-    const users = JSON.parse(localStorage.getItem('crm_users') || '[]');
-    if (users.find((u: any) => u.email === email)) return false;
-    users.push({ nombre, email, password, onboardingCompleto: false });
-    localStorage.setItem('crm_users', JSON.stringify(users));
-    const session: UserSession = { email, nombre, onboardingCompleto: false };
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
-    return true;
+  login(email: string, password: string): Observable<boolean> {
+    return this.http.post<{ user: any; token: string }>(`${environment.apiUrl}/login`, { email, password }).pipe(
+      tap(res => {
+        localStorage.setItem(this.TOKEN_KEY, res.token);
+        const session: UserSession = {
+          email:              res.user.email,
+          nombre:             res.user.nombre ?? email,
+          empresa:            res.user.empresa,
+          onboardingCompleto: !!res.user.onboardingCompleto,
+          id_usuario:         res.user.id_usuario,
+          id_tenant:          res.user.id_tenant,
+        };
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+      }),
+      map(() => true),
+      catchError(() => of(false)),
+    );
+  }
+
+  registro(nombre: string, email: string, password: string): Observable<boolean> {
+    return this.http.post<{ user: any; token: string }>(`${environment.apiUrl}/register`, { nombre, email, password }).pipe(
+      tap(res => {
+        localStorage.setItem(this.TOKEN_KEY, res.token);
+        const session: UserSession = {
+          email:              res.user.email,
+          nombre:             res.user.nombre ?? nombre,
+          onboardingCompleto: false,
+          id_usuario:         res.user.id_usuario,
+          id_tenant:          res.user.id_tenant,
+        };
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+      }),
+      map(() => true),
+      catchError(() => of(false)),
+    );
   }
 
   completarOnboarding(data: { empresa: string; nichoData: NichoData }) {
@@ -72,13 +90,15 @@ export class AuthService {
     session.nichoData = data.nichoData;
     session.onboardingCompleto = true;
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
-    const users = JSON.parse(localStorage.getItem('crm_users') || '[]');
-    const idx = users.findIndex((u: any) => u.email === session.email);
-    if (idx > -1) { users[idx] = { ...users[idx], empresa: data.empresa, nichoData: data.nichoData, onboardingCompleto: true }; localStorage.setItem('crm_users', JSON.stringify(users)); }
   }
 
   logout() {
+    const token = this.getToken();
+    if (token) {
+      this.http.post(`${environment.apiUrl}/logout`, {}).pipe(catchError(() => of(null))).subscribe();
+    }
     localStorage.removeItem(this.STORAGE_KEY);
+    localStorage.removeItem(this.TOKEN_KEY);
     this.router.navigate(['/auth/login']);
   }
 

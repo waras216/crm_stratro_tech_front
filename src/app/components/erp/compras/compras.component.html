@@ -41,18 +41,18 @@
       </tbody>
     </table>
   </div>
+</div>
 
-  <!-- Modal -->
-  <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 z-[100]" (click)="dialogOpen=false"></div>
-  <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
-    <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Orden de Compra</h3>
-    <div class="flex flex-col gap-3">
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.proveedor" placeholder="Proveedor" />
-      <div class="grid grid-cols-2 gap-3">
-        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.items" placeholder="Cant. Items" />
-        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.total" placeholder="Total $" />
-      </div>
-      <button (click)="submit()" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700">Crear Orden</button>
+<!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
+<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 z-[100]" (click)="dialogOpen=false"></div>
+<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Orden de Compra</h3>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.proveedor" placeholder="Proveedor" />
+    <div class="grid grid-cols-2 gap-3">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.items" placeholder="Cant. Items" />
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.total" placeholder="Total $" />
     </div>
+    <button (click)="submit()" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700">Crear Orden</button>
   </div>
 </div>

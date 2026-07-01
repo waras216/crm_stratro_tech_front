@@ -1,0 +1,290 @@
+<div class="shell-root"
+  [style]="darkMode ? 'background:#111827' : 'background:linear-gradient(135deg,#f0f2ff 0%,#faf5ff 100%)'">
+
+  <!-- ── Mobile overlay ── -->
+  <div *ngIf="mobileOpen" (click)="mobileOpen=false" class="mobile-overlay"></div>
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside *ngIf="!isConfigRoute" class="sidebar"
+    [class.collapsed]="collapsed"
+    [style]="'background:' + activeModule.sidebarGradient + ';box-shadow:' + activeModule.sidebarShadow">
+
+    <!-- Decorative glow -->
+    <div class="sidebar-glow" [style]="'background:' + activeModule.sidebarGlow"></div>
+
+    <!-- ── Header ── -->
+    <div class="sidebar-header" [style]="'border-bottom:1px solid ' + activeModule.borderColor">
+
+      <!-- Expanded -->
+      <div *ngIf="!collapsed" class="header-expanded sidebar-fade">
+        <!-- Logo o inicial de la empresa -->
+        <div class="company-badge" [style]="logo ? '' : 'background:' + activeModule.activeGradient + ';box-shadow:' + activeModule.activeShadow">
+          <img *ngIf="logo" [src]="logo" class="company-logo-badge" alt="logo" />
+          <span *ngIf="!logo" class="company-initial">{{ companyName.charAt(0) }}</span>
+        </div>
+        <div class="header-text">
+          <p class="header-title">{{ companyName }}</p>
+          <p class="header-sub">
+            <span class="module-accent-dot" [style]="'background:' + activeModule.accent"></span>
+            <span [style]="'color:' + activeModule.textMuted">{{ activeModule.label }}</span>
+          </p>
+        </div>
+        <button (click)="collapsed=true" class="collapse-btn" [style]="'color:' + activeModule.textMuted" title="Colapsar">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Collapsed -->
+      <div *ngIf="collapsed" class="header-collapsed">
+        <div class="company-badge company-badge--sm"
+          [style]="logo ? '' : 'background:' + activeModule.activeGradient + ';box-shadow:' + activeModule.activeShadow"
+          [title]="companyName + ' · ' + activeModule.label">
+          <img *ngIf="logo" [src]="logo" class="company-logo-badge" alt="logo" />
+          <span *ngIf="!logo" class="company-initial">{{ companyName.charAt(0) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expand button when collapsed -->
+    <div *ngIf="collapsed" class="expand-btn-wrap">
+      <button (click)="collapsed=false" class="expand-btn" [style]="'color:' + activeModule.textMuted">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ── Navigation ── -->
+    <nav class="sidebar-nav" [class.nav-collapsed]="collapsed">
+      <ng-container *ngFor="let section of sidebarSections">
+
+        <!-- Section label -->
+        <p *ngIf="section.label && !collapsed" class="section-label"
+          [style]="'color:' + activeModule.textMuted">{{ section.label }}</p>
+
+        <!-- Items -->
+        <button *ngFor="let item of section.items"
+          (click)="onNavigate(item)"
+          [title]="item.label"
+          class="nav-item"
+          [class.nav-item--collapsed]="collapsed"
+          [class.nav-item--active]="isItemActive(item)"
+          [style]="isItemActive(item)
+            ? (collapsed
+                ? 'background:' + activeModule.activeGradient + ';color:#fff;box-shadow:' + activeModule.activeShadow
+                : 'background:' + activeModule.activeBg + ';color:#fff')
+            : 'background:transparent;color:' + activeModule.textMuted">
+
+          <!-- Active bar -->
+          <span *ngIf="isItemActive(item) && !collapsed" class="active-bar"
+            [style]="'background:' + activeModule.activeGradient"></span>
+
+          <!-- Icon -->
+          <span class="nav-icon" [innerHTML]="safe(item.svg)"></span>
+
+          <!-- Label -->
+          <span *ngIf="!collapsed" class="nav-label">{{ item.label }}</span>
+
+          <!-- Badge -->
+          <span *ngIf="item.badge && item.badge > 0 && !collapsed" class="nav-badge"
+            [style]="'background:' + activeModule.accent">{{ item.badge }}</span>
+
+          <!-- Tooltip (collapsed) -->
+          <span *ngIf="collapsed" class="nav-tooltip">{{ item.label }}</span>
+        </button>
+
+        <!-- Section spacer -->
+        <div *ngIf="!collapsed" class="section-gap"></div>
+      </ng-container>
+    </nav>
+
+    <!-- ── Powered by ── -->
+    <p *ngIf="!collapsed" class="powered-by">Powered by STRATO Hub</p>
+
+    <!-- ── Divider ── -->
+    <div class="sidebar-divider"
+      [style]="'background:linear-gradient(90deg,transparent,' + activeModule.borderColor + ',transparent)'"></div>
+
+    <!-- ── User card ── -->
+    <div *ngIf="!collapsed" class="user-card" [style]="'border:1px solid ' + activeModule.borderColor">
+      <div class="user-avatar" [style]="'background:' + activeModule.activeGradient">
+        <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover" alt="avatar" />
+        <span *ngIf="!logo">{{ userName.charAt(0) }}</span>
+        <span class="online-dot"></span>
+      </div>
+      <div class="user-info">
+        <p class="user-name">{{ userName }}</p>
+        <p class="user-email" [style]="'color:' + activeModule.textMuted">{{ userEmail }}</p>
+      </div>
+      <button (click)="auth.logout()" class="logout-btn" [style]="'color:' + activeModule.textMuted" title="Cerrar sesión">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div *ngIf="collapsed" class="user-avatar-sm" [style]="'background:' + activeModule.activeGradient">
+      <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover" alt="avatar" />
+      <span *ngIf="!logo">{{ userName.charAt(0) }}</span>
+      <span class="online-dot"></span>
+    </div>
+  </aside>
+
+  <!-- ══════════ MAIN ══════════ -->
+  <div class="main-area" [class.main-area--full]="isConfigRoute">
+
+    <!-- ── Topbar ── -->
+    <header *ngIf="!isConfigRoute" class="topbar"
+      [style]="darkMode
+        ? 'background:rgba(17,24,39,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(75,85,99,.3)'
+        : 'background:rgba(255,255,255,.84);backdrop-filter:blur(16px);border-bottom:1px solid ' + activeModule.borderColor">
+
+      <!-- Brand + breadcrumb -->
+      <div class="breadcrumb">
+        <!-- Mini logo de empresa -->
+        <div class="brand-badge" [style]="logo ? 'background:transparent;padding:0' : 'background:' + activeModule.activeGradient">
+          <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover rounded-md" alt="logo" />
+          <span *ngIf="!logo" class="topbar-company-initial" [style]="'color:#fff;font-size:9px;font-weight:800'">
+            {{ companyName.charAt(0) }}
+          </span>
+        </div>
+        <span class="brand-name" [style]="darkMode ? 'color:#d1d5db' : 'color:#374151'">{{ companyName }}</span>
+        <span class="breadcrumb-sep" [style]="darkMode ? 'color:#374151' : 'color:#e2e8f0'">/</span>
+        <ng-container *ngIf="!isConfigRoute">
+          <span class="breadcrumb-mod-dot" [style]="'background:' + activeModule.accent"></span>
+          <h1 class="page-title" [style]="darkMode ? 'color:#f3f4f6' : 'color:#1e1b4b'">{{ getPageTitle() }}</h1>
+        </ng-container>
+        <h1 *ngIf="isConfigRoute" class="page-title" [style]="darkMode ? 'color:#f3f4f6' : 'color:#1e1b4b'">Configuración</h1>
+      </div>
+
+      <!-- Right controls -->
+      <div class="topbar-right">
+
+        <!-- Theme toggle -->
+        <button (click)="toggleTheme()" class="topbar-btn"
+          [style]="darkMode ? 'background:rgba(250,204,21,.1);color:#fbbf24' : 'background:rgba(0,0,0,.04);color:#64748b'"
+          [title]="darkMode ? 'Modo claro' : 'Modo oscuro'">
+          <svg *ngIf="darkMode" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg *ngIf="!darkMode" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+
+        <!-- Search -->
+        <button (click)="toggleSearch()" class="search-hint hidden md:flex"
+          [style]="darkMode
+            ? 'background:rgba(255,255,255,.06);color:#6b7280;border:1.5px solid rgba(255,255,255,.09)'
+            : 'background:rgba(0,0,0,.04);color:#94a3b8;border:1.5px solid rgba(0,0,0,.06)'">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <span>Buscar…</span>
+          <kbd class="kbd">⌘K</kbd>
+        </button>
+
+        <!-- Notifications -->
+        <button (click)="toggleNotif()" class="topbar-btn notif-btn"
+          [style]="showNotifPanel
+            ? 'background:' + activeModule.accent + '22;color:' + activeModule.accent
+            : darkMode ? 'background:rgba(255,255,255,.06);color:#9ca3af' : 'background:rgba(0,0,0,.04);color:#64748b'">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span *ngIf="unreadCount > 0" class="notif-badge">{{ unreadCount }}</span>
+        </button>
+
+        <!-- Avatar -->
+        <div (click)="toggleUserMenu()" class="topbar-avatar" [style]="'background:' + activeModule.activeGradient">
+          <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover" alt="avatar" />
+          <span *ngIf="!logo">{{ userName.charAt(0) }}</span>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Search modal -->
+    <div *ngIf="showSearch" class="search-overlay" (click)="closeAll()">
+      <div class="search-modal" (click)="$event.stopPropagation()"
+        [style]="darkMode ? 'background:#1f2937;border-color:rgba(75,85,99,.4)' : 'background:#fff;border-color:rgba(0,0,0,.08)'">
+        <div class="search-input-wrap" [style]="'border-color:' + activeModule.accent">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" [style]="'color:' + activeModule.accent">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input #searchInput [(ngModel)]="searchQuery" class="search-input"
+            placeholder="Buscar leads, clientes, oportunidades…"
+            [style]="darkMode ? 'color:#f3f4f6;background:transparent' : 'color:#1e1b4b;background:transparent'"
+            autofocus />
+          <kbd class="kbd" [style]="darkMode?'background:rgba(255,255,255,.08);color:#9ca3af':'background:rgba(0,0,0,.06);color:#94a3b8'">ESC</kbd>
+        </div>
+        <p class="search-hint-text" [style]="darkMode?'color:#6b7280':'color:#94a3b8'">Escribe para buscar en el módulo activo</p>
+      </div>
+    </div>
+
+    <!-- ── Content ── -->
+    <main class="content" [style]="darkMode ? 'background:#0f1729' : ''">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- ── FAB Module Launcher ── -->
+  <app-switcher></app-switcher>
+
+  <!-- ── Backdrop cierre paneles ── -->
+  <div *ngIf="showNotifPanel || showUserMenu" class="panel-backdrop" (click)="closeAll()"></div>
+
+  <!-- ── Notificaciones ── -->
+  <div *ngIf="showNotifPanel" class="floating-panel"
+    [style]="darkMode ? 'background:#1f2937;border-color:rgba(75,85,99,.4)' : 'background:#fff;border-color:rgba(0,0,0,.08)'">
+    <div class="dropdown-header">
+      <span class="dropdown-title" [style]="darkMode?'color:#f3f4f6':'color:#1e1b4b'">Notificaciones</span>
+      <button (click)="markAllRead()" class="dropdown-action" [style]="'color:' + activeModule.accent">Marcar leídas</button>
+    </div>
+    <div *ngFor="let n of notifications" class="notif-item" [class.notif-item--unread]="n.unread"
+      [style]="n.unread ? 'border-left:3px solid ' + activeModule.accent : 'border-left:3px solid transparent'">
+      <span class="notif-icon">{{ n.icon }}</span>
+      <div class="notif-body">
+        <p class="notif-title" [style]="darkMode?'color:#f3f4f6':'color:#1e1b4b'">{{ n.title }}</p>
+        <p class="notif-desc" [style]="darkMode?'color:#9ca3af':'color:#64748b'">{{ n.desc }}</p>
+        <span class="notif-time" [style]="darkMode?'color:#6b7280':'color:#94a3b8'">{{ n.time }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Menú usuario ── -->
+  <div *ngIf="showUserMenu" class="floating-panel"
+    [style]="darkMode ? 'background:#1f2937;border-color:rgba(75,85,99,.4)' : 'background:#fff;border-color:rgba(0,0,0,.08)'">
+    <div class="user-menu-header">
+      <div class="user-menu-avatar" [style]="'background:' + activeModule.activeGradient">{{ userName.charAt(0) }}</div>
+      <div>
+        <p class="user-menu-name" [style]="darkMode?'color:#f3f4f6':'color:#1e1b4b'">{{ userName }}</p>
+        <p class="user-menu-email" [style]="darkMode?'color:#9ca3af':'color:#64748b'">{{ userEmail }}</p>
+      </div>
+    </div>
+    <div class="dropdown-divider" [style]="darkMode?'background:rgba(75,85,99,.3)':'background:rgba(0,0,0,.06)'"></div>
+    <button (click)="goToConfig()" class="user-menu-item" [style]="darkMode?'color:#d1d5db':'color:#374151'">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/>
+      </svg>
+      Configuración
+    </button>
+    <div class="dropdown-divider" [style]="darkMode?'background:rgba(75,85,99,.3)':'background:rgba(0,0,0,.06)'"></div>
+    <button (click)="auth.logout()" class="user-menu-item user-menu-item--danger">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Cerrar sesión
+    </button>
+  </div>
+</div>

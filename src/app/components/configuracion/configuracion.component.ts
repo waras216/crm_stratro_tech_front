@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Location } from '@angular/common';
 import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
 
@@ -67,7 +68,9 @@ export class ConfiguracionComponent implements OnInit {
   saved = false;
   logoPreview: string | null = null;
 
-  constructor(private auth: AuthService, public theme: ThemeService) {}
+  constructor(private auth: AuthService, public theme: ThemeService, private location: Location) {}
+
+  goBack() { this.location.back(); }
 
   ngOnInit() {
     const session = this.auth.session;

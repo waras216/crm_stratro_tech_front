@@ -4,9 +4,10 @@ import { AuthService } from '../../../core/auth/authservices';
 
 @Component({ selector: 'app-auth-login', standalone: false, templateUrl: './login.component.html', styleUrls: ['./login.component.scss'] })
 export class AuthLoginComponent {
-  email = '';
+  email    = '';
   password = '';
-  error = '';
+  error    = '';
+  loading  = false;
 
   constructor(private auth: AuthService, private router: Router) {
     if (this.auth.isLoggedIn && this.auth.isOnboarded) this.router.navigate(['/crm']);
@@ -15,9 +16,15 @@ export class AuthLoginComponent {
   submit() {
     this.error = '';
     if (!this.email || !this.password) { this.error = 'Completa todos los campos'; return; }
-    const ok = this.auth.login(this.email, this.password);
-    if (!ok) { this.error = 'Credenciales incorrectas'; return; }
-    if (!this.auth.isOnboarded) { this.router.navigate(['/auth/onboarding']); return; }
-    this.router.navigate(['/crm']);
+    this.loading = true;
+    this.auth.login(this.email, this.password).subscribe({
+      next: ok => {
+        this.loading = false;
+        if (!ok) { this.error = 'Credenciales incorrectas'; return; }
+        if (!this.auth.isOnboarded) { this.router.navigate(['/auth/onboarding']); return; }
+        this.router.navigate(['/crm']);
+      },
+      error: () => { this.loading = false; this.error = 'Error de conexión con el servidor'; },
+    });
   }
 }

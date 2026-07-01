@@ -35,46 +35,47 @@
     </div>
     <div *ngIf="filtered.length===0" class="col-span-full text-center text-slate-400 py-12">No se encontraron campañas</div>
   </div>
+</div>
 
-  <!-- Modal backdrop -->
-  <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/45 z-[100]" (click)="closeDialog()"></div>
-  <!-- Modal -->
-  <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl max-h-[90vh] overflow-y-auto">
-    <div class="flex justify-between items-center px-6 pt-5">
-      <h2 class="m-0 text-lg font-semibold">{{ editingCamp ? 'Editar Campaña' : 'Nueva Campaña' }}</h2>
-      <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100" (click)="closeDialog()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+<!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
+<!-- Modal backdrop -->
+<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/45 z-[100]" (click)="closeDialog()"></div>
+<!-- Modal -->
+<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl max-h-[90vh] overflow-y-auto">
+  <div class="flex justify-between items-center px-6 pt-5">
+    <h2 class="m-0 text-lg font-semibold">{{ editingCamp ? 'Editar Campaña' : 'Nueva Campaña' }}</h2>
+    <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100" (click)="closeDialog()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="px-6 py-5 flex flex-col gap-4">
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-medium text-slate-600">Nombre *</label>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" [(ngModel)]="form.nombre_compania" placeholder="Nombre de la campaña" />
     </div>
-    <div class="px-6 py-5 flex flex-col gap-4">
+    <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1">
-        <label class="text-xs font-medium text-slate-600">Nombre *</label>
-        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" [(ngModel)]="form.nombre_compania" placeholder="Nombre de la campaña" />
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div class="flex flex-col gap-1">
-          <label class="text-xs font-medium text-slate-600">Segmento</label>
-          <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" [(ngModel)]="form.segmento" placeholder="Ej: Empresas Tecnología" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-xs font-medium text-slate-600">Fecha de Inicio</label>
-          <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" type="date" [(ngModel)]="form.fecha_inicio" />
-        </div>
+        <label class="text-xs font-medium text-slate-600">Segmento</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" [(ngModel)]="form.segmento" placeholder="Ej: Empresas Tecnología" />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-xs font-medium text-slate-600">Estado</label>
-        <select class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 cursor-pointer" [(ngModel)]="form.estado">
-          <option value="activa">Activa</option>
-          <option value="pausada">Pausada</option>
-          <option value="finalizada">Finalizada</option>
-        </select>
+        <label class="text-xs font-medium text-slate-600">Fecha de Inicio</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" type="date" [(ngModel)]="form.fecha_inicio" />
       </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-xs font-medium text-slate-600">Contactos (uno por línea: Nombre, Email, Teléfono)</label>
-        <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 resize-none"
-          [(ngModel)]="contactosInput" placeholder="Juan Pérez, juan@email.com, 555-0000&#10;María García, maria@email.com" rows="4"></textarea>
-      </div>
-      <button class="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 border-0 cursor-pointer" (click)="handleSubmit()">
-        {{ editingCamp ? 'Guardar Cambios' : 'Crear Campaña' }}
-      </button>
     </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-medium text-slate-600">Estado</label>
+      <select class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 cursor-pointer" [(ngModel)]="form.estado">
+        <option value="activa">Activa</option>
+        <option value="pausada">Pausada</option>
+        <option value="finalizada">Finalizada</option>
+      </select>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-medium text-slate-600">Contactos (uno por línea: Nombre, Email, Teléfono)</label>
+      <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 resize-none"
+        [(ngModel)]="contactosInput" placeholder="Juan Pérez, juan@email.com, 555-0000&#10;María García, maria@email.com" rows="4"></textarea>
+    </div>
+    <button class="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 border-0 cursor-pointer" (click)="handleSubmit()">
+      {{ editingCamp ? 'Guardar Cambios' : 'Crear Campaña' }}
+    </button>
   </div>
 </div>

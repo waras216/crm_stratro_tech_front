@@ -3,9 +3,19 @@
 
   <!-- Header -->
   <div class="flex items-center justify-between">
-    <div>
-      <h1 class="text-lg font-bold m-0" style="color:#1e1b4b">Configuración</h1>
-      <p class="text-xs text-slate-400 m-0 mt-1">Administra las preferencias globales del sistema</p>
+    <div class="flex items-center gap-3">
+      <button (click)="goBack()"
+        class="inline-flex items-center justify-center w-8 h-8 rounded-lg border-0 cursor-pointer transition-all hover:scale-105 active:scale-95 flex-shrink-0"
+        style="background:rgba(99,102,241,.1);color:#6366f1"
+        title="Volver">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </button>
+      <div>
+        <h1 class="text-lg font-bold m-0" style="color:#1e1b4b">Configuración</h1>
+        <p class="text-xs text-slate-400 m-0 mt-1">Administra las preferencias globales del sistema</p>
+      </div>
     </div>
     <button (click)="guardar()"
       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95"

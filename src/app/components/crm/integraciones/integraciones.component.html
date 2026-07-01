@@ -57,34 +57,35 @@
       <p class="text-sm text-blue-600 m-0">Conecta WhatsApp Business para enviar mensajes automatizados, recibir notificaciones y gestionar conversaciones directamente desde el CRM.</p>
     </div>
   </div>
+</div>
 
-  <!-- Config dialog backdrop -->
-  <div *ngIf="selected" class="fixed inset-0 bg-black/45 z-[100]" (click)="closeConfig()"></div>
-  <!-- Config dialog -->
-  <div *ngIf="selected" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl max-h-[90vh] overflow-y-auto">
-    <div class="flex justify-between items-center px-6 pt-5">
-      <h2 class="m-0 text-lg font-semibold">Configuración: {{ selected.nombre }}</h2>
-      <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100" (click)="closeConfig()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+<!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
+<!-- Config dialog backdrop -->
+<div *ngIf="selected" class="fixed inset-0 bg-black/45 z-[100]" (click)="closeConfig()"></div>
+<!-- Config dialog -->
+<div *ngIf="selected" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl max-h-[90vh] overflow-y-auto">
+  <div class="flex justify-between items-center px-6 pt-5">
+    <h2 class="m-0 text-lg font-semibold">Configuración: {{ selected.nombre }}</h2>
+    <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100" (click)="closeConfig()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="px-6 py-5 flex flex-col gap-3">
+    <div class="flex justify-between py-2 border-b border-slate-100 text-sm">
+      <span class="text-slate-400">Estado</span>
+      <span [style.color]="estadoConfig[selected.estado]?.color" class="font-medium">{{ estadoConfig[selected.estado]?.label }}</span>
     </div>
-    <div class="px-6 py-5 flex flex-col gap-3">
-      <div class="flex justify-between py-2 border-b border-slate-100 text-sm">
-        <span class="text-slate-400">Estado</span>
-        <span [style.color]="estadoConfig[selected.estado]?.color" class="font-medium">{{ estadoConfig[selected.estado]?.label }}</span>
-      </div>
-      <div class="flex justify-between py-2 border-b border-slate-100 text-sm">
-        <span class="text-slate-400">Tipo</span>
-        <span class="font-medium capitalize">{{ selected.tipo }}</span>
-      </div>
-      <div class="flex justify-between py-2 border-b border-slate-100 text-sm" *ngFor="let entry of configEntries(selected)">
-        <span class="text-slate-400 capitalize">{{ entry.k }}</span>
-        <span class="font-medium">{{ entry.v }}</span>
-      </div>
-      <button class="w-full mt-4 px-4 py-2.5 rounded-lg text-sm font-medium border-0 cursor-pointer"
-        [class.bg-red-100]="selected.estado === 'conectada'" [class.text-red-700]="selected.estado === 'conectada'"
-        [class.bg-blue-600]="selected.estado !== 'conectada'" [class.text-white]="selected.estado !== 'conectada'"
-        (click)="toggle(selected.id); closeConfig()">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg> {{ selected.estado === 'conectada' ? 'Desconectar' : 'Conectar' }}
-      </button>
+    <div class="flex justify-between py-2 border-b border-slate-100 text-sm">
+      <span class="text-slate-400">Tipo</span>
+      <span class="font-medium capitalize">{{ selected.tipo }}</span>
     </div>
+    <div class="flex justify-between py-2 border-b border-slate-100 text-sm" *ngFor="let entry of configEntries(selected)">
+      <span class="text-slate-400 capitalize">{{ entry.k }}</span>
+      <span class="font-medium">{{ entry.v }}</span>
+    </div>
+    <button class="w-full mt-4 px-4 py-2.5 rounded-lg text-sm font-medium border-0 cursor-pointer"
+      [class.bg-red-100]="selected.estado === 'conectada'" [class.text-red-700]="selected.estado === 'conectada'"
+      [class.bg-blue-600]="selected.estado !== 'conectada'" [class.text-white]="selected.estado !== 'conectada'"
+      (click)="toggle(selected.id); closeConfig()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg> {{ selected.estado === 'conectada' ? 'Desconectar' : 'Conectar' }}
+    </button>
   </div>
 </div>

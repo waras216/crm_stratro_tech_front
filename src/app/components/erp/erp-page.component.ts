@@ -1,25 +1,36 @@
-import { Component } from '@angular/core';
-import { ErpTab } from './layout/erp-layout.component';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { ModuleService, ErpTab } from '../../core/services/module.service';
 
 @Component({
   selector: 'app-erp-page',
   standalone: false,
   template: `
-    <app-erp-layout [tabActivo]="tab" (cambiarTab)="tab=$event">
-      <app-erp-dashboard *ngIf="tab==='dashboard'"></app-erp-dashboard>
-      <app-erp-finanzas *ngIf="tab==='finanzas'"></app-erp-finanzas>
-      <app-erp-compras *ngIf="tab==='compras'"></app-erp-compras>
-      <app-erp-ventas *ngIf="tab==='ventas'"></app-erp-ventas>
-      <app-erp-inventario *ngIf="tab==='inventario'"></app-erp-inventario>
-      <app-erp-fabricacion *ngIf="tab==='fabricacion'"></app-erp-fabricacion>
-      <app-erp-scm *ngIf="tab==='scm'"></app-erp-scm>
-      <app-erp-rrhh *ngIf="tab==='rrhh'"></app-erp-rrhh>
-      <app-erp-crm *ngIf="tab==='crm'"></app-erp-crm>
-      <app-erp-proyectos *ngIf="tab==='proyectos'"></app-erp-proyectos>
-    </app-erp-layout>
+    <app-erp-dashboard   *ngIf="tab==='dashboard'"></app-erp-dashboard>
+    <app-erp-finanzas    *ngIf="tab==='finanzas'"></app-erp-finanzas>
+    <app-erp-compras     *ngIf="tab==='compras'"></app-erp-compras>
+    <app-erp-ventas      *ngIf="tab==='ventas'"></app-erp-ventas>
+    <app-erp-inventario  *ngIf="tab==='inventario'"></app-erp-inventario>
+    <app-erp-fabricacion *ngIf="tab==='fabricacion'"></app-erp-fabricacion>
+    <app-erp-scm         *ngIf="tab==='scm'"></app-erp-scm>
+    <app-erp-rrhh        *ngIf="tab==='rrhh'"></app-erp-rrhh>
+    <app-erp-crm         *ngIf="tab==='crm'"></app-erp-crm>
+    <app-erp-proyectos   *ngIf="tab==='proyectos'"></app-erp-proyectos>
   `,
   styles: [':host { display: block; height: 100%; }'],
 })
-export class ErpPageComponent {
+export class ErpPageComponent implements OnInit, OnDestroy {
   tab: ErpTab = 'dashboard';
+  private destroy$ = new Subject<void>();
+
+  constructor(private moduleService: ModuleService) {}
+
+  ngOnInit() {
+    this.moduleService.erpTab$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(t => this.tab = t);
+  }
+
+  ngOnDestroy() { this.destroy$.next(); this.destroy$.complete(); }
 }
