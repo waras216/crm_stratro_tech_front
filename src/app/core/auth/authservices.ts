@@ -55,6 +55,7 @@ export class AuthService {
           nombre:             res.user.nombre ?? email,
           empresa:            res.user.empresa,
           onboardingCompleto: !!res.user.onboardingCompleto,
+          nichoData:          res.user.nichoData,
           id_usuario:         res.user.id_usuario,
           id_tenant:          res.user.id_tenant,
         };
@@ -72,7 +73,9 @@ export class AuthService {
         const session: UserSession = {
           email:              res.user.email,
           nombre:             res.user.nombre ?? nombre,
-          onboardingCompleto: false,
+          empresa:            res.user.empresa,
+          onboardingCompleto: !!res.user.onboardingCompleto,
+          nichoData:          res.user.nichoData,
           id_usuario:         res.user.id_usuario,
           id_tenant:          res.user.id_tenant,
         };
@@ -83,13 +86,40 @@ export class AuthService {
     );
   }
 
-  completarOnboarding(data: { empresa: string; nichoData: NichoData }) {
-    const session = this.session;
-    if (!session) return;
-    session.empresa = data.empresa;
-    session.nichoData = data.nichoData;
-    session.onboardingCompleto = true;
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+  completarOnboarding(data: { empresa: string; nichoData: NichoData }): Observable<boolean> {
+    const { nicho, moneda, modulos, ...datosNicho } = data.nichoData;
+    const payload = { empresa: data.empresa, nicho, moneda, modulos, datos_nicho: datosNicho };
+
+    return this.http.post<{ empresa: string; onboardingCompleto: boolean; nichoData: NichoData }>(
+      `${environment.apiUrl}/tenant/onboarding`, payload
+    ).pipe(
+      tap(res => {
+        const session = this.session;
+        if (!session) return;
+        session.empresa = res.empresa;
+        session.nichoData = res.nichoData;
+        session.onboardingCompleto = res.onboardingCompleto;
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+      }),
+      map(() => true),
+      catchError(() => of(false)),
+    );
+  }
+
+  refreshSession(): Observable<boolean> {
+    if (!this.getToken()) return of(false);
+    return this.http.get<any>(`${environment.apiUrl}/user`).pipe(
+      tap(user => {
+        const session = this.session;
+        if (!session) return;
+        session.empresa = user.empresa;
+        session.onboardingCompleto = !!user.onboardingCompleto;
+        session.nichoData = user.nichoData;
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+      }),
+      map(() => true),
+      catchError(() => of(false)),
+    );
   }
 
   logout() {

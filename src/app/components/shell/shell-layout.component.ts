@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
@@ -6,6 +6,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
 import { ModuleService, SidebarNavItem, ErpTab, PosTab } from '../../core/services/module.service';
+import { CrmService } from '../../core/services/crm-service';
 
 @Component({
   selector: 'app-shell-layout',
@@ -28,11 +29,11 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   showUserMenu = false;
   searchQuery = '';
 
-  notifications = [
-    { icon: '👤', title: 'Nuevo lead asignado', desc: 'Carlos Mendoza fue asignado a ti', time: 'hace 5 min', unread: true },
-    { icon: '⭐', title: 'Oportunidad actualizada', desc: 'TechCorp avanzó a etapa de propuesta', time: 'hace 1h', unread: true },
-    { icon: '📊', title: 'Reporte listo', desc: 'El reporte mensual de ventas está listo', time: 'hace 3h', unread: true },
-  ];
+  notifications: { id: number; icon: string; title: string; desc: string; time: string; unread: boolean }[] = [];
+
+  private notifIcons: Record<string, string> = {
+    success: '🎉', warning: '⚠️', info: '🔔', error: '⛔',
+  };
 
   private destroy$ = new Subject<void>();
 
@@ -47,6 +48,8 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
     public theme: ThemeService,
     private router: Router,
     private sanitizer: DomSanitizer,
+    private crm: CrmService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   get companyName(): string {
@@ -70,6 +73,39 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
 
     this.module.erpTab$.pipe(takeUntil(this.destroy$)).subscribe(t => this.activeErpTab = t);
     this.module.posTab$.pipe(takeUntil(this.destroy$)).subscribe(t => this.activePosTab = t);
+
+    // Self-heal a stale cached session (e.g. onboarding completed on another device).
+    this.auth.refreshSession().subscribe();
+
+    this.cargarNotificaciones();
+  }
+
+  private cargarNotificaciones() {
+    this.crm.cargarNotificaciones().subscribe({
+      next: res => {
+        this.notifications = (res ?? []).map(n => ({
+          id: n.id_notificacion,
+          icon: this.notifIcons[n.tipo] ?? '🔔',
+          title: n.titulo,
+          desc: n.mensaje ?? '',
+          time: this.tiempoRelativo(n.created_at),
+          unread: !n.leida,
+        }));
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private tiempoRelativo(fecha?: string): string {
+    if (!fecha) return '';
+    const diffMs = Date.now() - new Date(fecha).getTime();
+    const min = Math.floor(diffMs / 60000);
+    if (min < 1) return 'ahora';
+    if (min < 60) return `hace ${min} min`;
+    const horas = Math.floor(min / 60);
+    if (horas < 24) return `hace ${horas}h`;
+    const dias = Math.floor(horas / 24);
+    return `hace ${dias}d`;
   }
 
   ngOnDestroy() { this.destroy$.next(); this.destroy$.complete(); }
@@ -118,10 +154,24 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   }
 
   toggleSearch()    { this.showSearch = !this.showSearch; this.showNotifPanel = false; this.showUserMenu = false; }
-  toggleNotif()     { this.showNotifPanel = !this.showNotifPanel; this.showSearch = false; this.showUserMenu = false; }
+  toggleNotif() {
+    this.showNotifPanel = !this.showNotifPanel;
+    this.showSearch = false;
+    this.showUserMenu = false;
+    if (this.showNotifPanel) this.cargarNotificaciones();
+  }
   toggleUserMenu()  { this.showUserMenu = !this.showUserMenu; this.showSearch = false; this.showNotifPanel = false; }
   closeAll()        { this.showSearch = false; this.showNotifPanel = false; this.showUserMenu = false; }
-  markAllRead()     { this.notifications.forEach(n => n.unread = false); }
+  markAllRead() {
+    this.notifications.forEach(n => n.unread = false);
+    this.crm.marcarTodasNotificacionesLeidas().subscribe();
+  }
+  markOneRead(id: number) {
+    const n = this.notifications.find(x => x.id === id);
+    if (!n || !n.unread) return;
+    n.unread = false;
+    this.crm.marcarNotificacionLeida(id).subscribe();
+  }
   get unreadCount() { return this.notifications.filter(n => n.unread).length; }
 
   goToConfig()      { this.router.navigate(['/configuracion']); this.closeAll(); }

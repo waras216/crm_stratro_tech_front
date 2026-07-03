@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/authservices';
 
@@ -9,7 +9,7 @@ export class AuthLoginComponent {
   error    = '';
   loading  = false;
 
-  constructor(private auth: AuthService, private router: Router) {
+  constructor(private auth: AuthService, private router: Router, private cdr: ChangeDetectorRef) {
     if (this.auth.isLoggedIn && this.auth.isOnboarded) this.router.navigate(['/crm']);
   }
 
@@ -20,11 +20,11 @@ export class AuthLoginComponent {
     this.auth.login(this.email, this.password).subscribe({
       next: ok => {
         this.loading = false;
-        if (!ok) { this.error = 'Credenciales incorrectas'; return; }
+        if (!ok) { this.error = 'Credenciales incorrectas'; this.cdr.detectChanges(); return; }
         if (!this.auth.isOnboarded) { this.router.navigate(['/auth/onboarding']); return; }
         this.router.navigate(['/crm']);
       },
-      error: () => { this.loading = false; this.error = 'Error de conexión con el servidor'; },
+      error: () => { this.loading = false; this.error = 'Error de conexión con el servidor'; this.cdr.detectChanges(); },
     });
   }
 }

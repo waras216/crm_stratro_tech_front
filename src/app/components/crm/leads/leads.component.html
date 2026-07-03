@@ -16,7 +16,7 @@
         class="px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer focus:outline-none"
         style="background:#fff;border:1.5px solid rgba(99,102,241,.15);color:#1e1b4b">
         <option value="todos">Todos los estados</option>
-        <option *ngFor="let e of estatusOptions" [value]="e">{{ e }}</option>
+        <option *ngFor="let e of estatusOptionsFiltro" [value]="e">{{ e }}</option>
       </select>
     </div>
     <button (click)="openNew()"
@@ -64,8 +64,11 @@
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-3">
                 <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                  style="background:linear-gradient(135deg,#818cf8,#a78bfa)">{{ lead.titulo.charAt(0).toUpperCase() }}</div>
-                <span class="font-semibold text-slate-700 text-xs">{{ lead.titulo }}</span>
+                  style="background:linear-gradient(135deg,#818cf8,#a78bfa)">{{ (lead.nombre || lead.titulo).charAt(0).toUpperCase() }}</div>
+                <div class="flex flex-col">
+                  <span class="font-semibold text-slate-700 text-xs">{{ lead.nombre || lead.titulo }}</span>
+                  <span *ngIf="lead.nombre" class="text-[10px] text-slate-400">{{ lead.titulo }}</span>
+                </div>
               </div>
             </td>
             <td class="px-5 py-3.5">
@@ -78,6 +81,14 @@
             <td class="px-5 py-3.5 text-[11px] text-slate-400 font-medium">{{ lead.created_at | date:'dd/MM/yyyy' }}</td>
             <td class="px-5 py-3.5">
               <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button *ngIf="lead.estado !== 'convertido'" (click)="openConvert(lead)" title="Convertir a Oportunidad"
+                  class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110"
+                  style="background:#ecfdf5;color:#059669">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                    <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                  </svg>
+                </button>
                 <button (click)="handleEdit(lead)"
                   class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110"
                   style="background:#eef2ff;color:#6366f1">
@@ -155,10 +166,30 @@
   <!-- Fields -->
   <div class="px-6 py-5 flex flex-col gap-4">
     <div class="flex flex-col gap-1.5">
-      <label class="text-[11px] font-semibold" style="color:#6366f1">Nombre / Título *</label>
+      <label class="text-[11px] font-semibold" style="color:#6366f1">Título del lead *</label>
       <input [(ngModel)]="form.titulo" placeholder="Ej. Interés en sistema ERP"
         class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
         style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-semibold" style="color:#6366f1">Nombre del contacto</label>
+      <input [(ngModel)]="form.nombre" placeholder="Ej. Ana García"
+        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
+        style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-semibold" style="color:#6366f1">Email</label>
+        <input [(ngModel)]="form.email" type="email" placeholder="ana@ejemplo.com"
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
+          style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-semibold" style="color:#6366f1">Teléfono</label>
+        <input [(ngModel)]="form.telefono" placeholder="555-1234"
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
+          style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+      </div>
     </div>
     <div class="flex flex-col gap-1.5">
       <label class="text-[11px] font-semibold" style="color:#6366f1">Valor Estimado ($)</label>
@@ -194,6 +225,103 @@
       class="w-full py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
       style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 14px rgba(99,102,241,.4)">
       {{ editingLead ? 'Guardar Cambios' : 'Crear Lead' }}
+    </button>
+  </div>
+</div>
+
+<!-- Modal: convertir lead a Cliente + Oportunidad -->
+<div *ngIf="convertDialogOpen" class="fixed inset-0 z-[100]"
+  style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="closeConvert()"></div>
+<div *ngIf="convertDialogOpen"
+  class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] max-h-[90vh] overflow-y-auto"
+  style="background:#fff;border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
+  <div class="px-6 pt-6 pb-4" style="background:linear-gradient(135deg,#ecfdf5,#eef2ff);border-radius:24px 24px 0 0">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="m-0 text-sm font-bold" style="color:#1e1b4b">Convertir a Oportunidad</h2>
+        <p class="text-[11px] text-slate-400 m-0 mt-0.5">Crea el cliente y la oportunidad a partir de este lead</p>
+      </div>
+      <button (click)="closeConvert()"
+        class="w-8 h-8 rounded-xl flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all"
+        style="background:rgba(5,150,105,.1);color:#059669">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="px-6 py-5 flex flex-col gap-4">
+    <div *ngIf="convertError" class="px-4 py-2.5 rounded-xl text-sm font-medium" style="background:#fff1f2;border:1.5px solid #fecdd3;color:#e11d48">
+      {{ convertError }}
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-semibold" style="color:#059669">Nombre del cliente *</label>
+      <input [(ngModel)]="convertForm.nombre" placeholder="Nombre completo"
+        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
+        style="background:#f0fdf4;border:2px solid #d1fae5;color:#1e1b4b" />
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-semibold" style="color:#059669">Email</label>
+        <input [(ngModel)]="convertForm.email" type="email" placeholder="correo@ejemplo.com"
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
+          style="background:#f0fdf4;border:2px solid #d1fae5;color:#1e1b4b" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-semibold" style="color:#059669">Teléfono</label>
+        <input [(ngModel)]="convertForm.telefono" placeholder="555-1234"
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
+          style="background:#f0fdf4;border:2px solid #d1fae5;color:#1e1b4b" />
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-semibold" style="color:#059669">Empresa</label>
+        <input [(ngModel)]="convertForm.empresa" placeholder="Opcional"
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
+          style="background:#f0fdf4;border:2px solid #d1fae5;color:#1e1b4b" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-semibold" style="color:#059669">Tipo</label>
+        <select [(ngModel)]="convertForm.tipo"
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer"
+          style="background:#f0fdf4;border:2px solid #d1fae5;color:#1e1b4b">
+          <option value="persona">Persona</option>
+          <option value="empresa">Empresa</option>
+        </select>
+      </div>
+    </div>
+
+    <hr style="border-color:#eef2ff" />
+
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-semibold" style="color:#059669">Pipeline *</label>
+        <select [(ngModel)]="convertForm.id_pipeline"
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer"
+          style="background:#f0fdf4;border:2px solid #d1fae5;color:#1e1b4b">
+          <option *ngFor="let p of pipelines" [value]="p.id_pipeline">{{ p.nombre }}</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-semibold" style="color:#059669">Etapa inicial</label>
+        <select [(ngModel)]="convertForm.etapa"
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer"
+          style="background:#f0fdf4;border:2px solid #d1fae5;color:#1e1b4b">
+          <option *ngFor="let e of etapaOptions" [value]="e">{{ e | titlecase }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-semibold" style="color:#059669">Valor de la oportunidad ($)</label>
+      <input [(ngModel)]="convertForm.valor" type="number" placeholder="15000.00" min="0" step="0.01"
+        class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
+        style="background:#f0fdf4;border:2px solid #d1fae5;color:#1e1b4b" />
+    </div>
+
+    <button (click)="submitConvert()" [disabled]="!convertForm.nombre || !convertForm.id_pipeline"
+      class="w-full py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-40"
+      style="background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 4px 14px rgba(5,150,105,.4)">
+      Convertir a Oportunidad
     </button>
   </div>
 </div>

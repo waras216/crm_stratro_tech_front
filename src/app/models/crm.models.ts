@@ -41,6 +41,31 @@ export interface Oportunidad {
   created_at?: string;
 }
 
+export interface Notificacion {
+  id_notificacion: number;
+  id_tenant?: number;
+  id_usuario?: number;
+  id_cliente?: number | null;
+  titulo: string;
+  mensaje?: string;
+  tipo: string;
+  leida: boolean;
+  url?: string | null;
+  created_at?: string;
+}
+
+export interface Contacto {
+  id_contacto: number;
+  id_cliente?: number;
+  nombre: string;
+  apellido_p?: string;
+  apellido_m?: string;
+  email?: string;
+  telefono?: string;
+  cargo?: string;
+  principal?: boolean;
+}
+
 export interface Cliente {
   id: number;
   id_cliente: number;
@@ -56,6 +81,10 @@ export interface Cliente {
   tipo: 'empresa' | 'persona';
   activo?: number;
   created_at?: string;
+  contactos?: Contacto[];
+  leads?: Lead[];
+  oportunidades?: Oportunidad[];
+  actividades?: Actividad[];
 }
 
 export interface Actividad {

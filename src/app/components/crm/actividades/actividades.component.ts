@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { Actividad } from '../../../models/crm.models';
 
@@ -27,12 +27,12 @@ export class ActividadesComponent implements OnInit {
   form: { titulo: string; tipo: Actividad['tipo']; descripcion: string; fecha_inicio: string; estado: Actividad['estado'] } =
     { titulo: '', tipo: 'tarea', descripcion: '', fecha_inicio: '', estado: 'pendiente' };
 
-  constructor(private crm: CrmService) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
   ngOnInit() { this.cargar(); }
 
   cargar() {
     this.cargando = true;
-    this.crm.cargarActividades().subscribe({ next: r => { this.actividades = r.data??[]; this.cargando=false; }, error: () => { this.cargando=false; } });
+    this.crm.cargarActividades().subscribe({ next: r => { this.actividades = r.data??[]; this.cargando=false; this.cdr.detectChanges(); }, error: () => { this.cargando=false; this.cdr.detectChanges(); } });
   }
 
   get filtered() {

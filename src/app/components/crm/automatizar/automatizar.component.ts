@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { Automatizacion } from '../../../models/crm.models';
 
@@ -10,15 +10,15 @@ export class AutomatizarComponent implements OnInit {
 
   form = { nombre_automatizacion: '', regla: '', evento: '', accion: '', activa: true };
 
-  constructor(private crm: CrmService) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() { this.cargar(); }
 
   cargar() {
     this.cargando = true;
     this.crm.cargarAutomatizaciones().subscribe({
-      next: res => { this.automatizaciones = res.data ?? []; this.cargando = false; },
-      error: () => { this.cargando = false; }
+      next: res => { this.automatizaciones = res.data ?? []; this.cargando = false; this.cdr.detectChanges(); },
+      error: () => { this.cargando = false; this.cdr.detectChanges(); }
     });
   }
 

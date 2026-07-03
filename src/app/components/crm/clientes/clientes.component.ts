@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { Cliente } from '../../../models/crm.models';
 
@@ -11,15 +11,21 @@ export class ClientesComponent implements OnInit {
   sectorOptions = ['Tecnología', 'Software', 'Fintech', 'Consultoría', 'Retail', 'Salud', 'Educación', 'Manufactura', 'Freelance', 'Otro'];
   form = { nombre: '', telefono: '', email: '', direccion: '', sector_empresarial: 'Tecnología', tipo: 'empresa' as Cliente['tipo'] };
 
-  constructor(private crm: CrmService) {}
+  // Detalle de cliente
+  detalleOpen = false;
+  detalleCargando = false;
+  clienteDetalle: Cliente | null = null;
+  detalleTab: 'leads' | 'oportunidades' | 'actividades' | 'contactos' = 'leads';
+
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() { this.cargar(); }
 
   cargar() {
     this.cargando = true;
     this.crm.cargarClientes().subscribe({
-      next: res => { this.clientes = res.data ?? []; this.cargando = false; },
-      error: () => { this.cargando = false; }
+      next: res => { this.clientes = res.data ?? []; this.cargando = false; this.cdr.detectChanges(); },
+      error: () => { this.cargando = false; this.cdr.detectChanges(); }
     });
   }
 
@@ -50,4 +56,17 @@ export class ClientesComponent implements OnInit {
 
   deleteCliente(id: number) { this.crm.deleteCliente(id).subscribe(() => this.cargar()); }
   closeDialog() { this.dialogOpen = false; this.resetForm(); }
+
+  abrirDetalle(c: Cliente) {
+    this.detalleOpen = true;
+    this.detalleCargando = true;
+    this.clienteDetalle = null;
+    this.detalleTab = 'leads';
+    this.crm.verCliente(c.id_cliente).subscribe({
+      next: res => { this.clienteDetalle = res; this.detalleCargando = false; this.cdr.detectChanges(); },
+      error: () => { this.detalleCargando = false; this.cdr.detectChanges(); },
+    });
+  }
+
+  cerrarDetalle() { this.detalleOpen = false; this.clienteDetalle = null; }
 }

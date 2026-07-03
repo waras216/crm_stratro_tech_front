@@ -10,6 +10,11 @@
         <button [ngClass]="viewMode==='lista' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'"
           class="px-3 py-2 text-sm font-medium border-0 cursor-pointer" (click)="viewMode='lista'">Lista</button>
       </div>
+      <button class="inline-flex items-center gap-1.5 px-3 py-2 bg-white text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 border border-slate-200 cursor-pointer"
+        (click)="openPipelineManager()" title="Gestionar pipelines">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Pipelines
+      </button>
       <button class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 border-0 cursor-pointer shadow-btn"
         (click)="openNew()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -155,4 +160,93 @@
       {{ editingOp ? 'Guardar Cambios' : 'Crear Oportunidad' }}
     </button>
   </div>
+</div>
+
+<!-- Modal: gestión de pipelines -->
+<div *ngIf="pipelineManagerOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="closePipelineManager()"></div>
+<div *ngIf="pipelineManagerOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-md z-[101] shadow-modal max-h-[90vh] overflow-y-auto modal-in">
+  <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+    <h2 class="m-0 text-lg font-semibold text-slate-800">Pipelines</h2>
+    <button class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-slate-50 text-slate-500 hover:bg-slate-100" (click)="closePipelineManager()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="p-5 flex flex-col gap-3">
+    <div *ngFor="let p of pipelines" class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-slate-200">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-medium text-slate-700">{{ p.nombre }}</span>
+        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+          [ngClass]="p.activo ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'">
+          {{ p.activo ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-slate-50 text-slate-500 hover:bg-slate-100"
+          title="Activar/Desactivar" (click)="togglePipelineActivo(p)">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+        <button class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+          title="Editar" (click)="handleEditPipeline(p)">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
+        <button class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-rose-50 text-rose-600 hover:bg-rose-100"
+          title="Eliminar" (click)="deletePipeline(p)">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <p *ngIf="!pipelines.length" class="text-sm text-slate-400 text-center py-4">No hay pipelines todavía.</p>
+
+    <!-- Form inline: nuevo / editar pipeline -->
+    <div *ngIf="pipelineFormOpen" class="flex flex-col gap-2 px-3 py-3 rounded-xl border border-indigo-200 bg-indigo-50/40">
+      <div *ngIf="pipelineError" class="text-xs font-medium text-rose-600">{{ pipelineError }}</div>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 bg-white"
+        placeholder="Nombre del pipeline" [(ngModel)]="pipelineForm.nombre" />
+      <label class="flex items-center gap-2 text-xs font-medium text-slate-600">
+        <input type="checkbox" [(ngModel)]="pipelineForm.activo" /> Activo
+      </label>
+      <div class="flex gap-2">
+        <button class="flex-1 px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 border-0 cursor-pointer" (click)="handleSubmitPipeline()">
+          {{ editingPipeline ? 'Guardar' : 'Crear' }}
+        </button>
+        <button class="px-3 py-2 bg-white text-slate-600 rounded-lg text-sm font-medium border border-slate-200 cursor-pointer" (click)="closePipelineForm()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+    <button *ngIf="!pipelineFormOpen" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 cursor-pointer"
+      (click)="openNewPipeline()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo Pipeline
+    </button>
+  </div>
+</div>
+
+<!-- Modal: elegir Ganada/Perdida al mover a Cierre -->
+<div *ngIf="cierrePromptOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="cancelCierre()"></div>
+<div *ngIf="cierrePromptOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-sm z-[101] shadow-modal modal-in">
+  <div class="px-5 pt-5 pb-3 text-center">
+    <h2 class="m-0 text-lg font-semibold text-slate-800">¿Cómo terminó?</h2>
+    <p class="text-sm text-slate-400 mt-1">Esta oportunidad está llegando a Cierre</p>
+  </div>
+  <div *ngIf="cierreError" class="mx-5 mb-2 px-3 py-2 rounded-lg text-xs font-medium bg-rose-50 text-rose-600">{{ cierreError }}</div>
+  <div class="px-5 pb-5 flex gap-3">
+    <button class="flex-1 py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer hover:scale-[1.02] transition-all"
+      style="background:linear-gradient(135deg,#059669,#10b981)" (click)="confirmCierre('ganada')">
+      ✓ Ganada
+    </button>
+    <button class="flex-1 py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer hover:scale-[1.02] transition-all"
+      style="background:linear-gradient(135deg,#e11d48,#f43f5e)" (click)="confirmCierre('perdida')">
+      ✕ Perdida
+    </button>
+  </div>
+  <button class="w-full py-2.5 text-xs font-medium text-slate-400 border-0 border-t border-slate-100 cursor-pointer hover:bg-slate-50 rounded-b-2xl"
+    (click)="cancelCierre()">Cancelar</button>
 </div>

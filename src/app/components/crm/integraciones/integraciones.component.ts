@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { Integracion } from '../../../models/crm.models';
 
@@ -22,15 +22,15 @@ export class IntegracionesComponent implements OnInit {
     error:        { icon: '⚠️', color: '#dc2626', label: 'Error' },
   };
 
-  constructor(private crm: CrmService) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() { this.cargar(); }
 
   cargar() {
     this.cargando = true;
     this.crm.cargarIntegraciones().subscribe({
-      next: res => { this.integraciones = res.data ?? []; this.cargando = false; },
-      error: () => { this.cargando = false; }
+      next: res => { this.integraciones = res.data ?? []; this.cargando = false; this.cdr.detectChanges(); },
+      error: () => { this.cargando = false; this.cdr.detectChanges(); }
     });
   }
 

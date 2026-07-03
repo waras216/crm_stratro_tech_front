@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { NichoService } from '../../../core/services/nicho.service';
 import { AuthService } from '../../../core/auth/authservices';
@@ -39,7 +39,7 @@ export class DashboardComponent implements OnInit {
     nuevo:'badge-blue', contactado:'badge-amber', calificado:'badge-green', perdido:'badge-red', convertido:'badge-emerald'
   };
 
-  constructor(private crm: CrmService, public nicho: NichoService, private auth: AuthService) {}
+  constructor(private crm: CrmService, public nicho: NichoService, private auth: AuthService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     const s = this.auth.session;
@@ -74,6 +74,7 @@ export class DashboardComponent implements OnInit {
     ];
     this.recentLeads      = [...this.leads].sort((a,b)=>b.id_lead-a.id_lead).slice(0,5);
     this.recentActivities = [...this.actividades].sort((a,b)=>b.id_actividad-a.id_actividad).slice(0,5);
+    this.cdr.detectChanges();
   }
 
   etapaCount(e: string) { return this.oportunidades.filter(o=>o.etapa===e).length; }

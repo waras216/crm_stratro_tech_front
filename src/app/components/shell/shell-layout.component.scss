@@ -97,7 +97,7 @@
   font-size: 16px;
   font-weight: 800;
   color: #fff;
-  line-height: 1;
+  line-height: 1.4;
   text-transform: uppercase;
 }
 
@@ -272,10 +272,9 @@
 .active-bar {
   position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 2px;
+  bottom: 2px;
   width: 3px;
-  height: 20px;
   border-radius: 0 4px 4px 0;
   transition: background 0.25s ease;
 }
@@ -297,7 +296,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1;
+  line-height: 1.4;
   margin: 0;
   padding: 0;
 }

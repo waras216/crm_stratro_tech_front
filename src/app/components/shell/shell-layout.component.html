@@ -251,6 +251,7 @@
       <button (click)="markAllRead()" class="dropdown-action" [style]="'color:' + activeModule.accent">Marcar leídas</button>
     </div>
     <div *ngFor="let n of notifications" class="notif-item" [class.notif-item--unread]="n.unread"
+      (click)="markOneRead(n.id)"
       [style]="n.unread ? 'border-left:3px solid ' + activeModule.accent : 'border-left:3px solid transparent'">
       <span class="notif-icon">{{ n.icon }}</span>
       <div class="notif-body">
@@ -259,6 +260,7 @@
         <span class="notif-time" [style]="darkMode?'color:#6b7280':'color:#94a3b8'">{{ n.time }}</span>
       </div>
     </div>
+    <p *ngIf="!notifications.length" class="text-xs text-center py-6" [style]="darkMode?'color:#6b7280':'color:#94a3b8'">Sin notificaciones</p>
   </div>
 
   <!-- ── Menú usuario ── -->

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/authservices';
 import { NichoData } from '../../../core/auth/authservices';
@@ -166,7 +166,7 @@ export class AuthOnboardingComponent {
     },
   ];
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router, private cdr: ChangeDetectorRef) {}
 
   selectNicho(nicho: Nicho) {
     this.nichoSeleccionado = nicho;
@@ -203,7 +203,11 @@ export class AuthOnboardingComponent {
 
   prev() { if (this.step > 0) this.step--; }
 
+  guardando = false;
+  errorGuardado = false;
+
   finish() {
+    if (this.guardando) return;
     if (this.logoPreview) this.auth.setLogo(this.logoPreview);
     const nichoData: NichoData = {
       nicho: this.nichoSeleccionado?.id || '',
@@ -216,8 +220,14 @@ export class AuthOnboardingComponent {
       startupEtapa: this.startupEtapa, startupModelo: this.startupModelo, startupMetricas: [...this.startupMetricas],
       tiendaTipo: this.tiendaTipo, tiendaCanales: [...this.tiendaCanales],
     };
-    this.auth.completarOnboarding({ empresa: this.empresa, nichoData });
-    this.showWelcome = true;
+    this.guardando = true;
+    this.errorGuardado = false;
+    this.auth.completarOnboarding({ empresa: this.empresa, nichoData }).subscribe(ok => {
+      this.guardando = false;
+      if (ok) this.showWelcome = true;
+      else this.errorGuardado = true;
+      this.cdr.detectChanges();
+    });
   }
 
   goToDashboard() { this.router.navigate(['/crm/dashboard']); }

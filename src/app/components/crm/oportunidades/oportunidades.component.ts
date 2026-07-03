@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { Oportunidad, Cliente, Pipeline } from '../../../models/crm.models';
 
@@ -29,19 +29,31 @@ export class OportunidadesComponent implements OnInit {
   form: { titulo: string; id_pipeline: number | null; etapa: Oportunidad['etapa']; valor: string; id_cliente: number | null } =
     { titulo: '', id_pipeline: null, etapa: 'prospeccion', valor: '', id_cliente: null };
 
-  constructor(private crm: CrmService) {}
+  // Cierre de oportunidad (ganada/perdida)
+  cierrePromptOpen = false;
+  pendingCierreId: number | null = null;
+  cierreError = '';
+
+  // Gestión de pipelines
+  pipelineManagerOpen = false;
+  pipelineFormOpen = false;
+  editingPipeline: Pipeline | null = null;
+  pipelineForm: { nombre: string; activo: boolean } = { nombre: '', activo: true };
+  pipelineError = '';
+
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.cargar();
-    this.crm.cargarClientes().subscribe({ next: res => this.clientes = res.data ?? [] });
-    this.crm.cargarPipelines().subscribe({ next: res => this.pipelines = res ?? [] });
+    this.crm.cargarClientes().subscribe({ next: res => { this.clientes = res.data ?? []; this.cdr.detectChanges(); } });
+    this.crm.cargarPipelines().subscribe({ next: res => { this.pipelines = res ?? []; this.cdr.detectChanges(); } });
   }
 
   cargar() {
     this.cargando = true;
     this.crm.cargarOportunidades().subscribe({
-      next: res => { this.oportunidades = res.data ?? []; this.cargando = false; },
-      error: () => { this.cargando = false; }
+      next: res => { this.oportunidades = res.data ?? []; this.cargando = false; this.cdr.detectChanges(); },
+      error: () => { this.cargando = false; this.cdr.detectChanges(); }
     });
   }
 
@@ -86,8 +98,36 @@ export class OportunidadesComponent implements OnInit {
     const op = this.oportunidades.find(o => o.id_oportunidad === id); if (!op) return;
     const idx = this.etapas.indexOf(op.etapa);
     const ni = dir === 'next' ? idx + 1 : idx - 1;
-    if (ni >= 0 && ni < this.etapas.length) { this.crm.moverEtapa(id, this.etapas[ni]).subscribe(() => this.cargar()); }
+    if (ni >= 0 && ni < this.etapas.length) { this.intentarMoverEtapa(op, this.etapas[ni]); }
   }
+
+  private intentarMoverEtapa(op: Oportunidad, nuevaEtapa: Oportunidad['etapa']) {
+    if (op.etapa === nuevaEtapa) return;
+
+    if (op.etapa === 'cierre' && op.estado !== 'abierta' && nuevaEtapa !== 'cierre') {
+      const label = op.estado === 'ganada' ? 'Ganada' : 'Perdida';
+      if (!confirm(`Esta oportunidad está marcada como ${label}. Moverla la reabrirá. ¿Continuar?`)) return;
+    }
+
+    if (nuevaEtapa === 'cierre') {
+      this.pendingCierreId = op.id_oportunidad;
+      this.cierreError = '';
+      this.cierrePromptOpen = true;
+      return;
+    }
+
+    this.crm.moverEtapa(op.id_oportunidad, nuevaEtapa).subscribe({ next: () => this.cargar() });
+  }
+
+  confirmCierre(estado: 'ganada' | 'perdida') {
+    if (!this.pendingCierreId) return;
+    this.crm.moverEtapa(this.pendingCierreId, 'cierre', estado).subscribe({
+      next: () => { this.cierrePromptOpen = false; this.pendingCierreId = null; this.cargar(); },
+      error: err => { this.cierreError = err.error?.message ?? 'Error al cerrar la oportunidad'; this.cdr.detectChanges(); },
+    });
+  }
+
+  cancelCierre() { this.cierrePromptOpen = false; this.pendingCierreId = null; this.cierreError = ''; }
 
   deleteOp(id: number) { this.crm.deleteOportunidad(id).subscribe(() => this.cargar()); }
   toggleExpanded(id: number) { this.expandedOp = this.expandedOp === id ? null : id; }
@@ -99,8 +139,54 @@ export class OportunidadesComponent implements OnInit {
   onDrop(event: DragEvent, etapa: Oportunidad['etapa']) {
     event.preventDefault();
     if (this.draggedOp && this.draggedOp.etapa !== etapa) {
-      this.crm.moverEtapa(this.draggedOp.id_oportunidad, etapa).subscribe(() => this.cargar());
+      this.intentarMoverEtapa(this.draggedOp, etapa);
     }
     this.draggedOp = null;
+  }
+
+  // Gestión de pipelines
+  private cargarPipelinesList() {
+    this.crm.cargarPipelines().subscribe({ next: res => { this.pipelines = res ?? []; this.cdr.detectChanges(); } });
+  }
+
+  openPipelineManager() { this.pipelineManagerOpen = true; }
+  closePipelineManager() { this.pipelineManagerOpen = false; this.closePipelineForm(); }
+
+  resetPipelineForm() { this.pipelineForm = { nombre: '', activo: true }; this.editingPipeline = null; this.pipelineError = ''; }
+  openNewPipeline() { this.resetPipelineForm(); this.pipelineFormOpen = true; }
+  closePipelineForm() { this.pipelineFormOpen = false; this.resetPipelineForm(); }
+
+  handleEditPipeline(p: Pipeline) {
+    this.editingPipeline = p;
+    this.pipelineForm = { nombre: p.nombre, activo: p.activo ?? true };
+    this.pipelineFormOpen = true;
+  }
+
+  handleSubmitPipeline() {
+    if (!this.pipelineForm.nombre.trim()) return;
+    const obs = this.editingPipeline
+      ? this.crm.updatePipeline(this.editingPipeline.id_pipeline, this.pipelineForm)
+      : this.crm.addPipeline(this.pipelineForm);
+    obs.subscribe({
+      next: () => { this.closePipelineForm(); this.cargarPipelinesList(); },
+      error: err => { this.pipelineError = err.error?.message ?? 'Error al guardar el pipeline'; this.cdr.detectChanges(); },
+    });
+  }
+
+  togglePipelineActivo(p: Pipeline) {
+    this.crm.updatePipeline(p.id_pipeline, { activo: !p.activo }).subscribe({
+      next: () => this.cargarPipelinesList(),
+    });
+  }
+
+  deletePipeline(p: Pipeline) {
+    const enUso = this.oportunidades.some(o => o.id_pipeline === p.id_pipeline);
+    const aviso = enUso
+      ? `"${p.nombre}" tiene oportunidades activas. Eliminarlo también eliminará esas oportunidades. ¿Continuar?`
+      : `¿Eliminar el pipeline "${p.nombre}"?`;
+    if (!confirm(aviso)) return;
+    this.crm.deletePipeline(p.id_pipeline).subscribe({
+      next: () => { this.cargarPipelinesList(); this.cargar(); },
+    });
   }
 }

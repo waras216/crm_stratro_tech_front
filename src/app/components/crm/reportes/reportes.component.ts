@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { Lead, Oportunidad, Cliente, Actividad } from '../../../models/crm.models';
 
@@ -13,7 +13,7 @@ export class ReportesComponent implements OnInit {
   activitiesByType: {key: string; val: number}[] = [];
   totalValue = 0; avgValue = 0; completedActs = 0; pendingActs = 0;
 
-  constructor(private crm: CrmService) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.crm.cargarLeads().subscribe(res => { this.leads = res.data; this.refresh(); });
@@ -37,6 +37,7 @@ export class ReportesComponent implements OnInit {
     this.avgValue      = this.oportunidades.length ? this.totalValue / this.oportunidades.length : 0;
     this.completedActs = this.actividades.filter(a => a.estado === 'completada').length;
     this.pendingActs   = this.actividades.filter(a => a.estado !== 'completada').length;
+    this.cdr.detectChanges();
   }
 
   barWidth(val: number, arr: {val: number}[]) { const m = this.maxVal(arr); return m > 0 ? (val / m * 100) + '%' : '0%'; }

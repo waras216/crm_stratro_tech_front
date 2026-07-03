@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Lead, Oportunidad, Cliente, Actividad, Pipeline,
-  MarketingCampana, Automatizacion, Integracion
+  MarketingCampana, Automatizacion, Integracion, Notificacion
 } from '../../models/crm.models';
 
 const API = environment.apiUrl;
@@ -65,6 +65,17 @@ export class CrmService {
     );
   }
 
+  convertirLead(id: number, payload: {
+    id_pipeline: number; etapa?: string; valor?: number;
+    nombre?: string; email?: string; telefono?: string; empresa?: string; tipo?: string;
+  }): Observable<{ lead: Lead; cliente: Cliente; oportunidad: Oportunidad }> {
+    return this.http.post<{ lead: Lead; cliente: Cliente; oportunidad: Oportunidad }>(
+      `${API}/leads/${id}/convertir`, payload
+    ).pipe(
+      tap(res => this._leads.next(this.leads.map(l => l.id_lead === id ? res.lead : l)))
+    );
+  }
+
   // ════════════════════════════════════════════════════════════════════
   // CLIENTES
   // ════════════════════════════════════════════════════════════════════
@@ -90,14 +101,18 @@ export class CrmService {
 
   updateCliente(id: number, cliente: Partial<Cliente>): Observable<Cliente> {
     return this.http.put<Cliente>(`${API}/clientes/${id}`, cliente).pipe(
-      tap(updated => this._clientes.next(this.clientes.map(c => c.id === id ? updated : c)))
+      tap(updated => this._clientes.next(this.clientes.map(c => c.id_cliente === id ? updated : c)))
     );
   }
 
   deleteCliente(id: number): Observable<void> {
     return this.http.delete<void>(`${API}/clientes/${id}`).pipe(
-      tap(() => this._clientes.next(this.clientes.filter(c => c.id !== id)))
+      tap(() => this._clientes.next(this.clientes.filter(c => c.id_cliente !== id)))
     );
+  }
+
+  verCliente(id: number): Observable<Cliente> {
+    return this.http.get<Cliente>(`${API}/clientes/${id}`);
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -105,6 +120,18 @@ export class CrmService {
   // ════════════════════════════════════════════════════════════════════
   cargarPipelines(): Observable<Pipeline[]> {
     return this.http.get<Pipeline[]>(`${API}/pipelines`);
+  }
+
+  addPipeline(pipeline: Partial<Pipeline>): Observable<Pipeline> {
+    return this.http.post<Pipeline>(`${API}/pipelines`, pipeline);
+  }
+
+  updatePipeline(id: number, pipeline: Partial<Pipeline>): Observable<Pipeline> {
+    return this.http.put<Pipeline>(`${API}/pipelines/${id}`, pipeline);
+  }
+
+  deletePipeline(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/pipelines/${id}`);
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -140,10 +167,27 @@ export class CrmService {
     );
   }
 
-  moverEtapa(id: number, nuevaEtapa: Oportunidad['etapa']): Observable<Oportunidad> {
-    return this.http.patch<Oportunidad>(`${API}/oportunidades/${id}/etapa`, { etapa: nuevaEtapa }).pipe(
+  moverEtapa(id: number, nuevaEtapa: Oportunidad['etapa'], estado?: Oportunidad['estado']): Observable<Oportunidad> {
+    const body: any = { etapa: nuevaEtapa };
+    if (estado) body.estado = estado;
+    return this.http.patch<Oportunidad>(`${API}/oportunidades/${id}/etapa`, body).pipe(
       tap(updated => this._oportunidades.next(this.oportunidades.map(o => o.id_oportunidad === id ? updated : o)))
     );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // NOTIFICACIONES
+  // ════════════════════════════════════════════════════════════════════
+  cargarNotificaciones(): Observable<Notificacion[]> {
+    return this.http.get<Notificacion[]>(`${API}/notificaciones`);
+  }
+
+  marcarNotificacionLeida(id: number): Observable<Notificacion> {
+    return this.http.patch<Notificacion>(`${API}/notificaciones/${id}/leer`, {});
+  }
+
+  marcarTodasNotificacionesLeidas(): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(`${API}/notificaciones/leer-todas`, {});
   }
 
   // ════════════════════════════════════════════════════════════════════

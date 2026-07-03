@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { MarketingCampana, Cliente } from '../../../models/crm.models';
 
@@ -13,18 +13,18 @@ export class MarketingComponent implements OnInit {
   form: { nombre_compania: string; segmento: string; estado: string; fecha_inicio: string; id_clientes: number[] } =
     { nombre_compania: '', segmento: '', estado: 'activa', fecha_inicio: '', id_clientes: [] };
 
-  constructor(private crm: CrmService) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.cargar();
-    this.crm.cargarClientes().subscribe({ next: res => this.clientes = res.data ?? [] });
+    this.crm.cargarClientes().subscribe({ next: res => { this.clientes = res.data ?? []; this.cdr.detectChanges(); } });
   }
 
   cargar() {
     this.cargando = true;
     this.crm.cargarCampanas().subscribe({
-      next: res => { this.campanas = res.data ?? []; this.cargando = false; },
-      error: () => { this.cargando = false; }
+      next: res => { this.campanas = res.data ?? []; this.cargando = false; this.cdr.detectChanges(); },
+      error: () => { this.cargando = false; this.cdr.detectChanges(); }
     });
   }
 

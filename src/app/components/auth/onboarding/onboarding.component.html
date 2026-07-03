@@ -473,6 +473,9 @@
         </div>
       </div>
 
+      <div *ngIf="errorGuardado" class="px-4 py-2.5 rounded-xl text-sm font-medium text-red-300 border border-red-500/30 mt-4"
+        style="background:rgba(239,68,68,.1)">No pudimos guardar tu configuración. Intenta de nuevo.</div>
+
       <!-- Navegación -->
       <div class="flex items-center justify-between mt-8">
         <button (click)="prev()"
@@ -480,10 +483,10 @@
           style="background:rgba(255,255,255,.06);color:#c7d2fe">
           ← Atrás
         </button>
-        <button (click)="next()" [disabled]="!canNext()"
+        <button (click)="next()" [disabled]="!canNext() || guardando"
           class="px-6 py-2.5 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-40"
           [style]="'background:linear-gradient(135deg,'+nichoColor+','+nichoColor+'bb);box-shadow:0 4px 20px '+nichoBg">
-          {{ step === 4 ? 'Comenzar' : 'Siguiente →' }}
+          {{ step === 4 ? (guardando ? 'Guardando…' : 'Comenzar') : 'Siguiente →' }}
         </button>
       </div>
     </div>

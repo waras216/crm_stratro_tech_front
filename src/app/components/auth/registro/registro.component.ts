@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/authservices';
 
@@ -12,7 +12,7 @@ export class AuthRegistroComponent {
   error           = '';
   loading         = false;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router, private cdr: ChangeDetectorRef) {}
 
   submit() {
     this.error = '';
@@ -23,10 +23,10 @@ export class AuthRegistroComponent {
     this.auth.registro(this.nombre + ' ' + this.apellido, this.email, this.password).subscribe({
       next: ok => {
         this.loading = false;
-        if (!ok) { this.error = 'Este email ya está registrado o error del servidor'; return; }
+        if (!ok) { this.error = 'Este email ya está registrado o error del servidor'; this.cdr.detectChanges(); return; }
         this.router.navigate(['/auth/onboarding']);
       },
-      error: () => { this.loading = false; this.error = 'Error de conexión con el servidor'; },
+      error: () => { this.loading = false; this.error = 'Error de conexión con el servidor'; this.cdr.detectChanges(); },
     });
   }
 
