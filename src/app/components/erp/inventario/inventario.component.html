@@ -58,7 +58,7 @@
 </div>
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
-<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 z-[100]" (click)="dialogOpen=false"></div>
+<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
 <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
   <h3 class="m-0 mb-4 text-lg font-semibold">Nuevo Producto</h3>
   <div class="flex flex-col gap-3">

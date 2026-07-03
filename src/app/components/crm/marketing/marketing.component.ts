@@ -1,22 +1,24 @@
 import { Component, OnInit } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
-import { MarketingCampana } from '../../../models/crm.models';
-
-interface ContactoMarketing { id: number; nombre: string; email: string; telefono?: string; }
+import { MarketingCampana, Cliente } from '../../../models/crm.models';
 
 @Component({ selector: 'app-marketing', standalone: false, templateUrl: './marketing.component.html', styleUrls: ['./marketing.component.scss'] })
 export class MarketingComponent implements OnInit {
   campanas: MarketingCampana[] = [];
+  clientes: Cliente[] = [];
   search = ''; dialogOpen = false; editingCamp: MarketingCampana | null = null; expandedCamp: number | null = null;
   cargando = false;
 
   estadoColors: Record<string, string> = { activa: 'badge-green', pausada: 'badge-amber', finalizada: 'badge-slate' };
-  form = { nombre_compania: '', segmento: '', estado: 'activa', fecha_inicio: '' };
-  contactosInput = '';
+  form: { nombre_compania: string; segmento: string; estado: string; fecha_inicio: string; id_clientes: number[] } =
+    { nombre_compania: '', segmento: '', estado: 'activa', fecha_inicio: '', id_clientes: [] };
 
   constructor(private crm: CrmService) {}
 
-  ngOnInit() { this.cargar(); }
+  ngOnInit() {
+    this.cargar();
+    this.crm.cargarClientes().subscribe({ next: res => this.clientes = res.data ?? [] });
+  }
 
   cargar() {
     this.cargando = true;
@@ -33,27 +35,29 @@ export class MarketingComponent implements OnInit {
     );
   }
 
-  resetForm() { this.form = { nombre_compania: '', segmento: '', estado: 'activa', fecha_inicio: '' }; this.contactosInput = ''; this.editingCamp = null; }
+  resetForm() { this.form = { nombre_compania: '', segmento: '', estado: 'activa', fecha_inicio: '', id_clientes: [] }; this.editingCamp = null; }
   openNew() { this.resetForm(); this.dialogOpen = true; }
 
   handleEdit(camp: MarketingCampana) {
     this.editingCamp = camp;
-    this.form = { nombre_compania: camp.nombre_compania, segmento: camp.segmento, estado: camp.estado ?? 'activa', fecha_inicio: camp.fecha_inicio ?? '' };
-    this.contactosInput = (camp.lista_contactos ?? []).map((c: ContactoMarketing) => `${c.nombre}, ${c.email}${c.telefono ? ', ' + c.telefono : ''}`).join('\n');
+    this.form = {
+      nombre_compania: camp.nombre_compania,
+      segmento: camp.segmento,
+      estado: camp.estado ?? 'activa',
+      fecha_inicio: camp.fecha_inicio ?? '',
+      id_clientes: (camp.clientes ?? []).map(c => c.id_cliente),
+    };
     this.dialogOpen = true;
   }
 
-  parseContactos(input: string): ContactoMarketing[] {
-    return input.split('\n').filter(l => l.trim()).map((l, i) => {
-      const p = l.split(',').map((x: string) => x.trim());
-      return { id: i + 1, nombre: p[0] || '', email: p[1] || '', telefono: p[2] || '' };
-    });
+  toggleCliente(id: number) {
+    const i = this.form.id_clientes.indexOf(id);
+    if (i > -1) this.form.id_clientes.splice(i, 1); else this.form.id_clientes.push(id);
   }
 
   handleSubmit() {
-    if (!this.form.nombre_compania) return;
-    const lista_contactos = this.contactosInput ? this.parseContactos(this.contactosInput) : [];
-    const data = { ...this.form, fecha_inicio: this.form.fecha_inicio || new Date().toISOString().split('T')[0], lista_contactos };
+    if (!this.form.nombre_compania || !this.form.segmento) return;
+    const data = { ...this.form, fecha_inicio: this.form.fecha_inicio || new Date().toISOString().split('T')[0] };
     const obs = this.editingCamp
       ? this.crm.updateCampana(this.editingCamp.id, data)
       : this.crm.addCampana(data);

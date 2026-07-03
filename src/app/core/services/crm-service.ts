@@ -4,7 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
-  Lead, Oportunidad, Cliente, Actividad,
+  Lead, Oportunidad, Cliente, Actividad, Pipeline,
   MarketingCampana, Automatizacion, Integracion
 } from '../../models/crm.models';
 
@@ -101,17 +101,22 @@ export class CrmService {
   }
 
   // ════════════════════════════════════════════════════════════════════
+  // PIPELINES
+  // ════════════════════════════════════════════════════════════════════
+  cargarPipelines(): Observable<Pipeline[]> {
+    return this.http.get<Pipeline[]>(`${API}/pipelines`);
+  }
+
+  // ════════════════════════════════════════════════════════════════════
   // OPORTUNIDADES
   // ════════════════════════════════════════════════════════════════════
-  
+
   private _oportunidades = new BehaviorSubject<Oportunidad[]>([]);
   oportunidades$ = this._oportunidades.asObservable();
   get oportunidades() { return this._oportunidades.getValue(); }
 
-  cargarOportunidades(page = 1, pipeline = ''): Observable<ApiPage<Oportunidad>> {
-    let params = new HttpParams().set('page', page);
-    if (pipeline) params = params.set('pipeline', pipeline);
-    return this.http.get<any>(`${API}/oportunidades`, { params }).pipe(
+  cargarOportunidades(): Observable<ApiPage<Oportunidad>> {
+    return this.http.get<any>(`${API}/oportunidades`).pipe(
       map(res => toPage<Oportunidad>(res)),
       tap(page => this._oportunidades.next(page.data))
     );
@@ -125,19 +130,19 @@ export class CrmService {
 
   updateOportunidad(id: number, op: Partial<Oportunidad>): Observable<Oportunidad> {
     return this.http.put<Oportunidad>(`${API}/oportunidades/${id}`, op).pipe(
-      tap(updated => this._oportunidades.next(this.oportunidades.map(o => o.id === id ? updated : o)))
+      tap(updated => this._oportunidades.next(this.oportunidades.map(o => o.id_oportunidad === id ? updated : o)))
     );
   }
 
   deleteOportunidad(id: number): Observable<void> {
     return this.http.delete<void>(`${API}/oportunidades/${id}`).pipe(
-      tap(() => this._oportunidades.next(this.oportunidades.filter(o => o.id !== id)))
+      tap(() => this._oportunidades.next(this.oportunidades.filter(o => o.id_oportunidad !== id)))
     );
   }
 
   moverEtapa(id: number, nuevaEtapa: Oportunidad['etapa']): Observable<Oportunidad> {
     return this.http.patch<Oportunidad>(`${API}/oportunidades/${id}/etapa`, { etapa: nuevaEtapa }).pipe(
-      tap(updated => this._oportunidades.next(this.oportunidades.map(o => o.id === id ? updated : o)))
+      tap(updated => this._oportunidades.next(this.oportunidades.map(o => o.id_oportunidad === id ? updated : o)))
     );
   }
 
@@ -164,19 +169,13 @@ export class CrmService {
 
   updateActividad(id: number, act: Partial<Actividad>): Observable<Actividad> {
     return this.http.put<Actividad>(`${API}/actividades/${id}`, act).pipe(
-      tap(updated => this._actividades.next(this.actividades.map(a => a.id_pk === id ? updated : a)))
+      tap(updated => this._actividades.next(this.actividades.map(a => a.id_actividad === id ? updated : a)))
     );
   }
 
   deleteActividad(id: number): Observable<void> {
     return this.http.delete<void>(`${API}/actividades/${id}`).pipe(
-      tap(() => this._actividades.next(this.actividades.filter(a => a.id_pk !== id)))
-    );
-  }
-
-  toggleActividad(id: number): Observable<Actividad> {
-    return this.http.patch<Actividad>(`${API}/actividades/${id}/toggle`, {}).pipe(
-      tap(updated => this._actividades.next(this.actividades.map(a => a.id_pk === id ? updated : a)))
+      tap(() => this._actividades.next(this.actividades.filter(a => a.id_actividad !== id)))
     );
   }
 
@@ -195,13 +194,13 @@ export class CrmService {
     );
   }
 
-  addCampana(camp: Partial<MarketingCampana>): Observable<MarketingCampana> {
+  addCampana(camp: any): Observable<MarketingCampana> {
     return this.http.post<MarketingCampana>(`${API}/marketing/campanas`, camp).pipe(
       tap(nuevo => this._campanas.next([...this.campanas, nuevo]))
     );
   }
 
-  updateCampana(id: number, camp: Partial<MarketingCampana>): Observable<MarketingCampana> {
+  updateCampana(id: number, camp: any): Observable<MarketingCampana> {
     return this.http.put<MarketingCampana>(`${API}/marketing/campanas/${id}`, camp).pipe(
       tap(updated => this._campanas.next(this.campanas.map(c => c.id === id ? updated : c)))
     );

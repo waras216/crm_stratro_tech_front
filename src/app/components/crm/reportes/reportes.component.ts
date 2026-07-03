@@ -30,13 +30,13 @@ export class ReportesComponent implements OnInit {
     this.leadsBySource    = this.toArr(this.group(this.leads, 'fuente'));
     this.leadsByStatus    = this.toArr(this.group(this.leads, 'estado'));
     this.oppsByStage      = this.toArr(this.group(this.oportunidades, 'etapa'));
-    this.oppsByPipeline   = this.toArr(this.group(this.oportunidades, 'pipeline'));
-    this.clientsBySector  = this.toArr(this.group(this.clientes, 'sector_empresarial'));
-    this.activitiesByType = this.toArr(this.group(this.actividades, 'tipo_actividad'));
+    this.oppsByPipeline   = this.toArr(this.group(this.oportunidades.map(o => ({ pipeline: o.pipeline?.nombre ?? 'Sin pipeline' })), 'pipeline'));
+    this.clientsBySector  = this.toArr(this.group(this.clientes.map(c => ({ sector_empresarial: c.sector_empresarial ?? 'Sin sector' })), 'sector_empresarial'));
+    this.activitiesByType = this.toArr(this.group(this.actividades, 'tipo'));
     this.totalValue    = this.oportunidades.reduce((s, o) => s + (o.valor ?? 0), 0);
     this.avgValue      = this.oportunidades.length ? this.totalValue / this.oportunidades.length : 0;
-    this.completedActs = this.actividades.filter(a => a.completada === true).length;
-    this.pendingActs   = this.actividades.filter(a => a.completada !== true).length;
+    this.completedActs = this.actividades.filter(a => a.estado === 'completada').length;
+    this.pendingActs   = this.actividades.filter(a => a.estado !== 'completada').length;
   }
 
   barWidth(val: number, arr: {val: number}[]) { const m = this.maxVal(arr); return m > 0 ? (val / m * 100) + '%' : '0%'; }

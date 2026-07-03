@@ -59,21 +59,21 @@ export class DashboardComponent implements OnInit {
 
   refresh() {
     const cfg = this.nicho.config;
-    const pending = this.actividades.filter(a => !a.completada).length;
+    const pending = this.actividades.filter(a => a.estado !== 'completada').length;
     const pipeline = this.oportunidades.reduce((s,o) => s+(o.valor??0), 0);
     const ganadas  = this.oportunidades.filter(o => o.etapa==='cierre').length;
     const tasa     = this.oportunidades.length ? Math.round(ganadas/this.oportunidades.length*100) : 0;
 
     this.kpis = [
-      { title: cfg.kpiLeads,         value: this.leads.length,             svg: I('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'), color:'kpi-blue',   trend:'+12%', up:true  },
-      { title: cfg.kpiOportunidades, value: this.oportunidades.length,     svg: I('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'),                                                                        color:'kpi-amber',  trend:'+5%',  up:true  },
-      { title: cfg.kpiClientes,      value: this.clientes.length,          svg: I('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'),                                                                                  color:'kpi-green',  trend:'+8%',  up:true  },
-      { title: cfg.kpiPipeline,      value: '$'+pipeline.toLocaleString(), svg: I('<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/>'),                                                                color:'kpi-purple', trend:'+15%', up:true  },
-      { title: cfg.kpiPendientes,    value: pending,                       svg: I('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),    color:'kpi-red',    trend:'-3%',  up:false },
-      { title: cfg.kpiTasa,          value: tasa+'%',                      svg: I('<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>'),                                                                                  color:'kpi-teal',   trend:'+2%',  up:true  },
+      { title: cfg.kpiLeads,         value: this.leads.length,             svg: I('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'), color:'kpi-blue'   },
+      { title: cfg.kpiOportunidades, value: this.oportunidades.length,     svg: I('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'),                                                                        color:'kpi-amber'  },
+      { title: cfg.kpiClientes,      value: this.clientes.length,          svg: I('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'),                                                                                  color:'kpi-green'  },
+      { title: cfg.kpiPipeline,      value: '$'+pipeline.toLocaleString(), svg: I('<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/>'),                                                                color:'kpi-purple' },
+      { title: cfg.kpiPendientes,    value: pending,                       svg: I('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),    color:'kpi-red'    },
+      { title: cfg.kpiTasa,          value: tasa+'%',                      svg: I('<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>'),                                                                                  color:'kpi-teal'   },
     ];
     this.recentLeads      = [...this.leads].sort((a,b)=>b.id_lead-a.id_lead).slice(0,5);
-    this.recentActivities = [...this.actividades].sort((a,b)=>b.id_pk-a.id_pk).slice(0,5);
+    this.recentActivities = [...this.actividades].sort((a,b)=>b.id_actividad-a.id_actividad).slice(0,5);
   }
 
   etapaCount(e: string) { return this.oportunidades.filter(o=>o.etapa===e).length; }

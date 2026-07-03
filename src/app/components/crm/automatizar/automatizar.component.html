@@ -58,7 +58,7 @@
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <!-- Modal backdrop -->
-<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/45 z-[100]" (click)="closeDialog()"></div>
+<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="closeDialog()"></div>
 <!-- Modal -->
 <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl max-h-[90vh] overflow-y-auto">
   <div class="flex justify-between items-center px-6 pt-5">

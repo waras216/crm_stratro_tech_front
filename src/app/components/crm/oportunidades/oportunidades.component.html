@@ -41,23 +41,23 @@
           [style.animation-delay]="(i * 0.04) + 's'"
           draggable="true"
           (dragstart)="onDragStart(op)">
-          <p class="font-medium text-sm m-0 text-slate-800">{{ op.nombre }}</p>
-          <p class="text-slate-400 text-xs m-0 mt-0.5">{{ op.cliente }}</p>
+          <p class="font-medium text-sm m-0 text-slate-800">{{ op.titulo }}</p>
+          <p class="text-slate-400 text-xs m-0 mt-0.5">{{ op.cliente?.nombre }}</p>
           <div class="flex items-center justify-between mt-2">
             <span class="text-indigo-600 font-semibold text-sm">${{ (op.valor ?? 0).toLocaleString() }}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium">{{ op.pipeline }}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium">{{ op.pipeline?.nombre }}</span>
           </div>
           <div class="flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
-            <button class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" (click)="handleMove(op.id, 'prev')" title="Mover atrás">
+            <button class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" (click)="handleMove(op.id_oportunidad, 'prev')" title="Mover atrás">
               <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
             <button class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" (click)="handleEdit(op)" title="Editar">
               <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
-            <button class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" (click)="deleteOp(op.id)" title="Eliminar">
+            <button class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" (click)="deleteOp(op.id_oportunidad)" title="Eliminar">
               <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
             </button>
-            <button class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" (click)="handleMove(op.id, 'next')" title="Mover adelante">
+            <button class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" (click)="handleMove(op.id_oportunidad, 'next')" title="Mover adelante">
               <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
             </button>
           </div>
@@ -82,9 +82,9 @@
         </thead>
         <tbody>
           <tr *ngFor="let op of filtered" class="hover:bg-slate-50 border-b border-slate-100">
-            <td class="px-4 py-3 font-medium text-slate-800">{{ op.nombre }}</td>
-            <td class="px-4 py-3 text-slate-500">{{ op.cliente }}</td>
-            <td class="px-4 py-3 text-slate-500">{{ op.pipeline }}</td>
+            <td class="px-4 py-3 font-medium text-slate-800">{{ op.titulo }}</td>
+            <td class="px-4 py-3 text-slate-500">{{ op.cliente?.nombre }}</td>
+            <td class="px-4 py-3 text-slate-500">{{ op.pipeline?.nombre }}</td>
             <td class="px-4 py-3">
               <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize" [ngClass]="etapaBadge[op.etapa]">{{ op.etapa }}</span>
             </td>
@@ -93,7 +93,7 @@
               <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" (click)="handleEdit(op)">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
-              <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50" (click)="deleteOp(op.id)">
+              <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50" (click)="deleteOp(op.id_oportunidad)">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
               </button>
             </td>
@@ -109,7 +109,7 @@
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <!-- Modal backdrop -->
-<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/45 z-[100]" (click)="closeDialog()"></div>
+<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="closeDialog()"></div>
 <!-- Modal -->
 <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-modal max-h-[90vh] overflow-y-auto modal-in">
   <div class="flex justify-between items-center px-6 pt-5">
@@ -122,21 +122,21 @@
     <div class="flex flex-col gap-1.5">
       <label class="text-xs font-medium text-slate-600">Nombre *</label>
       <input class="px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-        [(ngModel)]="form.nombre" placeholder="Nombre de la oportunidad" />
+        [(ngModel)]="form.titulo" placeholder="Nombre de la oportunidad" />
     </div>
     <div class="flex flex-col gap-1.5">
-      <label class="text-xs font-medium text-slate-600">Cliente</label>
-      <select class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 cursor-pointer bg-white" [(ngModel)]="form.cliente">
-        <option value="">Seleccionar cliente</option>
-        <option *ngFor="let c of mockClientes" [value]="c">{{ c }}</option>
+      <label class="text-xs font-medium text-slate-600">Cliente *</label>
+      <select class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 cursor-pointer bg-white" [(ngModel)]="form.id_cliente">
+        <option [ngValue]="null">Seleccionar cliente</option>
+        <option *ngFor="let c of clientes" [ngValue]="c.id_cliente">{{ c.nombre }}</option>
       </select>
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-medium text-slate-600">Pipeline</label>
-        <select class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 cursor-pointer bg-white" [(ngModel)]="form.pipeline">
-          <option value="Ventas">Ventas</option>
-          <option value="Servicios">Servicios</option>
+        <label class="text-xs font-medium text-slate-600">Pipeline *</label>
+        <select class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 cursor-pointer bg-white" [(ngModel)]="form.id_pipeline">
+          <option [ngValue]="null">Seleccionar pipeline</option>
+          <option *ngFor="let p of pipelines" [ngValue]="p.id_pipeline">{{ p.nombre }}</option>
         </select>
       </div>
       <div class="flex flex-col gap-1.5">

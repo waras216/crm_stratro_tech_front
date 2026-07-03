@@ -37,11 +37,6 @@
         <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" [ngClass]="k.color">
           <span [innerHTML]="k.svg"></span>
         </div>
-        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none"
-          [class.bg-emerald-50]="k.up" [class.text-emerald-600]="k.up"
-          [class.bg-rose-50]="!k.up"  [class.text-rose-500]="!k.up">
-          {{ k.up ? '↑' : '↓' }} {{ k.trend }}
-        </span>
       </div>
       <p class="text-2xl font-extrabold leading-none m-0" style="color:#1e1b4b">{{ k.value }}</p>
       <p class="text-[11px] text-slate-400 mt-1 mb-0 truncate">{{ k.title }}</p>
@@ -90,17 +85,17 @@
         <div *ngFor="let act of recentActivities"
           class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-indigo-50/50 cursor-pointer">
           <div class="w-2.5 h-2.5 rounded-full flex-shrink-0 ring-2"
-            [class.bg-emerald-400]="act.completada" [class.ring-emerald-100]="act.completada"
-            [class.bg-amber-400]="!act.completada"  [class.ring-amber-100]="!act.completada"></div>
+            [class.bg-emerald-400]="act.estado === 'completada'" [class.ring-emerald-100]="act.estado === 'completada'"
+            [class.bg-amber-400]="act.estado !== 'completada'"  [class.ring-amber-100]="act.estado !== 'completada'"></div>
           <div class="flex-1 min-w-0">
             <p class="text-xs font-medium text-slate-700 m-0 truncate"
-              [class.line-through]="act.completada" [class.text-slate-400]="act.completada">{{ act.actividad }}</p>
-            <p class="text-[10px] text-slate-400 m-0">{{ act.tipo_actividad }} · {{ act.fecha }}</p>
+              [class.line-through]="act.estado === 'completada'" [class.text-slate-400]="act.estado === 'completada'">{{ act.titulo }}</p>
+            <p class="text-[10px] text-slate-400 m-0">{{ act.tipo }} · {{ act.fecha_inicio }}</p>
           </div>
           <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
-            [class.bg-emerald-50]="act.completada" [class.text-emerald-600]="act.completada"
-            [class.bg-amber-50]="!act.completada"  [class.text-amber-600]="!act.completada">
-            {{ act.completada ? 'Listo' : 'Pendiente' }}
+            [class.bg-emerald-50]="act.estado === 'completada'" [class.text-emerald-600]="act.estado === 'completada'"
+            [class.bg-amber-50]="act.estado !== 'completada'"  [class.text-amber-600]="act.estado !== 'completada'">
+            {{ act.estado === 'completada' ? 'Listo' : 'Pendiente' }}
           </span>
         </div>
       </div>

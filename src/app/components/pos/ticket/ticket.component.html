@@ -1,4 +1,4 @@
-<div *ngIf="visible" class="fixed inset-0 bg-black/45 z-[100] flex items-center justify-center" (click)="cerrar.emit()">
+<div *ngIf="visible" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100] flex items-center justify-center" (click)="cerrar.emit()">
   <div class="bg-white rounded-2xl w-80 p-6 shadow-2xl modal-in" (click)="$event.stopPropagation()">
     <div class="text-center mb-4">
       <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">

@@ -17,22 +17,27 @@ export interface Lead {
   usuario?: Usuario;
 }
 
-export interface HistorialEtapa {
-  etapa: string;
-  fecha: string;
-  notas?: string;
+export interface Pipeline {
+  id_pipeline: number;
+  id_tenant?: number;
+  nombre: string;
+  activo?: boolean;
 }
 
 export interface Oportunidad {
-  id: number;
   id_oportunidad: number;
-  nombre: string;
-  pipeline: string;
-  etapa: 'prospeccion' | 'contacto' | 'propuesta' | 'negociacion' | 'cierre' | 'ganada' | 'perdida';
-  historial_etapas?: HistorialEtapa[];
+  id_tenant?: number;
+  id_cliente: number;
+  id_pipeline: number;
+  id_usuario?: number;
+  titulo: string;
   valor?: number;
-  cliente?: string;
-  fecha_creacion?: string;
+  probabilidad?: number;
+  estado?: 'abierta' | 'ganada' | 'perdida';
+  etapa: 'prospeccion' | 'contacto' | 'propuesta' | 'negociacion' | 'cierre';
+  fecha_cierre?: string | null;
+  cliente?: Cliente;
+  pipeline?: Pipeline;
   created_at?: string;
 }
 
@@ -54,28 +59,25 @@ export interface Cliente {
 }
 
 export interface Actividad {
-  id_pk: number;
-  actividad: string;
-  tipo_actividad: 'llamada' | 'correo' | 'reunion' | 'tarea' | 'nota' | 'seguimiento';
-  recordatorio?: string;
-  fecha?: string;
-  completada?: boolean;
-  entidad_tipo?: string;
-  entidad_id?: number;
-}
-
-export interface ContactoMarketing {
-  id: number;
-  nombre: string;
-  email: string;
-  telefono?: string;
+  id_actividad: number;
+  id_tenant?: number;
+  id_usuario?: number;
+  id_cliente?: number | null;
+  id_lead?: number | null;
+  id_oportunidad?: number | null;
+  tipo: 'llamada' | 'reunion' | 'email' | 'tarea' | 'nota';
+  titulo: string;
+  descripcion?: string | null;
+  estado: 'pendiente' | 'completada' | 'cancelada';
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
 }
 
 export interface MarketingCampana {
   id: number;
   nombre_compania: string;
   segmento: string;
-  lista_contactos: ContactoMarketing[];
+  clientes?: Cliente[];
   n_contacto: number;
   estado?: string;
   fecha_inicio?: string;

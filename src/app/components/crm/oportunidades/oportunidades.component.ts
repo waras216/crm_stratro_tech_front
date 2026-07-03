@@ -1,14 +1,16 @@
-import { Component } from '@angular/core';
-import { Oportunidad } from '../../../models/crm.models';
+import { Component, OnInit } from '@angular/core';
+import { CrmService } from '../../../core/services/crm-service';
+import { Oportunidad, Cliente, Pipeline } from '../../../models/crm.models';
 
 @Component({ selector: 'app-oportunidades', standalone: false, templateUrl: './oportunidades.component.html', styleUrls: ['./oportunidades.component.scss'] })
-export class OportunidadesComponent {
+export class OportunidadesComponent implements OnInit {
   search = '';
   viewMode: 'kanban' | 'lista' = 'kanban';
   dialogOpen = false;
   editingOp: Oportunidad | null = null;
   expandedOp: number | null = null;
   draggedOp: Oportunidad | null = null;
+  cargando = false;
 
   etapas: Oportunidad['etapa'][] = ['prospeccion', 'contacto', 'propuesta', 'negociacion', 'cierre'];
   etapaColors: Record<string, string> = {
@@ -20,28 +22,33 @@ export class OportunidadesComponent {
     negociacion: 'badge-purple', cierre: 'badge-teal',
   };
 
-  form = { nombre: '', pipeline: 'Ventas', etapa: 'prospeccion' as Oportunidad['etapa'], valor: '', cliente: '' };
+  oportunidades: Oportunidad[] = [];
+  clientes: Cliente[] = [];
+  pipelines: Pipeline[] = [];
 
-  // Mock data
-  oportunidades: Oportunidad[] = [
-    { id: 1, id_oportunidad: 1, nombre: 'Implementación ERP', pipeline: 'Ventas', etapa: 'prospeccion', valor: 45000, cliente: 'Grupo Industrial MX' },
-    { id: 2, id_oportunidad: 2, nombre: 'Migración Cloud AWS', pipeline: 'Servicios', etapa: 'contacto', valor: 78000, cliente: 'TechSolutions SA' },
-    { id: 3, id_oportunidad: 3, nombre: 'App Móvil E-commerce', pipeline: 'Ventas', etapa: 'propuesta', valor: 32000, cliente: 'Retail Plus' },
-    { id: 4, id_oportunidad: 4, nombre: 'Consultoría DevOps', pipeline: 'Servicios', etapa: 'negociacion', valor: 55000, cliente: 'FinTech Corp' },
-    { id: 5, id_oportunidad: 5, nombre: 'Plataforma IoT', pipeline: 'Ventas', etapa: 'cierre', valor: 120000, cliente: 'Manufactura Global' },
-    { id: 6, id_oportunidad: 6, nombre: 'Rediseño Portal Web', pipeline: 'Ventas', etapa: 'prospeccion', valor: 18000, cliente: 'Media Digital' },
-    { id: 7, id_oportunidad: 7, nombre: 'Sistema CRM Custom', pipeline: 'Servicios', etapa: 'propuesta', valor: 67000, cliente: 'Seguros Confianza' },
-    { id: 8, id_oportunidad: 8, nombre: 'Integración API Pagos', pipeline: 'Ventas', etapa: 'contacto', valor: 25000, cliente: 'E-Shop MX' },
-  ];
+  form: { titulo: string; id_pipeline: number | null; etapa: Oportunidad['etapa']; valor: string; id_cliente: number | null } =
+    { titulo: '', id_pipeline: null, etapa: 'prospeccion', valor: '', id_cliente: null };
 
-  mockClientes = ['Grupo Industrial MX', 'TechSolutions SA', 'Retail Plus', 'FinTech Corp', 'Manufactura Global', 'Media Digital', 'Seguros Confianza', 'E-Shop MX'];
+  constructor(private crm: CrmService) {}
 
-  private nextId = 9;
+  ngOnInit() {
+    this.cargar();
+    this.crm.cargarClientes().subscribe({ next: res => this.clientes = res.data ?? [] });
+    this.crm.cargarPipelines().subscribe({ next: res => this.pipelines = res ?? [] });
+  }
+
+  cargar() {
+    this.cargando = true;
+    this.crm.cargarOportunidades().subscribe({
+      next: res => { this.oportunidades = res.data ?? []; this.cargando = false; },
+      error: () => { this.cargando = false; }
+    });
+  }
 
   get filtered() {
     return this.oportunidades.filter(o =>
-      o.nombre.toLowerCase().includes(this.search.toLowerCase()) ||
-      (o.cliente ?? '').toLowerCase().includes(this.search.toLowerCase())
+      o.titulo.toLowerCase().includes(this.search.toLowerCase()) ||
+      (o.cliente?.nombre ?? '').toLowerCase().includes(this.search.toLowerCase())
     );
   }
 
@@ -51,43 +58,38 @@ export class OportunidadesComponent {
     return this.opsByEtapa(etapa).reduce((sum, o) => sum + (o.valor ?? 0), 0);
   }
 
-  resetForm() { this.form = { nombre: '', pipeline: 'Ventas', etapa: 'prospeccion', valor: '', cliente: '' }; this.editingOp = null; }
+  resetForm() { this.form = { titulo: '', id_pipeline: this.pipelines[0]?.id_pipeline ?? null, etapa: 'prospeccion', valor: '', id_cliente: null }; this.editingOp = null; }
   openNew() { this.resetForm(); this.dialogOpen = true; }
 
   handleEdit(op: Oportunidad) {
     this.editingOp = op;
-    this.form = { nombre: op.nombre, pipeline: op.pipeline ?? '', etapa: op.etapa, valor: String(op.valor ?? ''), cliente: op.cliente ?? '' };
+    this.form = { titulo: op.titulo, id_pipeline: op.id_pipeline, etapa: op.etapa, valor: String(op.valor ?? ''), id_cliente: op.id_cliente };
     this.dialogOpen = true;
   }
 
   handleSubmit() {
-    if (!this.form.nombre) return;
-    if (this.editingOp) {
-      const idx = this.oportunidades.findIndex(o => o.id === this.editingOp!.id);
-      if (idx > -1) {
-        this.oportunidades[idx] = { ...this.oportunidades[idx], ...this.form, valor: Number(this.form.valor) || 0 };
-      }
-    } else {
-      this.oportunidades.push({
-        id: this.nextId, id_oportunidad: this.nextId,
-        nombre: this.form.nombre, pipeline: this.form.pipeline,
-        etapa: this.form.etapa, valor: Number(this.form.valor) || 0,
-        cliente: this.form.cliente, fecha_creacion: new Date().toISOString()
-      });
-      this.nextId++;
-    }
-    this.dialogOpen = false;
-    this.resetForm();
+    if (!this.form.titulo || !this.form.id_cliente || !this.form.id_pipeline) return;
+    const data = {
+      titulo: this.form.titulo,
+      id_cliente: this.form.id_cliente,
+      id_pipeline: this.form.id_pipeline,
+      etapa: this.form.etapa,
+      valor: Number(this.form.valor) || 0,
+    };
+    const obs = this.editingOp
+      ? this.crm.updateOportunidad(this.editingOp.id_oportunidad, data)
+      : this.crm.addOportunidad(data);
+    obs.subscribe({ next: () => { this.dialogOpen = false; this.resetForm(); this.cargar(); } });
   }
 
   handleMove(id: number, dir: 'next' | 'prev') {
-    const op = this.oportunidades.find(o => o.id === id); if (!op) return;
+    const op = this.oportunidades.find(o => o.id_oportunidad === id); if (!op) return;
     const idx = this.etapas.indexOf(op.etapa);
     const ni = dir === 'next' ? idx + 1 : idx - 1;
-    if (ni >= 0 && ni < this.etapas.length) { op.etapa = this.etapas[ni]; }
+    if (ni >= 0 && ni < this.etapas.length) { this.crm.moverEtapa(id, this.etapas[ni]).subscribe(() => this.cargar()); }
   }
 
-  deleteOp(id: number) { this.oportunidades = this.oportunidades.filter(o => o.id !== id); }
+  deleteOp(id: number) { this.crm.deleteOportunidad(id).subscribe(() => this.cargar()); }
   toggleExpanded(id: number) { this.expandedOp = this.expandedOp === id ? null : id; }
   closeDialog() { this.dialogOpen = false; this.resetForm(); }
 
@@ -96,9 +98,9 @@ export class OportunidadesComponent {
   onDragOver(event: DragEvent) { event.preventDefault(); }
   onDrop(event: DragEvent, etapa: Oportunidad['etapa']) {
     event.preventDefault();
-    if (this.draggedOp) {
-      this.draggedOp.etapa = etapa;
-      this.draggedOp = null;
+    if (this.draggedOp && this.draggedOp.etapa !== etapa) {
+      this.crm.moverEtapa(this.draggedOp.id_oportunidad, etapa).subscribe(() => this.cargar());
     }
+    this.draggedOp = null;
   }
 }
