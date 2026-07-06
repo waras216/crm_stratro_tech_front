@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { NotifyService } from '../../../core/services/notify.service';
 
 type EstadoMesa = 'libre' | 'ocupada' | 'cuenta' | 'reservada';
 
@@ -145,6 +146,8 @@ interface Mesa { numero: number; capacidad: number; estado: EstadoMesa; mesero?:
   `,
 })
 export class PosTerminalRestauranteComponent {
+  private notify = inject(NotifyService);
+
   mesaSeleccionada: Mesa | null = null;
   categoriaActiva = 'Entradas';
 
@@ -233,12 +236,12 @@ export class PosTerminalRestauranteComponent {
   }
 
   enviarACocina() {
-    alert(`Comanda enviada a cocina\nMesa ${this.mesaSeleccionada?.numero} — ${this.mesaSeleccionada?.comanda.length} items`);
+    this.notify.success(`Mesa ${this.mesaSeleccionada?.numero} — ${this.mesaSeleccionada?.comanda.length} items`, 'Comanda enviada a cocina');
   }
 
   cerrarMesa() {
     if (!this.mesaSeleccionada) return;
-    alert(`Mesa ${this.mesaSeleccionada.numero} cobrada\nTotal: $${this.totalMesa(this.mesaSeleccionada)}`);
+    this.notify.success(`Mesa ${this.mesaSeleccionada.numero} · Total: $${this.totalMesa(this.mesaSeleccionada)}`, 'Cuenta cobrada');
     this.mesaSeleccionada.estado = 'libre';
     this.mesaSeleccionada.comanda = [];
     this.mesaSeleccionada.mesero = undefined;

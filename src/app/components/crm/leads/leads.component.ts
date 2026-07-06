@@ -1,6 +1,7 @@
 // src/app/components/leads/leads.component.ts
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { Lead, Pipeline } from '../../../models/crm.models';
 
 @Component({ selector: 'app-leads', standalone: false, templateUrl: './leads.component.html', styleUrls: ['./leads.component.scss'] })
@@ -44,7 +45,7 @@ export class LeadsComponent implements OnInit {
   };
   etapaOptions = ['prospeccion', 'contacto', 'propuesta', 'negociacion', 'cierre'];
 
-  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
 
   ngOnInit() {
     this.cargar();
@@ -123,11 +124,12 @@ export class LeadsComponent implements OnInit {
     });
   }
 
-  deleteLead(id: number) {
-    if (!confirm('¿Eliminar este lead?')) return;
+  async deleteLead(id: number) {
+    const ok = await this.notify.confirm('¿Eliminar este lead? Esta acción no se puede deshacer.', { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
     this.crm.deleteLead(id).subscribe({
-      next: ()  => this.cargar(),
-      error: () => { this.error = 'Error al eliminar'; this.cdr.detectChanges(); },
+      next: ()  => { this.cargar(); this.notify.success('Lead eliminado'); },
+      error: () => { this.error = 'Error al eliminar'; this.notify.error('No se pudo eliminar el lead'); this.cdr.detectChanges(); },
     });
   }
 

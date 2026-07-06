@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { Oportunidad, Cliente, Pipeline } from '../../../models/crm.models';
 
 @Component({ selector: 'app-oportunidades', standalone: false, templateUrl: './oportunidades.component.html', styleUrls: ['./oportunidades.component.scss'] })
@@ -41,7 +42,7 @@ export class OportunidadesComponent implements OnInit {
   pipelineForm: { nombre: string; activo: boolean } = { nombre: '', activo: true };
   pipelineError = '';
 
-  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
 
   ngOnInit() {
     this.cargar();
@@ -101,12 +102,13 @@ export class OportunidadesComponent implements OnInit {
     if (ni >= 0 && ni < this.etapas.length) { this.intentarMoverEtapa(op, this.etapas[ni]); }
   }
 
-  private intentarMoverEtapa(op: Oportunidad, nuevaEtapa: Oportunidad['etapa']) {
+  private async intentarMoverEtapa(op: Oportunidad, nuevaEtapa: Oportunidad['etapa']) {
     if (op.etapa === nuevaEtapa) return;
 
     if (op.etapa === 'cierre' && op.estado !== 'abierta' && nuevaEtapa !== 'cierre') {
       const label = op.estado === 'ganada' ? 'Ganada' : 'Perdida';
-      if (!confirm(`Esta oportunidad está marcada como ${label}. Moverla la reabrirá. ¿Continuar?`)) return;
+      const ok = await this.notify.confirm(`Esta oportunidad está marcada como ${label}. Moverla la reabrirá. ¿Continuar?`, { confirmText: 'Reabrir' });
+      if (!ok) return;
     }
 
     if (nuevaEtapa === 'cierre') {
@@ -179,14 +181,15 @@ export class OportunidadesComponent implements OnInit {
     });
   }
 
-  deletePipeline(p: Pipeline) {
+  async deletePipeline(p: Pipeline) {
     const enUso = this.oportunidades.some(o => o.id_pipeline === p.id_pipeline);
     const aviso = enUso
       ? `"${p.nombre}" tiene oportunidades activas. Eliminarlo también eliminará esas oportunidades. ¿Continuar?`
       : `¿Eliminar el pipeline "${p.nombre}"?`;
-    if (!confirm(aviso)) return;
+    const ok = await this.notify.confirm(aviso, { danger: enUso, confirmText: 'Eliminar' });
+    if (!ok) return;
     this.crm.deletePipeline(p.id_pipeline).subscribe({
-      next: () => { this.cargarPipelinesList(); this.cargar(); },
+      next: () => { this.cargarPipelinesList(); this.cargar(); this.notify.success('Pipeline eliminado'); },
     });
   }
 }

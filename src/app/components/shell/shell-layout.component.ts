@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
-import { Subject } from 'rxjs';
+import { Subject, interval } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/auth/authservices';
@@ -36,6 +36,8 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   };
 
   private destroy$ = new Subject<void>();
+  private knownNotifIds = new Set<number>();
+  private audioCtx: AudioContext | null = null;
 
   get darkMode() { return this.theme.isDark; }
   get activeModule() { return this.module.activeModule(); }
@@ -77,13 +79,20 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
     // Self-heal a stale cached session (e.g. onboarding completed on another device).
     this.auth.refreshSession().subscribe();
 
-    this.cargarNotificaciones();
+    this.cargarNotificaciones(false);
+    interval(20000).pipe(takeUntil(this.destroy$)).subscribe(() => this.cargarNotificaciones(true));
   }
 
-  private cargarNotificaciones() {
+  private cargarNotificaciones(detectarNuevas: boolean) {
     this.crm.cargarNotificaciones().subscribe({
       next: res => {
-        this.notifications = (res ?? []).map(n => ({
+        const lista = res ?? [];
+        if (detectarNuevas) {
+          const hayNuevas = lista.some(n => !n.leida && !this.knownNotifIds.has(n.id_notificacion));
+          if (hayNuevas) this.playNotifSound();
+        }
+        this.knownNotifIds = new Set(lista.map(n => n.id_notificacion));
+        this.notifications = lista.map(n => ({
           id: n.id_notificacion,
           icon: this.notifIcons[n.tipo] ?? '🔔',
           title: n.titulo,
@@ -94,6 +103,29 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  private playNotifSound() {
+    try {
+      this.audioCtx ??= new AudioContext();
+      const ctx = this.audioCtx;
+      const now = ctx.currentTime;
+      [880, 1320].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const start = now + i * 0.1;
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(0.2, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.18);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.2);
+      });
+    } catch {
+      // audio unavailable (e.g. autoplay policy) — ignore silently
+    }
   }
 
   private tiempoRelativo(fecha?: string): string {
@@ -158,7 +190,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
     this.showNotifPanel = !this.showNotifPanel;
     this.showSearch = false;
     this.showUserMenu = false;
-    if (this.showNotifPanel) this.cargarNotificaciones();
+    if (this.showNotifPanel) this.cargarNotificaciones(false);
   }
   toggleUserMenu()  { this.showUserMenu = !this.showUserMenu; this.showSearch = false; this.showNotifPanel = false; }
   closeAll()        { this.showSearch = false; this.showNotifPanel = false; this.showUserMenu = false; }

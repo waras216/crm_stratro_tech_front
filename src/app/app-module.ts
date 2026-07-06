@@ -12,6 +12,8 @@ import { ShellLayoutComponent } from './components/shell/shell-layout.component'
 
 // Shared
 import { AppSwitcherComponent } from './components/shared/app-switcher.component';
+import { ToastContainerComponent } from './components/shared/toast/toast-container.component';
+import { ConfirmDialogComponent } from './components/shared/confirm-dialog/confirm-dialog.component';
 
 // Auth
 import { AuthLoginComponent }      from './components/auth/login/login.component';
@@ -112,6 +114,8 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     HttpClientModule,
     AppRoutingModule,
     NotFoundComponent,
+    ToastContainerComponent,
+    ConfirmDialogComponent,
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor,  multi: true },

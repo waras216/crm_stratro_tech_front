@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { Actividad } from '../../../models/crm.models';
 
 const I = (p: string) =>
@@ -27,7 +28,7 @@ export class ActividadesComponent implements OnInit {
   form: { titulo: string; tipo: Actividad['tipo']; descripcion: string; fecha_inicio: string; estado: Actividad['estado'] } =
     { titulo: '', tipo: 'tarea', descripcion: '', fecha_inicio: '', estado: 'pendiente' };
 
-  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
   ngOnInit() { this.cargar(); }
 
   cargar() {
@@ -66,7 +67,9 @@ export class ActividadesComponent implements OnInit {
     obs.subscribe({ next: () => { this.closeDialog(); this.cargar(); } });
   }
 
-  deleteActividad(id: number) {
-    if (confirm('¿Eliminar esta actividad?')) this.crm.deleteActividad(id).subscribe(() => this.cargar());
+  async deleteActividad(id: number) {
+    const ok = await this.notify.confirm('¿Eliminar esta actividad? Esta acción no se puede deshacer.', { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+    this.crm.deleteActividad(id).subscribe(() => { this.cargar(); this.notify.success('Actividad eliminada'); });
   }
 }

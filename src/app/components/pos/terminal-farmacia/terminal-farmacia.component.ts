@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { NotifyService } from '../../../core/services/notify.service';
 
 interface Paciente { id: number; nombre: string; documento: string; telefono: string; }
 interface Receta { id: number; pacienteId: number; medicamento: string; dosis: string; cantidad: number; precio: number; pendiente: boolean; }
@@ -133,6 +134,8 @@ interface Receta { id: number; pacienteId: number; medicamento: string; dosis: s
   `,
 })
 export class PosTerminalFarmaciaComponent {
+  private notify = inject(NotifyService);
+
   busqueda = '';
   pacienteSeleccionado: Paciente | null = null;
   carrito: { medicamento: string; dosis: string; cantidad: number; precio: number }[] = [];
@@ -190,12 +193,12 @@ export class PosTerminalFarmaciaComponent {
   }
 
   nuevaReceta() {
-    alert('Formulario de nueva receta — próximamente');
+    this.notify.info('Formulario de nueva receta — próximamente');
   }
 
   cobrar() {
     if (this.carrito.length === 0) return;
-    alert(`Dispensación completada\nTotal: $${this.total}\nMedicamentos: ${this.carrito.length}`);
+    this.notify.success(`Total: $${this.total} · Medicamentos: ${this.carrito.length}`, 'Dispensación completada');
     this.carrito = [];
     this.pacienteSeleccionado = null;
   }

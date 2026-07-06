@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { NotifyService } from '../../../core/services/notify.service';
 
 type EstadoHab = 'libre' | 'ocupada' | 'checkout' | 'mantenimiento';
 
@@ -134,6 +135,8 @@ interface Habitacion {
   `,
 })
 export class PosTerminalHotelComponent {
+  private notify = inject(NotifyService);
+
   habSeleccionada: Habitacion | null = null;
   mostrarRoomService = false;
 
@@ -205,7 +208,7 @@ export class PosTerminalHotelComponent {
 
   checkOut() {
     if (!this.habSeleccionada) return;
-    alert(`Check-out completado\nHuésped: ${this.habSeleccionada.huesped}\nConsumos totales: $${this.totalConsumos}`);
+    this.notify.success(`Huésped: ${this.habSeleccionada.huesped} · Consumos: $${this.totalConsumos}`, 'Check-out completado');
     this.habSeleccionada.estado = 'libre';
     this.habSeleccionada.huesped = undefined;
     this.habSeleccionada.consumos = [];
