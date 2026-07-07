@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ErpService } from '../../../core/services/erp-service';
+import { ErpOrdenProduccion } from '../../../models/erp.models';
 
 @Component({
   selector: 'app-erp-fabricacion',
@@ -10,20 +12,17 @@ import { Component } from '@angular/core';
           <h2 class="m-0 text-lg font-bold text-slate-800">Fabricación</h2>
           <p class="text-xs text-slate-500 m-0 mt-1">Órdenes de producción, BOM y calidad</p>
         </div>
-        <button class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Orden de Producción</button>
+        <button (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Orden de Producción</button>
       </div>
-      <div class="grid grid-cols-4 gap-4">
+      <div class="grid grid-cols-3 gap-4">
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1">
-          <p class="text-xs text-slate-500 m-0">En Proceso</p><p class="text-2xl font-bold text-amber-600 m-0">12</p>
+          <p class="text-xs text-slate-500 m-0">En Proceso</p><p class="text-2xl font-bold text-amber-600 m-0">{{ enProceso }}</p>
         </div>
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2">
-          <p class="text-xs text-slate-500 m-0">Completadas (Mes)</p><p class="text-2xl font-bold text-emerald-600 m-0">89</p>
+          <p class="text-xs text-slate-500 m-0">Completadas</p><p class="text-2xl font-bold text-emerald-600 m-0">{{ completadas }}</p>
         </div>
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3">
-          <p class="text-xs text-slate-500 m-0">Tasa Calidad</p><p class="text-2xl font-bold text-blue-600 m-0">98.2%</p>
-        </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-4">
-          <p class="text-xs text-slate-500 m-0">BOMs Activos</p><p class="text-2xl font-bold text-purple-600 m-0">34</p>
+          <p class="text-xs text-slate-500 m-0">Total Órdenes</p><p class="text-2xl font-bold text-blue-600 m-0">{{ ordenes.length }}</p>
         </div>
       </div>
       <div class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-4">
@@ -47,13 +46,50 @@ import { Component } from '@angular/core';
         </table>
       </div>
     </div>
+
+    <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
+    <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+      <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Orden de Producción</h3>
+      <div class="flex flex-col gap-3">
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.producto" placeholder="Producto" />
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.cantidad" placeholder="Cantidad" />
+        <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
+        <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Crear Orden' }}</button>
+      </div>
+    </div>
   `,
 })
-export class ErpFabricacionComponent {
-  ordenes = [
-    { id: 120, producto: 'Widget Pro X', cantidad: 500, progreso: 100, estado: 'completada' },
-    { id: 121, producto: 'Sensor T-200', cantidad: 1200, progreso: 72, estado: 'en proceso' },
-    { id: 122, producto: 'Módulo A1', cantidad: 300, progreso: 45, estado: 'en proceso' },
-    { id: 123, producto: 'Placa Base v3', cantidad: 800, progreso: 20, estado: 'en proceso' },
-  ];
+export class ErpFabricacionComponent implements OnInit {
+  dialogOpen = false;
+  saving = false;
+  error = '';
+  form = { producto: '', cantidad: '' };
+  ordenes: ErpOrdenProduccion[] = [];
+
+  constructor(private erpService: ErpService, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit() {
+    this.erpService.cargarOrdenesProduccion().subscribe();
+    this.erpService.ordenesProduccion$.subscribe(data => { this.ordenes = data; this.cdr.detectChanges(); });
+  }
+
+  get enProceso() { return this.ordenes.filter(o => o.estado === 'en proceso').length; }
+  get completadas() { return this.ordenes.filter(o => o.estado === 'completada').length; }
+
+  openNew() { this.form = { producto: '', cantidad: '' }; this.error = ''; this.dialogOpen = true; }
+
+  submit() {
+    if (this.saving) return;
+    if (!this.form.producto) { this.error = 'El producto es obligatorio.'; return; }
+
+    this.saving = true;
+    this.error = '';
+    this.erpService.addOrdenProduccion({
+      producto: this.form.producto,
+      cantidad: Number(this.form.cantidad) || 0,
+    }).subscribe({
+      next: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
+      error: (err) => { this.saving = false; this.error = 'No se pudo guardar la orden. Intenta de nuevo.'; this.cdr.detectChanges(); console.error(err); },
+    });
+  }
 }

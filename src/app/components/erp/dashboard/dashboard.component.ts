@@ -1,5 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-import { NichoService } from '../../../core/services/nicho.service';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ErpService } from '../../../core/services/erp-service';
+import { ErpDashboardActividad, ErpDashboardModulo } from '../../../models/erp.models';
+
+const ICONS: Record<string, string> = {
+  box: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+  dollar: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  clipboard: '<rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+  folder: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+};
 
 @Component({
   selector: 'app-erp-dashboard',
@@ -47,6 +55,7 @@ import { NichoService } from '../../../core/services/nicho.service';
             <p class="text-xs text-slate-600 m-0 flex-1">{{ a.texto }}</p>
             <span class="text-[10px] text-slate-400">{{ a.tiempo }}</span>
           </div>
+          <p *ngIf="!actividad.length" class="text-xs text-slate-400 m-0 text-center py-4">Sin actividad reciente todavía.</p>
         </div>
       </div>
     </div>
@@ -54,18 +63,20 @@ import { NichoService } from '../../../core/services/nicho.service';
 })
 export class ErpDashboardComponent implements OnInit {
   kpis: any[] = [];
-  modulos: any[] = [];
-  actividad: any[] = [];
+  modulos: ErpDashboardModulo[] = [];
+  actividad: ErpDashboardActividad[] = [];
 
-  constructor(private nichoSvc: NichoService) {}
+  constructor(private erpService: ErpService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    const cfg = this.nichoSvc.config;
-    this.kpis = cfg.erpKpis.map(k => ({
-      ...k,
-      icon: `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">${k.svg}</svg>`
-    }));
-    this.modulos = cfg.erpModulos;
-    this.actividad = cfg.erpActividad;
+    this.erpService.cargarDashboardResumen().subscribe(res => {
+      this.kpis = res.kpis.map(k => ({
+        ...k,
+        icon: `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">${ICONS[k.icon] ?? ''}</svg>`
+      }));
+      this.modulos = res.modulos;
+      this.actividad = res.actividad;
+      this.cdr.detectChanges();
+    });
   }
 }

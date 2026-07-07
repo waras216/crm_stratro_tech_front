@@ -1,9 +1,6 @@
-import { Component } from '@angular/core';
-
-interface OrdenCompra {
-  id: number; proveedor: string; fecha: string; estado: 'pendiente' | 'recibida' | 'cancelada';
-  items: number; total: number;
-}
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ErpService } from '../../../core/services/erp-service';
+import { ErpOrdenCompra } from '../../../models/erp.models';
 
 @Component({
   selector: 'app-erp-compras',
@@ -11,33 +8,41 @@ interface OrdenCompra {
   templateUrl: './compras.component.html',
   styleUrls: ['./compras.component.scss'],
 })
-export class ErpComprasComponent {
+export class ErpComprasComponent implements OnInit {
   dialogOpen = false;
+  saving = false;
+  error = '';
   form = { proveedor: '', items: '', total: '' };
-  private nextId = 1006;
 
-  ordenes: OrdenCompra[] = [
-    { id: 1001, proveedor: 'Tech Distribuidores SA', fecha: '2026-06-08', estado: 'pendiente', items: 15, total: 45000 },
-    { id: 1002, proveedor: 'Mobiliario Express', fecha: '2026-06-05', estado: 'recibida', items: 8, total: 32000 },
-    { id: 1003, proveedor: 'Periféricos MX', fecha: '2026-06-03', estado: 'recibida', items: 50, total: 67500 },
-    { id: 1004, proveedor: 'Redes y Conectividad', fecha: '2026-06-01', estado: 'cancelada', items: 10, total: 22000 },
-    { id: 1005, proveedor: 'Storage Solutions', fecha: '2026-05-28', estado: 'recibida', items: 30, total: 45000 },
-  ];
+  ordenes: ErpOrdenCompra[] = [];
 
-  get totalPendiente() { return this.ordenes.filter(o => o.estado === 'pendiente').reduce((s, o) => s + o.total, 0); }
+  constructor(private erpService: ErpService, private cdr: ChangeDetectorRef) {}
 
-  openNew() { this.form = { proveedor: '', items: '', total: '' }; this.dialogOpen = true; }
-
-  submit() {
-    if (!this.form.proveedor) return;
-    this.ordenes.unshift({
-      id: this.nextId++, proveedor: this.form.proveedor,
-      fecha: new Date().toISOString().split('T')[0], estado: 'pendiente',
-      items: Number(this.form.items) || 0, total: Number(this.form.total) || 0,
-    });
-    this.dialogOpen = false;
+  ngOnInit() {
+    this.erpService.cargarOrdenesCompra().subscribe();
+    this.erpService.ordenesCompra$.subscribe(data => { this.ordenes = data; this.cdr.detectChanges(); });
   }
 
-  recibir(id: number) { const o = this.ordenes.find(x => x.id === id); if (o) o.estado = 'recibida'; }
-  cancelar(id: number) { const o = this.ordenes.find(x => x.id === id); if (o) o.estado = 'cancelada'; }
+  get totalPendiente() { return this.ordenes.filter(o => o.estado === 'pendiente').reduce((s, o) => s + Number(o.total), 0); }
+
+  openNew() { this.form = { proveedor: '', items: '', total: '' }; this.error = ''; this.dialogOpen = true; }
+
+  submit() {
+    if (this.saving) return;
+    if (!this.form.proveedor) { this.error = 'El proveedor es obligatorio.'; return; }
+
+    this.saving = true;
+    this.error = '';
+    this.erpService.addOrdenCompra({
+      proveedor: this.form.proveedor,
+      items: Number(this.form.items) || 0,
+      total: Number(this.form.total) || 0,
+    }).subscribe({
+      next: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
+      error: (err) => { this.saving = false; this.error = 'No se pudo guardar la orden. Intenta de nuevo.'; this.cdr.detectChanges(); console.error(err); },
+    });
+  }
+
+  recibir(id: number) { this.erpService.recibirOrdenCompra(id).subscribe({ next: () => this.cdr.detectChanges(), error: (err) => console.error(err) }); }
+  cancelar(id: number) { this.erpService.cancelarOrdenCompra(id).subscribe({ next: () => this.cdr.detectChanges(), error: (err) => console.error(err) }); }
 }

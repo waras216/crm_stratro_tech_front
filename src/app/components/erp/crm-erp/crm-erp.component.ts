@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ErpService } from '../../../core/services/erp-service';
+import { ErpInteraccion } from '../../../models/erp.models';
 
 @Component({
   selector: 'app-erp-crm',
@@ -7,9 +9,9 @@ import { Component } from '@angular/core';
     <div class="flex flex-col gap-5 page-enter">
       <h2 class="m-0 text-lg font-bold text-slate-800">CRM - Relaciones con Clientes</h2>
       <div class="grid grid-cols-3 gap-4">
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1"><p class="text-xs text-slate-500 m-0">Contactos</p><p class="text-2xl font-bold text-indigo-600 m-0">320</p></div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2"><p class="text-xs text-slate-500 m-0">Oportunidades</p><p class="text-2xl font-bold text-amber-600 m-0">18</p></div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3"><p class="text-xs text-slate-500 m-0">Tickets Abiertos</p><p class="text-2xl font-bold text-red-500 m-0">7</p></div>
+        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1"><p class="text-xs text-slate-500 m-0">Contactos</p><p class="text-2xl font-bold text-indigo-600 m-0">{{ resumen.contactos }}</p></div>
+        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2"><p class="text-xs text-slate-500 m-0">Oportunidades</p><p class="text-2xl font-bold text-amber-600 m-0">{{ resumen.oportunidades }}</p></div>
+        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3"><p class="text-xs text-slate-500 m-0">Tickets Abiertos</p><p class="text-2xl font-bold text-red-500 m-0">{{ resumen.ticketsAbiertos }}</p></div>
       </div>
       <div class="bg-white border border-slate-200 rounded-xl p-5 scale-in delay-3">
         <h3 class="text-sm font-bold text-slate-700 m-0 mb-4">Interacciones Recientes</h3>
@@ -24,11 +26,14 @@ import { Component } from '@angular/core';
     </div>
   `,
 })
-export class ErpCrmComponent {
-  interacciones = [
-    { cliente: 'TechCorp SA', tipo: 'Llamada', asunto: 'Seguimiento propuesta', fecha: 'Hoy 14:30' },
-    { cliente: 'Retail Plus', tipo: 'Email', asunto: 'Cotización enviada', fecha: 'Hoy 10:15' },
-    { cliente: 'Innovatech', tipo: 'Reunión', asunto: 'Demo producto', fecha: 'Ayer' },
-    { cliente: 'Global Foods', tipo: 'Ticket', asunto: 'Soporte técnico', fecha: 'Hace 2 días' },
-  ];
+export class ErpCrmComponent implements OnInit {
+  interacciones: ErpInteraccion[] = [];
+  resumen = { contactos: 0, oportunidades: 0, ticketsAbiertos: 0 };
+
+  constructor(private erpService: ErpService, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit() {
+    this.erpService.cargarCrmResumen().subscribe(r => { this.resumen = r; this.cdr.detectChanges(); });
+    this.erpService.cargarCrmInteracciones().subscribe(data => { this.interacciones = data; this.cdr.detectChanges(); });
+  }
 }
