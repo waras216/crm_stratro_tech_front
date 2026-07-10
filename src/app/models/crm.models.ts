@@ -135,6 +135,18 @@ export interface Usuario {
   id_tenant:  number;
   nombre:     string;
   email:      string;
+  es_admin?:  boolean;
+  created_at?: string;
+}
+
+export interface Plan {
+  id_plan: number;
+  nombre_plan: string;
+  precio: number;
+  max_usuarios: number | null;
+  fecha_inicio: string;
+  fecha_fin: string;
+  tenants_count?: number;
 }
 
 export type ModuloCRM =

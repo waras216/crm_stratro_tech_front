@@ -1,22 +1,69 @@
-export interface ErpInventario {
-  id: number;
+import { Cliente } from './crm.models';
+
+export interface Categoria {
+  id_categoria: number;
   id_tenant?: number;
   nombre: string;
-  sku: string;
-  categoria: string;
+  descripcion?: string;
+  activo?: boolean;
+}
+
+export interface Producto {
+  id_productos: number;
+  id_tenant?: number;
+  id_categorias: number;
+  categoria?: Categoria;
+  nombre: string;
+  descripcion?: string;
+  sku?: string;
+  precio: number;
+  precio_compra: number;
   stock: number;
   stock_minimo: number;
-  precio_compra: number;
-  precio_venta: number;
+  activo?: boolean;
+}
+
+export interface Proveedor {
+  id_proveedor: number;
+  id_tenant?: number;
+  nombre: string;
+  contacto?: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
+  rfc?: string;
+  activo?: boolean;
+}
+
+export interface ErpMovimientoStock {
+  id: number;
+  id_tenant?: number;
+  id_producto: number;
+  tipo: 'entrada' | 'salida' | 'ajuste';
+  cantidad: number;
+  motivo: string;
+  referencia?: string;
+  stock_resultante: number;
+  created_at?: string;
+}
+
+export interface ErpOrdenCompraItem {
+  id?: number;
+  id_producto: number;
+  producto?: Producto;
+  cantidad: number;
+  precio_unitario: number;
+  subtotal?: number;
 }
 
 export interface ErpOrdenCompra {
   id: number;
   id_tenant?: number;
-  proveedor: string;
+  id_proveedor: number;
+  proveedor?: Proveedor;
   fecha: string;
   estado: 'pendiente' | 'recibida' | 'cancelada';
-  items: number;
+  items: ErpOrdenCompraItem[];
   total: number;
 }
 
@@ -30,12 +77,23 @@ export interface ErpMovimiento {
   categoria: string;
 }
 
+export interface ErpPedidoItem {
+  id?: number;
+  id_producto: number;
+  producto?: Producto;
+  cantidad: number;
+  precio_unitario: number;
+  subtotal?: number;
+}
+
 export interface ErpPedido {
   id: number;
   id_tenant?: number;
-  cliente: string;
+  id_cliente: number;
+  cliente?: Cliente;
   total: number;
-  estado: 'pendiente' | 'enviado' | 'facturado';
+  estado: 'pendiente' | 'enviado' | 'facturado' | 'cancelada';
+  items: ErpPedidoItem[];
   fecha: string;
 }
 

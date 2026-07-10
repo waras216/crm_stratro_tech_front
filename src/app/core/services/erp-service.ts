@@ -4,9 +4,9 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
-  ErpInventario, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
+  Producto, Categoria, Proveedor, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
   ErpOrdenProduccion, ErpEnvio, ErpProyecto, ErpInteraccion, ErpCrmResumen,
-  ErpDashboardResumen
+  ErpDashboardResumen, ErpMovimientoStock
 } from '../../models/erp.models';
 
 const API = environment.apiUrl;
@@ -17,27 +17,102 @@ export class ErpService {
   constructor(private http: HttpClient) {}
 
   // ════════════════════════════════════════════════════════════════════
-  // INVENTARIO
+  // INVENTARIO (catálogo unificado de productos)
   // ════════════════════════════════════════════════════════════════════
-  private _inventario = new BehaviorSubject<ErpInventario[]>([]);
+  private _inventario = new BehaviorSubject<Producto[]>([]);
   inventario$ = this._inventario.asObservable();
   get inventario() { return this._inventario.getValue(); }
 
-  cargarInventario(): Observable<ErpInventario[]> {
-    return this.http.get<ErpInventario[]>(`${API}/erp/inventario`).pipe(
+  cargarInventario(): Observable<Producto[]> {
+    return this.http.get<Producto[]>(`${API}/erp/inventario`).pipe(
       tap(data => this._inventario.next(data))
     );
   }
 
-  addInventario(item: Partial<ErpInventario>): Observable<ErpInventario> {
-    return this.http.post<ErpInventario>(`${API}/erp/inventario`, item).pipe(
+  addInventario(item: Partial<Producto>): Observable<Producto> {
+    return this.http.post<Producto>(`${API}/erp/inventario`, item).pipe(
       tap(nuevo => this._inventario.next([nuevo, ...this.inventario]))
+    );
+  }
+
+  updateInventario(id: number, item: Partial<Producto>): Observable<Producto> {
+    return this.http.put<Producto>(`${API}/erp/inventario/${id}`, item).pipe(
+      tap(actualizado => this._inventario.next(this.inventario.map(i => i.id_productos === id ? actualizado : i)))
     );
   }
 
   deleteInventario(id: number): Observable<void> {
     return this.http.delete<void>(`${API}/erp/inventario/${id}`).pipe(
-      tap(() => this._inventario.next(this.inventario.filter(i => i.id !== id)))
+      tap(() => this._inventario.next(this.inventario.filter(i => i.id_productos !== id)))
+    );
+  }
+
+  ajustarStockInventario(id: number, cantidad: number, motivo: string): Observable<Producto> {
+    return this.http.post<Producto>(`${API}/erp/inventario/${id}/ajuste`, { cantidad, motivo }).pipe(
+      tap(actualizado => this._inventario.next(this.inventario.map(i => i.id_productos === id ? actualizado : i)))
+    );
+  }
+
+  cargarMovimientosStock(id: number): Observable<ErpMovimientoStock[]> {
+    return this.http.get<ErpMovimientoStock[]>(`${API}/erp/inventario/${id}/movimientos`);
+  }
+
+  cargarCategorias(): Observable<Categoria[]> {
+    return this.http.get<Categoria[]>(`${API}/categorias`);
+  }
+
+  cargarProductos(): Observable<Producto[]> {
+    return this.http.get<Producto[]>(`${API}/productos`);
+  }
+
+  cargarPapeleraInventario(): Observable<Producto[]> {
+    return this.http.get<Producto[]>(`${API}/erp/inventario/papelera`);
+  }
+
+  restaurarInventario(id: number): Observable<Producto> {
+    return this.http.patch<Producto>(`${API}/erp/inventario/${id}/restaurar`, {}).pipe(
+      tap(item => this._inventario.next([item, ...this.inventario]))
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // PROVEEDORES
+  // ════════════════════════════════════════════════════════════════════
+  private _proveedores = new BehaviorSubject<Proveedor[]>([]);
+  proveedores$ = this._proveedores.asObservable();
+  get proveedores() { return this._proveedores.getValue(); }
+
+  cargarProveedores(): Observable<Proveedor[]> {
+    return this.http.get<Proveedor[]>(`${API}/erp/proveedores`).pipe(
+      tap(data => this._proveedores.next(data))
+    );
+  }
+
+  addProveedor(proveedor: Partial<Proveedor>): Observable<Proveedor> {
+    return this.http.post<Proveedor>(`${API}/erp/proveedores`, proveedor).pipe(
+      tap(nuevo => this._proveedores.next([nuevo, ...this.proveedores]))
+    );
+  }
+
+  updateProveedor(id: number, proveedor: Partial<Proveedor>): Observable<Proveedor> {
+    return this.http.put<Proveedor>(`${API}/erp/proveedores/${id}`, proveedor).pipe(
+      tap(actualizado => this._proveedores.next(this.proveedores.map(p => p.id_proveedor === id ? actualizado : p)))
+    );
+  }
+
+  deleteProveedor(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/proveedores/${id}`).pipe(
+      tap(() => this._proveedores.next(this.proveedores.filter(p => p.id_proveedor !== id)))
+    );
+  }
+
+  cargarPapeleraProveedores(): Observable<Proveedor[]> {
+    return this.http.get<Proveedor[]>(`${API}/erp/proveedores/papelera`);
+  }
+
+  restaurarProveedor(id: number): Observable<Proveedor> {
+    return this.http.patch<Proveedor>(`${API}/erp/proveedores/${id}/restaurar`, {}).pipe(
+      tap(item => this._proveedores.next([item, ...this.proveedores]))
     );
   }
 
@@ -91,6 +166,22 @@ export class ErpService {
     );
   }
 
+  deleteMovimiento(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/finanzas/${id}`).pipe(
+      tap(() => this._movimientos.next(this.movimientos.filter(m => m.id !== id)))
+    );
+  }
+
+  cargarPapeleraMovimientos(): Observable<ErpMovimiento[]> {
+    return this.http.get<ErpMovimiento[]>(`${API}/erp/finanzas/papelera`);
+  }
+
+  restaurarMovimiento(id: number): Observable<ErpMovimiento> {
+    return this.http.patch<ErpMovimiento>(`${API}/erp/finanzas/${id}/restaurar`, {}).pipe(
+      tap(item => this._movimientos.next([item, ...this.movimientos]))
+    );
+  }
+
   // ════════════════════════════════════════════════════════════════════
   // VENTAS (pedidos)
   // ════════════════════════════════════════════════════════════════════
@@ -107,6 +198,12 @@ export class ErpService {
   addPedido(pedido: Partial<ErpPedido>): Observable<ErpPedido> {
     return this.http.post<ErpPedido>(`${API}/erp/ventas`, pedido).pipe(
       tap(nuevo => this._pedidos.next([nuevo, ...this.pedidos]))
+    );
+  }
+
+  cancelarPedido(id: number): Observable<ErpPedido> {
+    return this.http.patch<ErpPedido>(`${API}/erp/ventas/${id}/cancelar`, {}).pipe(
+      tap(actualizado => this._pedidos.next(this.pedidos.map(p => p.id === id ? actualizado : p)))
     );
   }
 
@@ -158,6 +255,34 @@ export class ErpService {
   cargarEnvios(): Observable<ErpEnvio[]> {
     return this.http.get<ErpEnvio[]>(`${API}/erp/scm`).pipe(
       tap(data => this._envios.next(data))
+    );
+  }
+
+  addEnvio(envio: Partial<ErpEnvio>): Observable<ErpEnvio> {
+    return this.http.post<ErpEnvio>(`${API}/erp/scm`, envio).pipe(
+      tap(nuevo => this._envios.next([nuevo, ...this.envios]))
+    );
+  }
+
+  updateEnvio(id: number, envio: Partial<ErpEnvio>): Observable<ErpEnvio> {
+    return this.http.put<ErpEnvio>(`${API}/erp/scm/${id}`, envio).pipe(
+      tap(actualizado => this._envios.next(this.envios.map(e => e.id === id ? actualizado : e)))
+    );
+  }
+
+  deleteEnvio(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/scm/${id}`).pipe(
+      tap(() => this._envios.next(this.envios.filter(e => e.id !== id)))
+    );
+  }
+
+  cargarPapeleraEnvios(): Observable<ErpEnvio[]> {
+    return this.http.get<ErpEnvio[]>(`${API}/erp/scm/papelera`);
+  }
+
+  restaurarEnvio(id: number): Observable<ErpEnvio> {
+    return this.http.patch<ErpEnvio>(`${API}/erp/scm/${id}/restaurar`, {}).pipe(
+      tap(item => this._envios.next([item, ...this.envios]))
     );
   }
 

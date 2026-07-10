@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
+import { UsuarioService } from '../../core/services/usuario.service';
+import { Usuario } from '../../models/crm.models';
 
 @Component({
   selector: 'app-configuracion',
@@ -10,7 +12,7 @@ import { ThemeService } from '../../core/theme.service';
   styleUrls: ['./configuracion.component.scss'],
 })
 export class ConfiguracionComponent implements OnInit {
-  activeTab: 'general' | 'cuenta' | 'notificaciones' | 'apariencia' | 'seguridad' = 'general';
+  activeTab: 'general' | 'cuenta' | 'notificaciones' | 'apariencia' | 'seguridad' | 'equipo' = 'general';
 
   // General
   nombreEmpresa = '';
@@ -63,12 +65,30 @@ export class ConfiguracionComponent implements OnInit {
     { id: 'notificaciones' as const, label: 'Notificaciones', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>' },
     { id: 'apariencia' as const, label: 'Apariencia', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="2.5"/><path d="M17.1 13.1A7.5 7.5 0 0 0 12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1.7 0 3.3-.4 4.7-1.2"/><path d="M19 17l3 3-3 3"/></svg>' },
     { id: 'seguridad' as const, label: 'Seguridad', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' },
+    { id: 'equipo' as const, label: 'Equipo', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
   ];
 
   saved = false;
   logoPreview: string | null = null;
 
-  constructor(private auth: AuthService, public theme: ThemeService, private location: Location) {}
+  // Equipo
+  usuarios: Usuario[] = [];
+  cargandoUsuarios = false;
+  errorEquipo = '';
+  invitando = false;
+  nuevoUsuario = { nombre: '', email: '', password: '', es_admin: false };
+
+  get esAdmin(): boolean { return !!this.auth.session?.es_admin; }
+  get maxUsuarios(): number | null { return this.auth.session?.plan?.max_usuarios ?? null; }
+  get limiteAlcanzado(): boolean { return this.maxUsuarios !== null && this.usuarios.length >= this.maxUsuarios; }
+  get miIdUsuario(): number | undefined { return this.auth.session?.id_usuario; }
+
+  constructor(
+    private auth: AuthService,
+    public theme: ThemeService,
+    private location: Location,
+    private usuarioService: UsuarioService,
+  ) {}
 
   goBack() { this.location.back(); }
 
@@ -95,6 +115,46 @@ export class ConfiguracionComponent implements OnInit {
     this.sesionActiva = localStorage.getItem('sesionActiva') !== 'false';
     this.logoPreview = this.auth.getLogo();
     this.applyStoredStyles();
+    if (this.esAdmin) this.cargarUsuarios();
+  }
+
+  cargarUsuarios() {
+    this.cargandoUsuarios = true;
+    this.usuarioService.cargarUsuarios().subscribe({
+      next: usuarios => { this.usuarios = usuarios; this.cargandoUsuarios = false; },
+      error: () => { this.cargandoUsuarios = false; },
+    });
+  }
+
+  invitarUsuario() {
+    if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.email || !this.nuevoUsuario.password) return;
+    this.errorEquipo = '';
+    this.invitando = true;
+    this.usuarioService.invitarUsuario(this.nuevoUsuario).subscribe({
+      next: () => {
+        this.invitando = false;
+        this.nuevoUsuario = { nombre: '', email: '', password: '', es_admin: false };
+      },
+      error: err => {
+        this.invitando = false;
+        this.errorEquipo = err?.error?.message || 'No se pudo invitar al usuario';
+      },
+    });
+  }
+
+  toggleAdmin(usuario: Usuario) {
+    this.errorEquipo = '';
+    this.usuarioService.actualizarUsuario(usuario.id_usuario, { es_admin: !usuario.es_admin }).subscribe({
+      error: err => { this.errorEquipo = err?.error?.message || 'No se pudo actualizar el usuario'; },
+    });
+  }
+
+  eliminarUsuario(usuario: Usuario) {
+    if (!confirm(`¿Eliminar a ${usuario.nombre} del equipo?`)) return;
+    this.errorEquipo = '';
+    this.usuarioService.eliminarUsuario(usuario.id_usuario).subscribe({
+      error: err => { this.errorEquipo = err?.error?.message || 'No se pudo eliminar al usuario'; },
+    });
   }
 
   onLogoSelected(event: Event) {

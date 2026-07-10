@@ -58,6 +58,9 @@ import { ConfiguracionComponent } from './components/configuracion/configuracion
 import { PricingComponent }       from './components/pricing/pricing.component';
 import { NotFoundComponent }      from './components/shared/not-found/not-found.component';
 
+// Admin
+import { PlanesComponent } from './components/admin/planes/planes.component';
+
 // Interceptors
 import { AuthInterceptor }  from './core/interceptors/auth-interceptor-interceptor';
 import { ErrorInterceptor } from './core/interceptors/error-interceptor-interceptor';
@@ -106,6 +109,8 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     // Other
     ConfiguracionComponent,
     PricingComponent,
+    // Admin
+    PlanesComponent,
   ],
   imports: [
     BrowserModule,

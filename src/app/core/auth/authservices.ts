@@ -17,6 +17,18 @@ export interface NichoData {
   tiendaTipo?: string; tiendaCanales?: string[];
 }
 
+export interface PlanInfo {
+  nombre_plan: string;
+  max_usuarios: number | null;
+  usuarios_actuales: number;
+}
+
+export interface MembresiaInfo {
+  id_tenant: number;
+  empresa: string;
+  es_owner: boolean;
+}
+
 export interface UserSession {
   email: string;
   nombre: string;
@@ -25,6 +37,10 @@ export interface UserSession {
   nichoData?: NichoData;
   id_usuario?: number;
   id_tenant?: number;
+  es_admin?: boolean;
+  es_superadmin?: boolean;
+  plan?: PlanInfo | null;
+  membresias?: MembresiaInfo[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -58,6 +74,10 @@ export class AuthService {
           nichoData:          res.user.nichoData,
           id_usuario:         res.user.id_usuario,
           id_tenant:          res.user.id_tenant,
+          es_admin:           !!res.user.es_admin,
+          es_superadmin:      !!res.user.es_superadmin,
+          plan:               res.user.plan,
+          membresias:         res.user.membresias,
         };
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
       }),
@@ -78,6 +98,10 @@ export class AuthService {
           nichoData:          res.user.nichoData,
           id_usuario:         res.user.id_usuario,
           id_tenant:          res.user.id_tenant,
+          es_admin:           !!res.user.es_admin,
+          es_superadmin:      !!res.user.es_superadmin,
+          plan:               res.user.plan,
+          membresias:         res.user.membresias,
         };
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
       }),
@@ -115,6 +139,31 @@ export class AuthService {
         session.empresa = user.empresa;
         session.onboardingCompleto = !!user.onboardingCompleto;
         session.nichoData = user.nichoData;
+        session.es_admin = !!user.es_admin;
+        session.es_superadmin = !!user.es_superadmin;
+        session.plan = user.plan;
+        session.id_tenant = user.id_tenant;
+        session.membresias = user.membresias;
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+      }),
+      map(() => true),
+      catchError(() => of(false)),
+    );
+  }
+
+  cambiarEmpresa(idTenant: number): Observable<boolean> {
+    return this.http.post<any>(`${environment.apiUrl}/mis-empresas/${idTenant}/activar`, {}).pipe(
+      tap(user => {
+        const session = this.session;
+        if (!session) return;
+        session.empresa = user.empresa;
+        session.id_tenant = user.id_tenant;
+        session.onboardingCompleto = !!user.onboardingCompleto;
+        session.nichoData = user.nichoData;
+        session.es_admin = !!user.es_admin;
+        session.es_superadmin = !!user.es_superadmin;
+        session.plan = user.plan;
+        session.membresias = user.membresias;
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
       }),
       map(() => true),

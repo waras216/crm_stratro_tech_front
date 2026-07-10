@@ -24,6 +24,9 @@ import { PricingComponent }       from './components/pricing/pricing.component';
 import { NotFoundComponent }      from './components/shared/not-found/not-found.component';
 import { AuthGuard }              from './core/auth/auth.guard';
 
+import { PlanesComponent }        from './components/admin/planes/planes.component';
+import { SuperAdminGuard }        from './core/auth/superadmin.guard';
+
 const routes: Routes = [
   { path: '', redirectTo: 'crm/dashboard', pathMatch: 'full' },
 
@@ -57,6 +60,7 @@ const routes: Routes = [
       { path: 'erp', component: ErpPageComponent },
       { path: 'pos', component: PosPageComponent },
       { path: 'configuracion', component: ConfiguracionComponent },
+      { path: 'admin/planes', component: PlanesComponent, canActivate: [SuperAdminGuard] },
     ],
   },
 

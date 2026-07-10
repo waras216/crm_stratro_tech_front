@@ -1,0 +1,93 @@
+<div class="min-h-screen bg-slate-50 p-6 md:p-10 page-enter">
+<div class="max-w-4xl mx-auto flex flex-col gap-5">
+
+  <!-- Header -->
+  <div class="flex items-center gap-3">
+    <button (click)="goBack()"
+      class="inline-flex items-center justify-center w-8 h-8 rounded-lg border-0 cursor-pointer transition-all hover:scale-105 active:scale-95 flex-shrink-0"
+      style="background:rgba(99,102,241,.1);color:#6366f1"
+      title="Volver">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <div>
+      <h1 class="text-lg font-bold m-0" style="color:#1e1b4b">Planes</h1>
+      <p class="text-xs text-slate-400 m-0 mt-1">Administra el catálogo de planes de STRATO</p>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="text-xs font-medium px-4 py-2.5 rounded-xl" style="background:#fef2f2;color:#dc2626">
+    {{ error }}
+  </div>
+
+  <!-- Formulario -->
+  <div class="rounded-2xl p-6 flex flex-col gap-4 fade-up"
+    style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">{{ editandoId ? 'Editar plan' : 'Nuevo plan' }}</h2>
+
+    <div class="grid grid-cols-2 gap-3">
+      <input [(ngModel)]="form.nombre_plan" placeholder="Nombre del plan"
+        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+      <input [(ngModel)]="form.precio" type="number" placeholder="Precio"
+        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+      <input [(ngModel)]="form.max_usuarios" type="number" placeholder="Máx. usuarios (vacío = ilimitado)"
+        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+      <div></div>
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] text-slate-400">Vigencia desde</label>
+        <input [(ngModel)]="form.fecha_inicio" type="date"
+          class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] text-slate-400">Vigencia hasta</label>
+        <input [(ngModel)]="form.fecha_fin" type="date"
+          class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button (click)="guardar()" [disabled]="guardando"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
+        style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.4)">
+        {{ editandoId ? 'Guardar cambios' : 'Crear plan' }}
+      </button>
+      <button *ngIf="editandoId" (click)="cancelar()"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer"
+        style="background:#f8fafc;color:#64748b">
+        Cancelar
+      </button>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div class="rounded-2xl p-6 flex flex-col gap-2 fade-up"
+    style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    <h2 class="text-sm font-bold m-0 mb-2" style="color:#1e1b4b">Planes existentes</h2>
+
+    <div *ngFor="let p of planes" class="flex items-center justify-between py-3 px-3 rounded-xl" style="border:1px solid #eef2ff">
+      <div>
+        <p class="text-sm font-medium m-0" style="color:#1e1b4b">{{ p.nombre_plan }}</p>
+        <p class="text-[11px] text-slate-400 m-0 mt-0.5">
+          ${{ p.precio }} · {{ p.max_usuarios ?? 'ilimitados' }} usuarios · {{ p.tenants_count ?? 0 }} tenants
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button (click)="editar(p)"
+          class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+          style="background:#f8fafc;color:#64748b">
+          Editar
+        </button>
+        <button (click)="eliminar(p)"
+          class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+          style="background:#fef2f2;color:#dc2626">
+          Eliminar
+        </button>
+      </div>
+    </div>
+
+    <p *ngIf="!cargando && planes.length === 0" class="text-xs text-slate-400 m-0 py-3">No hay planes creados aún.</p>
+  </div>
+
+</div>
+</div>

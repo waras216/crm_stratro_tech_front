@@ -4,7 +4,10 @@
       <h2 class="m-0 text-lg font-bold text-slate-800">Órdenes de Compra</h2>
       <p class="text-xs text-slate-500 m-0 mt-1">Pendiente: ${{ totalPendiente.toLocaleString() }}</p>
     </div>
-    <button (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nueva Orden</button>
+    <div class="flex gap-2">
+      <button (click)="toggleProveedoresPanel()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Proveedores</button>
+      <button (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nueva Orden</button>
+    </div>
   </div>
 
   <div class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-2">
@@ -23,9 +26,9 @@
       <tbody>
         <tr *ngFor="let o of ordenes" class="border-b border-slate-100 hover:bg-slate-50">
           <td class="px-4 py-3 font-mono text-xs">#{{ o.id }}</td>
-          <td class="px-4 py-3 font-medium">{{ o.proveedor }}</td>
+          <td class="px-4 py-3 font-medium">{{ o.proveedor?.nombre }}</td>
           <td class="px-4 py-3 text-slate-500">{{ o.fecha }}</td>
-          <td class="px-4 py-3 text-right">{{ o.items }}</td>
+          <td class="px-4 py-3 text-right">{{ o.items.length }}</td>
           <td class="px-4 py-3 text-right font-medium">${{ o.total.toLocaleString() }}</td>
           <td class="px-4 py-3 text-center">
             <span class="px-2 py-0.5 rounded-full text-xs font-medium"
@@ -45,15 +48,76 @@
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
-<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
   <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Orden de Compra</h3>
   <div class="flex flex-col gap-3">
-    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.proveedor" placeholder="Proveedor" />
-    <div class="grid grid-cols-2 gap-3">
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.items" placeholder="Cant. Items" />
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.total" placeholder="Total $" />
+    <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.id_proveedor">
+      <option value="">Proveedor...</option>
+      <option *ngFor="let p of proveedores" [value]="p.id_proveedor">{{ p.nombre }}</option>
+    </select>
+
+    <div class="flex flex-col gap-2">
+      <div *ngFor="let row of form.items; let i = index" class="grid grid-cols-[1fr_70px_90px_auto] gap-2 items-center">
+        <select class="px-2 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="row.id_producto" (ngModelChange)="onProductoChange(row)">
+          <option value="">Producto...</option>
+          <option *ngFor="let p of productos" [value]="p.id_productos">{{ p.nombre }}</option>
+        </select>
+        <input class="px-2 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="row.cantidad" placeholder="Cant." />
+        <input class="px-2 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="row.precio_unitario" placeholder="P. Unit" />
+        <button (click)="removeItemRow(i)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">✕</button>
+      </div>
+      <button (click)="addItemRow()" class="text-xs text-amber-600 font-medium bg-transparent border-0 cursor-pointer hover:underline text-left">+ Agregar línea</button>
     </div>
+
+    <p class="text-sm font-semibold text-slate-700 m-0 text-right">Total: ${{ totalFormulario.toLocaleString() }}</p>
     <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
     <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Crear Orden' }}</button>
+  </div>
+</div>
+
+<!-- Panel: proveedores -->
+<div *ngIf="proveedoresPanelOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="toggleProveedoresPanel()"></div>
+<div *ngIf="proveedoresPanelOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Proveedores</h3>
+    <button (click)="abrirProveedoresPapelera()" class="text-xs text-slate-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Papelera</button>
+  </div>
+
+  <div class="flex flex-col gap-2 mb-4">
+    <div *ngFor="let p of proveedores" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+      <div>
+        <p class="m-0 font-medium">{{ p.nombre }}</p>
+        <p class="m-0 text-xs text-slate-500">{{ p.email }} {{ p.telefono }}</p>
+      </div>
+      <button (click)="eliminarProveedor(p)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+    </div>
+    <p *ngIf="proveedores.length === 0" class="text-sm text-slate-400 m-0">Sin proveedores registrados.</p>
+  </div>
+
+  <div class="flex flex-col gap-2 border-t border-slate-100 pt-4">
+    <p class="text-sm font-semibold m-0">Nuevo proveedor</p>
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="proveedorForm.nombre" placeholder="Nombre" />
+    <div class="grid grid-cols-2 gap-3">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="proveedorForm.contacto" placeholder="Contacto" />
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="proveedorForm.telefono" placeholder="Teléfono" />
+    </div>
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="proveedorForm.email" placeholder="Email" />
+    <p *ngIf="proveedorError" class="text-xs text-red-600 m-0">{{ proveedorError }}</p>
+    <button (click)="submitProveedor()" [disabled]="proveedorSaving" class="w-full py-2.5 bg-slate-800 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-slate-900 disabled:opacity-60">{{ proveedorSaving ? 'Guardando...' : 'Agregar proveedor' }}</button>
+  </div>
+</div>
+
+<!-- Modal: papelera de proveedores -->
+<div *ngIf="proveedoresPapeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="proveedoresPapeleraOpen=false"></div>
+<div *ngIf="proveedoresPapeleraOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Papelera de Proveedores</h3>
+  <div class="flex flex-col gap-2">
+    <p *ngIf="proveedoresPapelera.length === 0" class="text-sm text-slate-400 m-0">No hay proveedores eliminados.</p>
+    <div *ngFor="let p of proveedoresPapelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+      <p class="m-0 font-medium">{{ p.nombre }}</p>
+      <button (click)="restaurarProveedor(p.id_proveedor)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Restaurar</button>
+    </div>
   </div>
 </div>

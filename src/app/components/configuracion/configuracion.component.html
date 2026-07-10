@@ -35,13 +35,15 @@
   <div class="flex gap-5">
     <!-- Tabs lateral -->
     <div class="w-52 flex-shrink-0 flex flex-col gap-1">
-      <button *ngFor="let tab of tabs" (click)="activeTab=tab.id"
+      <ng-container *ngFor="let tab of tabs">
+      <button *ngIf="tab.id !== 'equipo' || esAdmin" (click)="activeTab=tab.id"
         class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all text-left w-full"
         [ngClass]="activeTab===tab.id ? 'text-white' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'"
         [style]="activeTab===tab.id ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.3)' : 'background:transparent'">
         <span [innerHTML]="tab.icon"></span>
         {{ tab.label }}
       </button>
+      </ng-container>
     </div>
 
     <!-- Content -->
@@ -375,6 +377,71 @@
             style="background:#eef2ff;color:#6366f1">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             Cambiar Contraseña
+          </button>
+        </div>
+      </div>
+
+      <!-- Equipo -->
+      <div *ngIf="activeTab==='equipo' && esAdmin" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
+        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Equipo</h2>
+            <p class="text-[11px] text-slate-400 m-0 mt-1">Administra los usuarios de tu organización</p>
+          </div>
+          <div class="text-xs font-semibold px-3 py-1.5 rounded-full" style="background:#eef2ff;color:#6366f1">
+            {{ usuarios.length }} / {{ maxUsuarios ?? '∞' }} usuarios
+          </div>
+        </div>
+
+        <div *ngIf="errorEquipo" class="text-xs font-medium px-4 py-2.5 rounded-xl" style="background:#fef2f2;color:#dc2626">
+          {{ errorEquipo }}
+        </div>
+
+        <!-- Lista -->
+        <div class="flex flex-col gap-2">
+          <div *ngFor="let u of usuarios" class="flex items-center justify-between py-2.5 px-3 rounded-xl" style="border:1px solid #eef2ff">
+            <div>
+              <p class="text-sm font-medium m-0" style="color:#1e1b4b">
+                {{ u.nombre }}
+                <span *ngIf="u.es_admin" class="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-2" style="background:#eef2ff;color:#6366f1">Admin</span>
+              </p>
+              <p class="text-[11px] text-slate-400 m-0 mt-0.5">{{ u.email }}</p>
+            </div>
+            <div class="flex items-center gap-2" *ngIf="u.id_usuario !== miIdUsuario">
+              <button (click)="toggleAdmin(u)"
+                class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+                style="background:#f8fafc;color:#64748b">
+                {{ u.es_admin ? 'Quitar admin' : 'Hacer admin' }}
+              </button>
+              <button (click)="eliminarUsuario(u)"
+                class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+                style="background:#fef2f2;color:#dc2626">
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invitar -->
+        <div class="pt-4" style="border-top:1px solid #eef2ff">
+          <h3 class="text-xs font-bold m-0 mb-3" style="color:#1e1b4b">Invitar usuario</h3>
+          <div *ngIf="limiteAlcanzado" class="text-xs font-medium px-4 py-2.5 rounded-xl mb-3" style="background:#fffbeb;color:#b45309">
+            Alcanzaste el límite de usuarios de tu plan. Actualiza tu plan para agregar más.
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <input [(ngModel)]="nuevoUsuario.nombre" placeholder="Nombre" [disabled]="limiteAlcanzado"
+              class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
+            <input [(ngModel)]="nuevoUsuario.email" placeholder="Email" [disabled]="limiteAlcanzado"
+              class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
+            <input [(ngModel)]="nuevoUsuario.password" placeholder="Contraseña" type="password" [disabled]="limiteAlcanzado"
+              class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
+          </div>
+          <button (click)="invitarUsuario()" [disabled]="limiteAlcanzado || invitando"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 mt-3"
+            style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"
+            [style.opacity]="(limiteAlcanzado || invitando) ? 0.5 : 1">
+            {{ invitando ? 'Invitando…' : 'Invitar' }}
           </button>
         </div>
       </div>

@@ -18,7 +18,10 @@
   <!-- Toolbar -->
   <div class="flex items-center justify-between">
     <input class="max-w-xs px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-amber-400" placeholder="Buscar por nombre o SKU..." [(ngModel)]="search" />
-    <button (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Producto</button>
+    <div class="flex gap-2">
+      <button (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Papelera</button>
+      <button (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Producto</button>
+    </div>
   </div>
 
   <!-- Table -->
@@ -39,17 +42,25 @@
         <tr *ngFor="let p of filtrado" class="border-b border-slate-100 hover:bg-slate-50">
           <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ p.sku }}</td>
           <td class="px-4 py-3 font-medium">{{ p.nombre }}</td>
-          <td class="px-4 py-3 text-slate-500">{{ p.categoria }}</td>
+          <td class="px-4 py-3 text-slate-500">{{ p.categoria?.nombre }}</td>
           <td class="px-4 py-3 text-right">
             <span [ngClass]="p.stock <= p.stock_minimo ? 'text-red-600 font-bold' : 'text-slate-700'">{{ p.stock }}</span>
             <span class="text-slate-400 text-xs"> / {{ p.stock_minimo }}</span>
           </td>
           <td class="px-4 py-3 text-right text-slate-600">${{ p.precio_compra.toLocaleString() }}</td>
-          <td class="px-4 py-3 text-right font-medium text-amber-700">${{ p.precio_venta.toLocaleString() }}</td>
+          <td class="px-4 py-3 text-right font-medium text-amber-700">${{ p.precio.toLocaleString() }}</td>
           <td class="px-4 py-3 text-right">
-            <button (click)="eliminar(p.id)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-            </button>
+            <div class="flex items-center justify-end gap-2">
+              <button (click)="openAjuste(p)" title="Ajustar stock" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-amber-600 p-1">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+              <button (click)="openMovimientos(p)" title="Ver movimientos" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-blue-600 p-1">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              </button>
+              <button (click)="eliminar(p)" title="Eliminar" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -63,12 +74,67 @@
   <h3 class="m-0 mb-4 text-lg font-semibold">Nuevo Producto</h3>
   <div class="flex flex-col gap-3">
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.nombre" placeholder="Nombre" />
-    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.sku" placeholder="SKU" />
     <div class="grid grid-cols-2 gap-3">
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.stock" placeholder="Stock" />
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.precioVenta" placeholder="P. Venta" />
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.sku" placeholder="SKU (opcional)" />
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.id_categorias">
+        <option value="">Categoría...</option>
+        <option *ngFor="let c of categorias" [value]="c.id_categoria">{{ c.nombre }}</option>
+      </select>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.stock" placeholder="Stock inicial" />
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.stockMinimo" placeholder="Stock mínimo" />
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.precioCompra" placeholder="P. Compra" />
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.precio" placeholder="P. Venta" />
     </div>
     <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
     <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Agregar' }}</button>
+  </div>
+</div>
+
+<!-- Modal: ajustar stock -->
+<div *ngIf="ajusteDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="ajusteDialogOpen=false"></div>
+<div *ngIf="ajusteDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Ajustar stock: {{ ajusteTarget?.nombre }}</h3>
+  <p class="text-xs text-slate-500 mb-3">Stock actual: {{ ajusteTarget?.stock }}. Usa un número negativo para dar de baja (merma, daño, etc).</p>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="ajusteForm.cantidad" placeholder="Cantidad (+/-)" />
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="ajusteForm.motivo" placeholder="Motivo (ej. merma, conteo físico)" />
+    <p *ngIf="ajusteError" class="text-xs text-red-600 m-0">{{ ajusteError }}</p>
+    <button (click)="submitAjuste()" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700">Aplicar ajuste</button>
+  </div>
+</div>
+
+<!-- Modal: movimientos -->
+<div *ngIf="movimientosDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="movimientosDialogOpen=false"></div>
+<div *ngIf="movimientosDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Movimientos: {{ movimientosTarget?.nombre }}</h3>
+  <div class="flex flex-col gap-2">
+    <p *ngIf="movimientos.length === 0" class="text-sm text-slate-400 m-0">Sin movimientos registrados.</p>
+    <div *ngFor="let m of movimientos" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+      <div>
+        <span [ngClass]="m.tipo === 'salida' ? 'text-red-600' : 'text-emerald-600'" class="font-semibold">{{ m.tipo === 'salida' ? '-' : '+' }}{{ m.cantidad }}</span>
+        <span class="text-slate-500 ml-2">{{ m.motivo }}</span>
+      </div>
+      <div class="text-slate-400 text-xs">stock: {{ m.stock_resultante }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: papelera -->
+<div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
+<div *ngIf="papeleraOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Papelera de Inventario</h3>
+  <div class="flex flex-col gap-2">
+    <p *ngIf="papelera.length === 0" class="text-sm text-slate-400 m-0">No hay productos eliminados.</p>
+    <div *ngFor="let p of papelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+      <div>
+        <p class="m-0 font-medium">{{ p.nombre }}</p>
+        <p class="m-0 text-xs text-slate-500">{{ p.sku }} · {{ p.categoria?.nombre }}</p>
+      </div>
+      <button (click)="restaurar(p.id_productos)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Restaurar</button>
+    </div>
   </div>
 </div>

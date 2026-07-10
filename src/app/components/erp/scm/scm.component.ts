@@ -1,34 +1,23 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { ErpEnvio } from '../../../models/erp.models';
 
 @Component({
   selector: 'app-erp-scm',
   standalone: false,
-  template: `
-    <div class="flex flex-col gap-5 page-enter">
-      <h2 class="m-0 text-lg font-bold text-slate-800">Cadena de Suministro</h2>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1"><p class="text-xs text-slate-500 m-0">En Tránsito</p><p class="text-2xl font-bold text-teal-600 m-0">{{ enTransito.length }}</p></div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2"><p class="text-xs text-slate-500 m-0">Entregados</p><p class="text-2xl font-bold text-emerald-600 m-0">{{ entregados }}</p></div>
-      </div>
-      <div class="bg-white border border-slate-200 rounded-xl p-5 scale-in delay-3">
-        <h3 class="text-sm font-bold text-slate-700 m-0 mb-4">Envíos en Tránsito</h3>
-        <div class="flex flex-col gap-3">
-          <div *ngFor="let e of enTransito" class="flex items-center gap-4 p-3 rounded-lg bg-slate-50">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-teal-100 text-teal-600 text-xs font-bold">E{{ e.id }}</div>
-            <div class="flex-1 min-w-0"><p class="text-sm font-medium text-slate-700 m-0">{{ e.destino }}</p><p class="text-[10px] text-slate-400 m-0">{{ e.transportista }}</p></div>
-            <div class="text-right"><p class="text-xs font-semibold text-slate-700 m-0">{{ e.eta }}</p><p class="text-[10px] text-slate-400 m-0">ETA</p></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
+  templateUrl: './scm.component.html',
+  styleUrls: ['./scm.component.scss'],
 })
 export class ErpScmComponent implements OnInit {
   envios: ErpEnvio[] = [];
 
-  constructor(private erpService: ErpService, private cdr: ChangeDetectorRef) {}
+  dialogOpen = false;
+  saving = false;
+  error = '';
+  form = { destino: '', transportista: '', eta: '' };
+
+  constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.erpService.cargarEnvios().subscribe();
@@ -37,4 +26,58 @@ export class ErpScmComponent implements OnInit {
 
   get enTransito() { return this.envios.filter(e => e.estado === 'en_transito'); }
   get entregados() { return this.envios.filter(e => e.estado === 'entregado').length; }
+
+  openNew() {
+    this.form = { destino: '', transportista: '', eta: '' };
+    this.error = '';
+    this.dialogOpen = true;
+  }
+
+  submit() {
+    if (this.saving) return;
+    if (!this.form.destino || !this.form.transportista) { this.error = 'Destino y transportista son obligatorios.'; return; }
+
+    this.saving = true;
+    this.error = '';
+    this.erpService.addEnvio({
+      destino: this.form.destino,
+      transportista: this.form.transportista,
+      eta: this.form.eta || 'Por confirmar',
+    }).subscribe({
+      next: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
+      error: (err) => { this.saving = false; this.error = 'No se pudo guardar el envío. Intenta de nuevo.'; this.cdr.detectChanges(); console.error(err); },
+    });
+  }
+
+  marcarEntregado(id: number) {
+    this.erpService.updateEnvio(id, { estado: 'entregado' }).subscribe({
+      next: () => this.cdr.detectChanges(),
+      error: (err) => console.error(err),
+    });
+  }
+
+  async eliminar(envio: ErpEnvio) {
+    const ok = await this.notify.confirm(`¿Eliminar el envío a "${envio.destino}"? Podrás restaurarlo desde la papelera.`, { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+
+    this.erpService.deleteEnvio(envio.id).subscribe({
+      next: () => { this.notify.success('Envío eliminado'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error('No se pudo eliminar el envío'); console.error(err); },
+    });
+  }
+
+  papeleraOpen = false;
+  papelera: ErpEnvio[] = [];
+
+  abrirPapelera() {
+    this.papeleraOpen = true;
+    this.erpService.cargarPapeleraEnvios().subscribe(data => { this.papelera = data; this.cdr.detectChanges(); });
+  }
+
+  restaurar(id: number) {
+    this.erpService.restaurarEnvio(id).subscribe({
+      next: () => { this.papelera = this.papelera.filter(e => e.id !== id); this.notify.success('Envío restaurado'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error('No se pudo restaurar el envío'); console.error(err); },
+    });
+  }
 }

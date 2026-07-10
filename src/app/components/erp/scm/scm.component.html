@@ -1,0 +1,59 @@
+<div class="flex flex-col gap-5 page-enter">
+  <div class="flex items-center justify-between">
+    <h2 class="m-0 text-lg font-bold text-slate-800">Cadena de Suministro</h2>
+    <div class="flex gap-2">
+      <button (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Papelera</button>
+      <button (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Envío</button>
+    </div>
+  </div>
+  <div class="grid grid-cols-2 gap-4">
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1"><p class="text-xs text-slate-500 m-0">En Tránsito</p><p class="text-2xl font-bold text-teal-600 m-0">{{ enTransito.length }}</p></div>
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2"><p class="text-xs text-slate-500 m-0">Entregados</p><p class="text-2xl font-bold text-emerald-600 m-0">{{ entregados }}</p></div>
+  </div>
+  <div class="bg-white border border-slate-200 rounded-xl p-5 scale-in delay-3">
+    <h3 class="text-sm font-bold text-slate-700 m-0 mb-4">Envíos</h3>
+    <div class="flex flex-col gap-3">
+      <div *ngFor="let e of envios" class="flex items-center gap-4 p-3 rounded-lg bg-slate-50">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold" [ngClass]="e.estado==='entregado' ? 'bg-emerald-100 text-emerald-600' : 'bg-teal-100 text-teal-600'">E{{ e.id }}</div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-medium text-slate-700 m-0">{{ e.destino }}</p><p class="text-[10px] text-slate-400 m-0">{{ e.transportista }}</p></div>
+        <div class="text-right"><p class="text-xs font-semibold text-slate-700 m-0">{{ e.eta }}</p><p class="text-[10px] text-slate-400 m-0">ETA</p></div>
+        <span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="e.estado==='entregado' ? 'badge-green' : 'badge-amber'">{{ e.estado }}</span>
+        <div class="flex items-center gap-2">
+          <button *ngIf="e.estado==='en_transito'" (click)="marcarEntregado(e.id)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Marcar entregado</button>
+          <button (click)="eliminar(e)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>
+      <p *ngIf="envios.length === 0" class="text-sm text-slate-400 m-0">Sin envíos registrados.</p>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
+<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Nuevo Envío</h3>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.destino" placeholder="Destino" />
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.transportista" placeholder="Transportista" />
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.eta" placeholder="ETA (ej. 3 días, 2026-07-15)" />
+    <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
+    <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Crear Envío' }}</button>
+  </div>
+</div>
+
+<!-- Modal: papelera -->
+<div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
+<div *ngIf="papeleraOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Papelera de Envíos</h3>
+  <div class="flex flex-col gap-2">
+    <p *ngIf="papelera.length === 0" class="text-sm text-slate-400 m-0">No hay envíos eliminados.</p>
+    <div *ngFor="let e of papelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+      <div>
+        <p class="m-0 font-medium">{{ e.destino }}</p>
+        <p class="m-0 text-xs text-slate-500">{{ e.transportista }}</p>
+      </div>
+      <button (click)="restaurar(e.id)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Restaurar</button>
+    </div>
+  </div>
+</div>

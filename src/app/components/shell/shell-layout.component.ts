@@ -207,6 +207,15 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   get unreadCount() { return this.notifications.filter(n => n.unread).length; }
 
   goToConfig()      { this.router.navigate(['/configuracion']); this.closeAll(); }
+  goToPlanes()      { this.router.navigate(['/admin/planes']); this.closeAll(); }
+
+  cambiarEmpresa(idTenant: number) {
+    if (idTenant === this.auth.session?.id_tenant) { this.closeAll(); return; }
+    this.auth.cambiarEmpresa(idTenant).subscribe(ok => {
+      if (ok) { window.location.href = '/crm/dashboard'; }
+    });
+    this.closeAll();
+  }
 
   @HostListener('document:keydown', ['$event'])
   onKeydown(e: KeyboardEvent) {

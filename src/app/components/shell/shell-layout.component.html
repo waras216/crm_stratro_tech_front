@@ -109,9 +109,11 @@
 
     <!-- ── User card ── -->
     <div *ngIf="!collapsed" class="user-card" [style]="'border:1px solid ' + activeModule.borderColor">
-      <div class="user-avatar" [style]="'background:' + activeModule.activeGradient">
-        <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover" alt="avatar" />
-        <span *ngIf="!logo">{{ userName.charAt(0) }}</span>
+      <div class="user-avatar-wrap">
+        <div class="user-avatar" [style]="'background:' + activeModule.activeGradient">
+          <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover" alt="avatar" />
+          <span *ngIf="!logo">{{ userName.charAt(0) }}</span>
+        </div>
         <span class="online-dot"></span>
       </div>
       <div class="user-info">
@@ -127,10 +129,12 @@
       </button>
     </div>
 
-    <div *ngIf="collapsed" class="user-avatar-sm" [style]="'background:' + activeModule.activeGradient">
-      <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover" alt="avatar" />
-      <span *ngIf="!logo">{{ userName.charAt(0) }}</span>
-      <span class="online-dot"></span>
+    <div *ngIf="collapsed" class="user-avatar-sm-wrap">
+      <div class="user-avatar-sm" [style]="'background:' + activeModule.activeGradient">
+        <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover" alt="avatar" />
+        <span *ngIf="!logo">{{ userName.charAt(0) }}</span>
+      </div>
+      <span class="online-dot online-dot--sm"></span>
     </div>
   </aside>
 
@@ -273,12 +277,33 @@
         <p class="user-menu-email" [style]="darkMode?'color:#9ca3af':'color:#64748b'">{{ userEmail }}</p>
       </div>
     </div>
+    <ng-container *ngIf="(auth.session?.membresias?.length ?? 0) > 1">
+      <div class="dropdown-divider" [style]="darkMode?'background:rgba(75,85,99,.3)':'background:rgba(0,0,0,.06)'"></div>
+      <p class="user-menu-email" style="padding:8px 14px 2px" [style.color]="darkMode?'#6b7280':'#94a3b8'">Tus empresas</p>
+      <button *ngFor="let m of auth.session?.membresias" (click)="cambiarEmpresa(m.id_tenant)"
+        class="user-menu-item"
+        [style]="(m.id_tenant === auth.session?.id_tenant ? 'font-weight:600;' : '') + (darkMode?'color:#d1d5db':'color:#374151')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/>
+        </svg>
+        {{ m.empresa }}
+        <svg *ngIf="m.id_tenant === auth.session?.id_tenant" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24" style="margin-left:auto">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </button>
+    </ng-container>
     <div class="dropdown-divider" [style]="darkMode?'background:rgba(75,85,99,.3)':'background:rgba(0,0,0,.06)'"></div>
     <button (click)="goToConfig()" class="user-menu-item" [style]="darkMode?'color:#d1d5db':'color:#374151'">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/>
       </svg>
       Configuración
+    </button>
+    <button *ngIf="auth.session?.es_superadmin" (click)="goToPlanes()" class="user-menu-item" [style]="darkMode?'color:#d1d5db':'color:#374151'">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      </svg>
+      Planes (Admin)
     </button>
     <div class="dropdown-divider" [style]="darkMode?'background:rgba(75,85,99,.3)':'background:rgba(0,0,0,.06)'"></div>
     <button (click)="auth.logout()" class="user-menu-item user-menu-item--danger">

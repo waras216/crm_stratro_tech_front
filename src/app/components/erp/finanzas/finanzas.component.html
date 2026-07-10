@@ -1,4 +1,9 @@
 <div class="flex flex-col gap-5 page-enter">
+  <div class="flex items-center justify-end gap-2">
+    <button (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Papelera</button>
+    <button (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Movimiento</button>
+  </div>
+
   <!-- KPIs -->
   <div class="grid grid-cols-3 gap-4">
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1">
@@ -28,6 +33,7 @@
           <th class="text-left px-4 py-3 font-medium text-slate-500">Categoría</th>
           <th class="text-center px-4 py-3 font-medium text-slate-500">Tipo</th>
           <th class="text-right px-4 py-3 font-medium text-slate-500">Monto</th>
+          <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
         </tr>
       </thead>
       <tbody>
@@ -42,8 +48,47 @@
           <td class="px-4 py-3 text-right font-semibold" [ngClass]="m.tipo==='ingreso' ? 'text-emerald-600' : 'text-red-600'">
             {{ m.tipo==='ingreso' ? '+' : '-' }}${{ m.monto.toLocaleString() }}
           </td>
+          <td class="px-4 py-3 text-right">
+            <button (click)="eliminar(m)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
+<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Nuevo Movimiento</h3>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.concepto" placeholder="Concepto" />
+    <div class="grid grid-cols-2 gap-3">
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.tipo">
+        <option value="ingreso">Ingreso</option>
+        <option value="egreso">Egreso</option>
+      </select>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.monto" placeholder="Monto $" />
+    </div>
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.categoria" placeholder="Categoría (opcional)" />
+    <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
+    <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Agregar' }}</button>
+  </div>
+</div>
+
+<!-- Modal: papelera -->
+<div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
+<div *ngIf="papeleraOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Papelera de Movimientos</h3>
+  <div class="flex flex-col gap-2">
+    <p *ngIf="papelera.length === 0" class="text-sm text-slate-400 m-0">No hay movimientos eliminados.</p>
+    <div *ngFor="let m of papelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+      <div>
+        <p class="m-0 font-medium">{{ m.concepto }}</p>
+        <p class="m-0 text-xs text-slate-500">{{ m.tipo }} · ${{ m.monto.toLocaleString() }}</p>
+      </div>
+      <button (click)="restaurar(m.id)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Restaurar</button>
+    </div>
   </div>
 </div>

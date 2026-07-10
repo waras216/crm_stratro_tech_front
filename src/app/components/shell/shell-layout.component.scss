@@ -353,6 +353,13 @@
   transition: border-color 0.25s ease;
 }
 
+.user-avatar-wrap {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
 .user-avatar {
   width: 36px;
   height: 36px;
@@ -363,10 +370,15 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: #fff;
-  flex-shrink: 0;
-  position: relative;
   overflow: hidden;
   transition: background 0.25s ease;
+}
+
+.user-avatar-sm-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 12px;
 }
 
 .user-avatar-sm {
@@ -376,11 +388,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 12px;
   font-size: 0.75rem;
   font-weight: 700;
   color: #fff;
-  position: relative;
   overflow: hidden;
   cursor: pointer;
   transition: background 0.25s ease, transform 0.18s ease;
@@ -390,13 +400,16 @@
 
 .online-dot {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
+  bottom: 0;
+  right: 0;
   width: 10px;
   height: 10px;
   border-radius: 50%;
   background: #34d399;
-  border: 2px solid transparent;
+  box-shadow: 0 0 0 2px rgba(15, 15, 15, 0.85);
+  z-index: 1;
+
+  &--sm { bottom: 1px; right: 1px; }
 }
 
 .user-info { flex: 1; min-width: 0; }
