@@ -19,6 +19,8 @@ import { ConfirmDialogComponent } from './components/shared/confirm-dialog/confi
 import { AuthLoginComponent }      from './components/auth/login/login.component';
 import { AuthRegistroComponent }   from './components/auth/registro/registro.component';
 import { AuthOnboardingComponent } from './components/auth/onboarding/onboarding.component';
+import { AuthForgotPasswordComponent } from './components/auth/forgot-password/forgot-password.component';
+import { AuthResetPasswordComponent }  from './components/auth/reset-password/reset-password.component';
 
 // CRM
 import { DashboardComponent }    from './components/crm/dashboard/dashboard.component';
@@ -76,6 +78,8 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     AuthLoginComponent,
     AuthRegistroComponent,
     AuthOnboardingComponent,
+    AuthForgotPasswordComponent,
+    AuthResetPasswordComponent,
     // CRM
     DashboardComponent,
     LeadsComponent,

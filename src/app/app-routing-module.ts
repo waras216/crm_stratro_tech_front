@@ -4,6 +4,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { AuthLoginComponent }     from './components/auth/login/login.component';
 import { AuthRegistroComponent }  from './components/auth/registro/registro.component';
 import { AuthOnboardingComponent }from './components/auth/onboarding/onboarding.component';
+import { AuthForgotPasswordComponent } from './components/auth/forgot-password/forgot-password.component';
+import { AuthResetPasswordComponent }  from './components/auth/reset-password/reset-password.component';
 
 import { ShellLayoutComponent }   from './components/shell/shell-layout.component';
 
@@ -34,6 +36,8 @@ const routes: Routes = [
   { path: 'auth/login',       component: AuthLoginComponent },
   { path: 'auth/registro',    component: AuthRegistroComponent },
   { path: 'auth/onboarding',  component: AuthOnboardingComponent },
+  { path: 'auth/forgot-password', component: AuthForgotPasswordComponent },
+  { path: 'auth/reset-password',  component: AuthResetPasswordComponent },
   { path: 'pricing',          component: PricingComponent },
 
   // Shell: single persistent layout for all authenticated modules

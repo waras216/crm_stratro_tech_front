@@ -62,6 +62,22 @@ export class AuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
+  forgotPassword(email: string): Observable<boolean> {
+    return this.http.post(`${environment.apiUrl}/forgot-password`, { email }).pipe(
+      map(() => true),
+      catchError(() => of(false)),
+    );
+  }
+
+  resetPassword(email: string, token: string, password: string, passwordConfirmation: string): Observable<boolean> {
+    return this.http.post(`${environment.apiUrl}/reset-password`, {
+      email, token, password, password_confirmation: passwordConfirmation,
+    }).pipe(
+      map(() => true),
+      catchError(() => of(false)),
+    );
+  }
+
   login(email: string, password: string): Observable<boolean> {
     return this.http.post<{ user: any; token: string }>(`${environment.apiUrl}/login`, { email, password }).pipe(
       tap(res => {
