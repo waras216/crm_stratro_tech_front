@@ -2,48 +2,47 @@
   style="background:linear-gradient(135deg,#0f0a2e 0%,#1a1452 50%,#251b6e 100%)">
   <!-- Decorative -->
   <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-    <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-10" style="background:radial-gradient(circle,#818cf8,transparent 70%)"></div>
-    <div class="absolute -bottom-40 -left-40 w-96 h-96 rounded-full opacity-10" style="background:radial-gradient(circle,#a78bfa,transparent 70%)"></div>
+    <div class="blob absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-25" style="background:radial-gradient(circle,#818cf8,transparent 70%)"></div>
+    <div class="blob blob--delay absolute -bottom-40 -left-40 w-96 h-96 rounded-full opacity-25" style="background:radial-gradient(circle,#a78bfa,transparent 70%)"></div>
   </div>
 
   <div class="relative w-full max-w-md">
     <!-- Logo -->
     <div class="text-center mb-8">
-      <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-        style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 8px 32px rgba(99,102,241,.4)">
-        <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-        </svg>
+      <div class="logo-badge relative w-20 h-20 flex items-center justify-center mx-auto mb-4">
+        <div class="logo-glow absolute inset-0 -z-10" style="background:radial-gradient(circle,rgba(99,102,241,.55),transparent 70%);filter:blur(16px)"></div>
+        <img src="/images/logo-stratro.png" alt="Strato Tech Solutions" class="w-full h-full object-contain"
+          style="filter:drop-shadow(0 0 10px rgba(129,140,248,.8)) drop-shadow(0 0 22px rgba(99,102,241,.5))" />
       </div>
-      <h1 class="text-2xl font-extrabold text-white m-0">CRM Pro</h1>
-      <p class="text-sm mt-1 m-0" style="color:#a5b4fc">Inicia sesión en tu cuenta</p>
+      <h1 class="fade-up fade-up--d1 text-2xl font-extrabold text-white m-0">Strato Hub</h1>
+      <p class="fade-up fade-up--d2 text-sm mt-1 m-0" style="color:#a5b4fc">Inicia sesión en tu cuenta</p>
     </div>
 
     <!-- Card -->
-    <div class="bg-white/[.04] backdrop-blur-xl rounded-2xl p-8 border border-white/10">
+    <div class="fade-up fade-up--d3 bg-white/[.04] backdrop-blur-xl rounded-2xl p-8 border border-white/10">
       <div class="flex flex-col gap-5">
         <!-- Error -->
-        <div *ngIf="error" class="px-4 py-2.5 rounded-xl text-sm font-medium text-red-300 border border-red-500/30"
+        <div *ngIf="error" class="error-shake px-4 py-2.5 rounded-xl text-sm font-medium text-red-300 border border-red-500/30"
           style="background:rgba(239,68,68,.1)">{{ error }}</div>
 
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-medium" style="color:#c7d2fe">Email</label>
           <input type="email" [(ngModel)]="email" placeholder="tu@email.com"
-            class="w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+            class="input-field w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
             style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)" />
         </div>
 
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-medium" style="color:#c7d2fe">Contraseña</label>
           <input type="password" [(ngModel)]="password" placeholder="••••••••"
-            class="w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+            class="input-field w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
             style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)"
             (keyup.enter)="submit()" />
-          <a routerLink="/auth/forgot-password" class="text-xs self-end hover:underline cursor-pointer" style="color:#a5b4fc;text-decoration:none">¿Olvidaste tu contraseña?</a>
+          <a routerLink="/auth/forgot-password" class="link-underline text-xs self-end cursor-pointer" style="color:#a5b4fc">¿Olvidaste tu contraseña?</a>
         </div>
 
         <button (click)="submit()"
-          class="w-full py-3 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all hover:opacity-90"
+          class="btn-submit w-full py-3 rounded-xl border-0 cursor-pointer text-sm font-bold text-white"
           style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 20px rgba(99,102,241,.4)">
           Iniciar Sesión
         </button>
@@ -51,7 +50,7 @@
 
       <p class="text-center text-xs mt-6 m-0" style="color:#a5b4fc">
         ¿No tienes cuenta?
-        <a routerLink="/auth/registro" class="font-semibold text-white hover:underline cursor-pointer" style="text-decoration:none">Regístrate</a>
+        <a routerLink="/auth/registro" class="link-underline font-semibold text-white cursor-pointer">Regístrate</a>
       </p>
     </div>
   </div>

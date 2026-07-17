@@ -1,4 +1,7 @@
 <div class="flex flex-col gap-6 page-enter">
+  <!-- Export actions -->
+  <app-report-export-buttons (pdf)="exportarPdf()" (excel)="exportarExcel()"></app-report-export-buttons>
+
   <!-- Summary KPIs -->
   <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
     <div class="bg-white border border-slate-200 rounded-xl p-4">

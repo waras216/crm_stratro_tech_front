@@ -1,12 +1,12 @@
 // src/app/core/services/erp-service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Producto, Categoria, Proveedor, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
-  ErpOrdenProduccion, ErpEnvio, ErpProyecto, ErpInteraccion, ErpCrmResumen,
-  ErpDashboardResumen, ErpMovimientoStock
+  ErpOrdenProduccion, ErpEnvio, ErpProyecto, ErpProyectoTarea, ErpProyectoHora, ErpInteraccion, ErpCrmResumen,
+  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock
 } from '../../models/erp.models';
 
 const API = environment.apiUrl;
@@ -305,6 +305,40 @@ export class ErpService {
     );
   }
 
+  // Tareas (tablero kanban) de un proyecto
+  cargarTareasProyecto(idProyecto: number): Observable<ErpProyectoTarea[]> {
+    return this.http.get<ErpProyectoTarea[]>(`${API}/erp/proyectos/${idProyecto}/tareas`);
+  }
+
+  addTareaProyecto(idProyecto: number, tarea: Partial<ErpProyectoTarea>): Observable<ErpProyectoTarea> {
+    return this.http.post<ErpProyectoTarea>(`${API}/erp/proyectos/${idProyecto}/tareas`, tarea);
+  }
+
+  moverTareaProyecto(idProyecto: number, idTarea: number, estado: ErpProyectoTarea['estado']): Observable<ErpProyectoTarea> {
+    return this.http.put<ErpProyectoTarea>(`${API}/erp/proyectos/${idProyecto}/tareas/${idTarea}`, { estado });
+  }
+
+  actualizarTareaProyecto(idProyecto: number, idTarea: number, data: Partial<ErpProyectoTarea>): Observable<ErpProyectoTarea> {
+    return this.http.put<ErpProyectoTarea>(`${API}/erp/proyectos/${idProyecto}/tareas/${idTarea}`, data);
+  }
+
+  eliminarTareaProyecto(idProyecto: number, idTarea: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/proyectos/${idProyecto}/tareas/${idTarea}`);
+  }
+
+  // Registro de horas de un proyecto
+  cargarHorasProyecto(idProyecto: number): Observable<ErpProyectoHora[]> {
+    return this.http.get<ErpProyectoHora[]>(`${API}/erp/proyectos/${idProyecto}/horas`);
+  }
+
+  addHoraProyecto(idProyecto: number, registro: Partial<ErpProyectoHora>): Observable<ErpProyectoHora> {
+    return this.http.post<ErpProyectoHora>(`${API}/erp/proyectos/${idProyecto}/horas`, registro);
+  }
+
+  eliminarHoraProyecto(idProyecto: number, idHora: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/proyectos/${idProyecto}/horas/${idHora}`);
+  }
+
   // ════════════════════════════════════════════════════════════════════
   // CRM (resumen ERP)
   // ════════════════════════════════════════════════════════════════════
@@ -321,5 +355,15 @@ export class ErpService {
   // ════════════════════════════════════════════════════════════════════
   cargarDashboardResumen(): Observable<ErpDashboardResumen> {
     return this.http.get<ErpDashboardResumen>(`${API}/erp/dashboard/resumen`);
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // REPORTES
+  // ════════════════════════════════════════════════════════════════════
+  cargarReportesResumen(desde?: string, hasta?: string): Observable<ErpReportesResumen> {
+    let params = new HttpParams();
+    if (desde) params = params.set('desde', desde);
+    if (hasta) params = params.set('hasta', hasta);
+    return this.http.get<ErpReportesResumen>(`${API}/erp/reportes/resumen`, { params });
   }
 }

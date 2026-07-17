@@ -675,6 +675,11 @@
   padding: 14px 16px;
 }
 
+.user-menu-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .user-menu-avatar {
   width: 36px;
   height: 36px;
@@ -686,6 +691,60 @@
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.user-menu-avatar-edit {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
+
+  &:hover:not(:disabled) { transform: scale(1.12); background: #4f46e5; }
+  &:disabled { opacity: .6; cursor: default; }
+}
+
+@keyframes avatarSpin { to { transform: rotate(360deg); } }
+
+.user-menu-avatar-spinner {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &::after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.35);
+    border-top-color: #fff;
+    animation: avatarSpin .6s linear infinite;
+  }
+}
+
+.user-menu-remove-photo {
+  border: none;
+  background: none;
+  padding: 0;
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #ef4444;
+  cursor: pointer;
+  &:hover { text-decoration: underline; }
 }
 
 .user-menu-name  { font-size: 13px; font-weight: 700; margin: 0; }

@@ -149,6 +149,49 @@ export interface Plan {
   tenants_count?: number;
 }
 
+export interface EmpresaMiembro {
+  id_usuario: number;
+  nombre: string;
+  email: string;
+  es_owner: boolean;
+}
+
+export interface Empresa {
+  id_tenant: number;
+  empresa: string;
+  subdominio: string;
+  estado: string;
+  nicho: string | null;
+  moneda: string | null;
+  modulos: { crm: boolean; pos: boolean; erp: boolean };
+  id_plan: number;
+  plan: string | null;
+  usuarios: number;
+  onboardingCompleto: boolean;
+  creadoEn: string;
+  miembros?: EmpresaMiembro[];
+}
+
 export type ModuloCRM =
   | 'dashboard' | 'leads' | 'oportunidades' | 'clientes'
   | 'actividades' | 'marketing' | 'automatizar' | 'reportes' | 'integraciones' | 'configuracion';
+
+export interface Rol {
+  id_rol: number;
+  clave: string;
+  nombre: string;
+  descripcion: string | null;
+  es_sistema: boolean;
+  usuarios_count?: number;
+  usuarios_ids: number[];
+  permisos: string[];
+}
+
+export interface PermisoCatalogoItem {
+  id_permiso: number;
+  clave: string;
+  accion: string | null;
+  descripcion: string | null;
+}
+
+export type PermisoCatalogo = Record<string, PermisoCatalogoItem[]>;

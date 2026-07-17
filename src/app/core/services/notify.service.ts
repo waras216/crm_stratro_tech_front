@@ -7,6 +7,7 @@ export interface Toast {
   type: ToastType;
   title: string;
   message: string;
+  removing?: boolean;
 }
 
 export interface ConfirmOptions {
@@ -48,7 +49,10 @@ export class NotifyService {
   warning(message: string, title?: string): number { return this.push('warning', message, title, 5500); }
 
   dismiss(id: number) {
-    this.toasts.update(list => list.filter(t => t.id !== id));
+    this.toasts.update(list => list.map(t => t.id === id ? { ...t, removing: true } : t));
+    setTimeout(() => {
+      this.toasts.update(list => list.filter(t => t.id !== id));
+    }, 250);
   }
 
   /** Reemplazo de `window.confirm` con un diálogo propio; resuelve a true/false. */

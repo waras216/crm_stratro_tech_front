@@ -33,6 +33,9 @@ export interface UserSession {
   email: string;
   nombre: string;
   empresa?: string;
+  sector?: string;
+  idioma?: string;
+  zonaHoraria?: string;
   onboardingCompleto: boolean;
   nichoData?: NichoData;
   id_usuario?: number;
@@ -41,6 +44,8 @@ export interface UserSession {
   es_superadmin?: boolean;
   plan?: PlanInfo | null;
   membresias?: MembresiaInfo[];
+  foto_perfil?: string | null;
+  permisos?: string[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -60,6 +65,43 @@ export class AuthService {
 
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  /** ¿Tiene el usuario el permiso dado ("recurso.accion") en el tenant activo? */
+  tienePermiso(clave: string): boolean {
+    const permisos = this.session?.permisos;
+    return !!permisos && (permisos.includes('*') || permisos.includes(clave));
+  }
+
+  /**
+   * Construye un UserSession completo a partir de la respuesta del backend
+   * (forma de AuthController::serializeUser, usada por /login, /register,
+   * /user y mis-empresas/{id}/activar). Único lugar donde se mapean estos
+   * campos para no repetirlos en cada método.
+   */
+  private mapSesion(user: any, fallback?: { nombre?: string; email?: string }): UserSession {
+    return {
+      email:              user.email ?? fallback?.email ?? '',
+      nombre:             user.nombre ?? fallback?.nombre ?? '',
+      empresa:            user.empresa,
+      sector:             user.sector,
+      idioma:             user.idioma,
+      zonaHoraria:        user.zonaHoraria,
+      onboardingCompleto: !!user.onboardingCompleto,
+      nichoData:          user.nichoData,
+      id_usuario:         user.id_usuario,
+      id_tenant:          user.id_tenant,
+      es_admin:           !!user.es_admin,
+      es_superadmin:      !!user.es_superadmin,
+      plan:               user.plan,
+      membresias:         user.membresias,
+      foto_perfil:        user.foto_perfil ?? null,
+      permisos:           user.permisos ?? [],
+    };
+  }
+
+  private guardarSesion(session: UserSession) {
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
   }
 
   forgotPassword(email: string): Observable<boolean> {
@@ -82,20 +124,7 @@ export class AuthService {
     return this.http.post<{ user: any; token: string }>(`${environment.apiUrl}/login`, { email, password }).pipe(
       tap(res => {
         localStorage.setItem(this.TOKEN_KEY, res.token);
-        const session: UserSession = {
-          email:              res.user.email,
-          nombre:             res.user.nombre ?? email,
-          empresa:            res.user.empresa,
-          onboardingCompleto: !!res.user.onboardingCompleto,
-          nichoData:          res.user.nichoData,
-          id_usuario:         res.user.id_usuario,
-          id_tenant:          res.user.id_tenant,
-          es_admin:           !!res.user.es_admin,
-          es_superadmin:      !!res.user.es_superadmin,
-          plan:               res.user.plan,
-          membresias:         res.user.membresias,
-        };
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+        this.guardarSesion(this.mapSesion(res.user, { email }));
       }),
       map(() => true),
       catchError(() => of(false)),
@@ -106,20 +135,7 @@ export class AuthService {
     return this.http.post<{ user: any; token: string }>(`${environment.apiUrl}/register`, { nombre, email, password }).pipe(
       tap(res => {
         localStorage.setItem(this.TOKEN_KEY, res.token);
-        const session: UserSession = {
-          email:              res.user.email,
-          nombre:             res.user.nombre ?? nombre,
-          empresa:            res.user.empresa,
-          onboardingCompleto: !!res.user.onboardingCompleto,
-          nichoData:          res.user.nichoData,
-          id_usuario:         res.user.id_usuario,
-          id_tenant:          res.user.id_tenant,
-          es_admin:           !!res.user.es_admin,
-          es_superadmin:      !!res.user.es_superadmin,
-          plan:               res.user.plan,
-          membresias:         res.user.membresias,
-        };
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+        this.guardarSesion(this.mapSesion(res.user, { nombre, email }));
       }),
       map(() => true),
       catchError(() => of(false)),
@@ -139,7 +155,7 @@ export class AuthService {
         session.empresa = res.empresa;
         session.nichoData = res.nichoData;
         session.onboardingCompleto = res.onboardingCompleto;
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+        this.guardarSesion(session);
       }),
       map(() => true),
       catchError(() => of(false)),
@@ -149,19 +165,7 @@ export class AuthService {
   refreshSession(): Observable<boolean> {
     if (!this.getToken()) return of(false);
     return this.http.get<any>(`${environment.apiUrl}/user`).pipe(
-      tap(user => {
-        const session = this.session;
-        if (!session) return;
-        session.empresa = user.empresa;
-        session.onboardingCompleto = !!user.onboardingCompleto;
-        session.nichoData = user.nichoData;
-        session.es_admin = !!user.es_admin;
-        session.es_superadmin = !!user.es_superadmin;
-        session.plan = user.plan;
-        session.id_tenant = user.id_tenant;
-        session.membresias = user.membresias;
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
-      }),
+      tap(user => this.guardarSesion(this.mapSesion(user))),
       map(() => true),
       catchError(() => of(false)),
     );
@@ -169,19 +173,7 @@ export class AuthService {
 
   cambiarEmpresa(idTenant: number): Observable<boolean> {
     return this.http.post<any>(`${environment.apiUrl}/mis-empresas/${idTenant}/activar`, {}).pipe(
-      tap(user => {
-        const session = this.session;
-        if (!session) return;
-        session.empresa = user.empresa;
-        session.id_tenant = user.id_tenant;
-        session.onboardingCompleto = !!user.onboardingCompleto;
-        session.nichoData = user.nichoData;
-        session.es_admin = !!user.es_admin;
-        session.es_superadmin = !!user.es_superadmin;
-        session.plan = user.plan;
-        session.membresias = user.membresias;
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
-      }),
+      tap(user => this.guardarSesion(this.mapSesion(user))),
       map(() => true),
       catchError(() => of(false)),
     );
@@ -203,5 +195,59 @@ export class AuthService {
 
   getLogo(): string | null {
     return localStorage.getItem('crm_logo');
+  }
+
+  actualizarPerfil(data: { nombre: string; email: string }): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/perfil`, data).pipe(
+      tap(user => {
+        const session = this.session;
+        if (!session) return;
+        session.nombre = user.nombre;
+        session.email = user.email;
+        this.guardarSesion(session);
+      }),
+    );
+  }
+
+  actualizarTenant(data: { sector?: string; idioma?: string; zonaHoraria?: string; moneda?: string }): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/tenant`, data).pipe(
+      tap(res => {
+        const session = this.session;
+        if (!session) return;
+        session.sector = res.sector;
+        session.idioma = res.idioma;
+        session.zonaHoraria = res.zonaHoraria;
+        if (res.nichoData) session.nichoData = res.nichoData;
+        this.guardarSesion(session);
+      }),
+    );
+  }
+
+  subirFotoPerfil(file: File): Observable<boolean> {
+    const form = new FormData();
+    form.append('foto', file);
+    return this.http.post<any>(`${environment.apiUrl}/perfil/foto`, form).pipe(
+      tap(user => {
+        const session = this.session;
+        if (!session) return;
+        session.foto_perfil = user.foto_perfil ?? null;
+        this.guardarSesion(session);
+      }),
+      map(() => true),
+      catchError(() => of(false)),
+    );
+  }
+
+  eliminarFotoPerfil(): Observable<boolean> {
+    return this.http.delete<any>(`${environment.apiUrl}/perfil/foto`).pipe(
+      tap(user => {
+        const session = this.session;
+        if (!session) return;
+        session.foto_perfil = null;
+        this.guardarSesion(session);
+      }),
+      map(() => true),
+      catchError(() => of(false)),
+    );
   }
 }

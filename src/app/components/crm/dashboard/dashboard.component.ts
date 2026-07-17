@@ -60,7 +60,7 @@ export class DashboardComponent implements OnInit {
   refresh() {
     const cfg = this.nicho.config;
     const pending = this.actividades.filter(a => a.estado !== 'completada').length;
-    const pipeline = this.oportunidades.reduce((s,o) => s+(o.valor??0), 0);
+    const pipeline = this.oportunidades.reduce((s,o) => s+Number(o.valor??0), 0);
     const ganadas  = this.oportunidades.filter(o => o.etapa==='cierre').length;
     const tasa     = this.oportunidades.length ? Math.round(ganadas/this.oportunidades.length*100) : 0;
 
@@ -78,5 +78,5 @@ export class DashboardComponent implements OnInit {
   }
 
   etapaCount(e: string) { return this.oportunidades.filter(o=>o.etapa===e).length; }
-  etapaValue(e: string) { return this.oportunidades.filter(o=>o.etapa===e).reduce((s,o)=>s+(o.valor??0),0); }
+  etapaValue(e: string) { return this.oportunidades.filter(o=>o.etapa===e).reduce((s,o)=>s+Number(o.valor??0),0); }
 }

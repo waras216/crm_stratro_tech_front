@@ -12,6 +12,9 @@ import { ShellLayoutComponent } from './components/shell/shell-layout.component'
 
 // Shared
 import { AppSwitcherComponent } from './components/shared/app-switcher.component';
+import { ReportExportButtonsComponent } from './components/shared/report-export-buttons/report-export-buttons.component';
+import { PuedeDirective } from './core/directives/puede.directive';
+import { RolesComponent } from './components/admin/roles/roles.component';
 import { ToastContainerComponent } from './components/shared/toast/toast-container.component';
 import { ConfirmDialogComponent } from './components/shared/confirm-dialog/confirm-dialog.component';
 
@@ -45,6 +48,7 @@ import { PosTerminalRestauranteComponent }from './components/pos/terminal-restau
 // ERP
 import { ErpPageComponent }      from './components/erp/erp-page.component';
 import { ErpDashboardComponent } from './components/erp/dashboard/dashboard.component';
+import { ErpReportesComponent } from './components/erp/reportes/reportes.component';
 import { ErpInventarioComponent }from './components/erp/inventario/inventario.component';
 import { ErpComprasComponent }   from './components/erp/compras/compras.component';
 import { ErpFinanzasComponent }  from './components/erp/finanzas/finanzas.component';
@@ -62,6 +66,7 @@ import { NotFoundComponent }      from './components/shared/not-found/not-found.
 
 // Admin
 import { PlanesComponent } from './components/admin/planes/planes.component';
+import { EmpresasComponent } from './components/admin/empresas/empresas.component';
 
 // Interceptors
 import { AuthInterceptor }  from './core/interceptors/auth-interceptor-interceptor';
@@ -74,6 +79,8 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     ShellLayoutComponent,
     // Shared
     AppSwitcherComponent,
+    ReportExportButtonsComponent,
+    PuedeDirective,
     // Auth
     AuthLoginComponent,
     AuthRegistroComponent,
@@ -101,6 +108,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     // ERP
     ErpPageComponent,
     ErpDashboardComponent,
+    ErpReportesComponent,
     ErpInventarioComponent,
     ErpComprasComponent,
     ErpFinanzasComponent,
@@ -115,6 +123,8 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     PricingComponent,
     // Admin
     PlanesComponent,
+    EmpresasComponent,
+    RolesComponent,
   ],
   imports: [
     BrowserModule,

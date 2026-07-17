@@ -1,0 +1,176 @@
+<div class="flex flex-col gap-6 page-enter" *ngIf="resumen as r">
+  <!-- Export actions -->
+  <app-report-export-buttons (pdf)="exportarPdf()" (excel)="exportarExcel()"></app-report-export-buttons>
+
+  <!-- Filtro de fechas -->
+  <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" class="text-slate-400"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span class="text-xs font-semibold text-slate-500">Rango de fechas</span>
+    <input type="date" [(ngModel)]="desde" class="px-2.5 py-1.5 rounded-lg text-xs border border-slate-200 focus:outline-none" />
+    <span class="text-xs text-slate-400">a</span>
+    <input type="date" [(ngModel)]="hasta" class="px-2.5 py-1.5 rounded-lg text-xs border border-slate-200 focus:outline-none" />
+    <button (click)="aplicarFiltro()" class="text-xs font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer text-white" style="background:linear-gradient(135deg,#f59e0b,#d97706)">Aplicar</button>
+    <button *ngIf="desde || hasta" (click)="limpiarFiltro()" class="text-xs font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer bg-slate-100 text-slate-500">Limpiar</button>
+    <span class="text-[11px] text-slate-400 ml-auto">Inventario siempre muestra el stock actual, sin filtrar por fecha</span>
+  </div>
+
+  <!-- Summary KPIs -->
+  <div class="grid grid-cols-2 xl:grid-cols-6 gap-4">
+    <div class="bg-white border border-slate-200 rounded-xl p-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-amber-100 text-xl flex-shrink-0"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></div>
+        <div>
+          <p class="text-xl font-bold text-slate-800 m-0">${{ r.kpis.valorInventario.toLocaleString() }}</p>
+          <p class="text-xs text-slate-500 m-0">Valor Inventario</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-xl p-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-green-100 text-xl flex-shrink-0 font-bold text-green-700">$</div>
+        <div>
+          <p class="text-xl font-bold text-slate-800 m-0">${{ r.kpis.ingresosTotal.toLocaleString() }}</p>
+          <p class="text-xs text-slate-500 m-0">Ingresos</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-xl p-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-red-100 text-xl flex-shrink-0 font-bold text-red-600">$</div>
+        <div>
+          <p class="text-xl font-bold text-slate-800 m-0">${{ r.kpis.egresosTotal.toLocaleString() }}</p>
+          <p class="text-xs text-slate-500 m-0">Egresos</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-xl p-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 font-bold"
+          [ngClass]="r.kpis.balance >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'">=</div>
+        <div>
+          <p class="text-xl font-bold m-0" [ngClass]="r.kpis.balance >= 0 ? 'text-green-600' : 'text-red-600'">${{ r.kpis.balance.toLocaleString() }}</p>
+          <p class="text-xs text-slate-500 m-0">Balance</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-xl p-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-100 text-xl flex-shrink-0"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+        <div>
+          <p class="text-xl font-bold text-slate-800 m-0">${{ r.kpis.comprasPendientes.toLocaleString() }}</p>
+          <p class="text-xs text-slate-500 m-0">Compras Pendientes</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-xl p-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-purple-100 text-xl flex-shrink-0"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/></svg></div>
+        <div>
+          <p class="text-xl font-bold text-slate-800 m-0">${{ r.kpis.ventasPorCobrar.toLocaleString() }}</p>
+          <p class="text-xs text-slate-500 m-0">Ventas por Cobrar</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    <!-- Inventario por categoría -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4">
+      <h3 class="text-sm font-semibold text-slate-700 mb-4"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg> Inventario por Categoría</h3>
+      <div class="flex flex-col gap-3" *ngFor="let item of inventarioPorCategoria">
+        <div class="flex justify-between text-sm mb-1">
+          <span class="text-slate-600">{{ item.key }}</span>
+          <span class="font-medium">{{ item.val }}</span>
+        </div>
+        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-amber-500 rounded-full" [style.width]="barWidth(item.val, inventarioPorCategoria)"></div>
+        </div>
+      </div>
+      <p *ngIf="!inventarioPorCategoria.length" class="text-xs text-slate-400 m-0">Sin datos.</p>
+    </div>
+    <!-- Compras por estado -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4">
+      <h3 class="text-sm font-semibold text-slate-700 mb-4"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> Compras por Estado</h3>
+      <div class="flex flex-col gap-3" *ngFor="let item of comprasPorEstado">
+        <div class="flex justify-between text-sm mb-1">
+          <span class="text-slate-600 capitalize">{{ item.key }}</span>
+          <span class="font-medium">{{ item.val }}</span>
+        </div>
+        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-blue-500 rounded-full" [style.width]="barWidth(item.val, comprasPorEstado)"></div>
+        </div>
+      </div>
+      <p *ngIf="!comprasPorEstado.length" class="text-xs text-slate-400 m-0">Sin datos.</p>
+    </div>
+    <!-- Compras por proveedor -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4">
+      <h3 class="text-sm font-semibold text-slate-700 mb-4"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Compras por Proveedor</h3>
+      <div class="flex flex-col gap-3" *ngFor="let item of comprasPorProveedor">
+        <div class="flex justify-between text-sm mb-1">
+          <span class="text-slate-600">{{ item.key }}</span>
+          <span class="font-medium">${{ item.val.toLocaleString() }}</span>
+        </div>
+        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-purple-500 rounded-full" [style.width]="barWidth(item.val, comprasPorProveedor)"></div>
+        </div>
+      </div>
+      <p *ngIf="!comprasPorProveedor.length" class="text-xs text-slate-400 m-0">Sin datos.</p>
+    </div>
+    <!-- Ventas por estado -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4">
+      <h3 class="text-sm font-semibold text-slate-700 mb-4"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/></svg> Ventas por Estado</h3>
+      <div class="flex flex-col gap-3" *ngFor="let item of ventasPorEstado">
+        <div class="flex justify-between text-sm mb-1">
+          <span class="text-slate-600 capitalize">{{ item.key }}</span>
+          <span class="font-medium">{{ item.val }}</span>
+        </div>
+        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-teal-500 rounded-full" [style.width]="barWidth(item.val, ventasPorEstado)"></div>
+        </div>
+      </div>
+      <p *ngIf="!ventasPorEstado.length" class="text-xs text-slate-400 m-0">Sin datos.</p>
+    </div>
+    <!-- Movimientos por categoría -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4">
+      <h3 class="text-sm font-semibold text-slate-700 mb-4"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg> Movimientos por Categoría</h3>
+      <div class="flex flex-col gap-3" *ngFor="let item of movimientosPorCategoria">
+        <div class="flex justify-between text-sm mb-1">
+          <span class="text-slate-600">{{ item.key }}</span>
+          <span class="font-medium">${{ item.val.toLocaleString() }}</span>
+        </div>
+        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-red-400 rounded-full" [style.width]="barWidth(item.val, movimientosPorCategoria)"></div>
+        </div>
+      </div>
+      <p *ngIf="!movimientosPorCategoria.length" class="text-xs text-slate-400 m-0">Sin datos.</p>
+    </div>
+  </div>
+
+  <!-- Tendencia mensual -->
+  <div class="bg-white border border-slate-200 rounded-xl p-4">
+    <h3 class="text-sm font-semibold text-slate-700 mb-4"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Tendencia Mensual (Ingresos vs Egresos)</h3>
+    <div class="flex flex-col gap-4" *ngFor="let m of r.movimientosPorMes">
+      <div>
+        <p class="text-xs font-semibold text-slate-600 capitalize mb-2">{{ mesLabel(m.mes) }}</p>
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] text-slate-400 w-14 flex-shrink-0">Ingresos</span>
+            <div class="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full bg-green-500 rounded-full" [style.width]="mensualWidth(m.ingresos)"></div>
+            </div>
+            <span class="text-[11px] font-medium text-green-600 w-16 text-right flex-shrink-0">${{ m.ingresos.toLocaleString() }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] text-slate-400 w-14 flex-shrink-0">Egresos</span>
+            <div class="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full bg-red-400 rounded-full" [style.width]="mensualWidth(m.egresos)"></div>
+            </div>
+            <span class="text-[11px] font-medium text-red-500 w-16 text-right flex-shrink-0">${{ m.egresos.toLocaleString() }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p *ngIf="!r.movimientosPorMes.length" class="text-xs text-slate-400 m-0">Sin movimientos en el rango seleccionado.</p>
+  </div>
+</div>

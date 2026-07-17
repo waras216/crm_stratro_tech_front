@@ -1,49 +1,12 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
-import { ErpProyecto } from '../../../models/erp.models';
+import { ErpProyecto, ErpProyectoTarea, ErpProyectoHora } from '../../../models/erp.models';
 
 @Component({
   selector: 'app-erp-proyectos',
   standalone: false,
-  template: `
-    <div class="flex flex-col gap-5 page-enter">
-      <div class="flex items-center justify-between">
-        <div><h2 class="m-0 text-lg font-bold text-slate-800">Gestión de Proyectos</h2><p class="text-xs text-slate-500 m-0 mt-1">Planificación, recursos y presupuestos</p></div>
-        <button (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Proyecto</button>
-      </div>
-      <div class="grid grid-cols-3 gap-4">
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1"><p class="text-xs text-slate-500 m-0">Activos</p><p class="text-2xl font-bold text-orange-600 m-0">{{ activos }}</p></div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2"><p class="text-xs text-slate-500 m-0">Horas Registradas</p><p class="text-2xl font-bold text-blue-600 m-0">{{ horasTotales.toLocaleString() }}</p></div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3"><p class="text-xs text-slate-500 m-0">Presupuesto Total</p><p class="text-2xl font-bold text-emerald-600 m-0">\${{ presupuestoTotal.toLocaleString() }}</p></div>
-      </div>
-      <div class="flex flex-col gap-4">
-        <div *ngFor="let p of proyectos; let i = index" class="bg-white border border-slate-200 rounded-xl p-5 hover-lift card-enter" [style.animation-delay]="(i*0.06+0.2)+'s'">
-          <div class="flex items-center justify-between mb-3">
-            <div><p class="text-sm font-bold text-slate-800 m-0">{{ p.nombre }}</p><p class="text-[10px] text-slate-400 m-0 mt-0.5">{{ p.cliente }} · {{ p.responsable }}</p></div>
-            <span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="p.estado==='activo'?'badge-green':p.estado==='pausado'?'badge-amber':'badge-blue'">{{ p.estado }}</span>
-          </div>
-          <div class="flex items-center gap-4">
-            <div class="flex-1"><div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-orange-500 rounded-full" [style.width]="p.progreso+'%'"></div></div></div>
-            <span class="text-xs font-semibold text-slate-600">{{ p.progreso }}%</span>
-            <span class="text-[10px] text-slate-400">{{ p.horas }}h registradas</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
-    <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
-      <h3 class="m-0 mb-4 text-lg font-semibold">Nuevo Proyecto</h3>
-      <div class="flex flex-col gap-3">
-        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.nombre" placeholder="Nombre del proyecto" />
-        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.cliente" placeholder="Cliente" />
-        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.responsable" placeholder="Responsable" />
-        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.presupuesto" placeholder="Presupuesto $" />
-        <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
-        <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Crear Proyecto' }}</button>
-      </div>
-    </div>
-  `,
+  templateUrl: './proyectos.component.html',
+  styleUrls: ['./proyectos.component.scss'],
 })
 export class ErpProyectosComponent implements OnInit {
   dialogOpen = false;
@@ -51,6 +14,27 @@ export class ErpProyectosComponent implements OnInit {
   error = '';
   form = { nombre: '', cliente: '', responsable: '', presupuesto: '' };
   proyectos: ErpProyecto[] = [];
+
+  // Detalle expandido (kanban + horas) de un proyecto a la vez
+  expandidoId: number | null = null;
+  detalleTab: 'kanban' | 'horas' = 'kanban';
+  cargandoDetalle = false;
+  tareas: ErpProyectoTarea[] = [];
+  horas: ErpProyectoHora[] = [];
+  draggedTarea: ErpProyectoTarea | null = null;
+
+  estadosTarea: ErpProyectoTarea['estado'][] = ['pendiente', 'en_progreso', 'completada'];
+  estadoLabels: Record<string, string> = { pendiente: 'Pendiente', en_progreso: 'En Progreso', completada: 'Completada' };
+
+  tareaDialogOpen = false;
+  tareaForm = { titulo: '', descripcion: '', asignado: '', estado: 'pendiente' as ErpProyectoTarea['estado'] };
+  tareaError = '';
+  tareaSaving = false;
+
+  horaDialogOpen = false;
+  horaForm = { colaborador: '', fecha: '', horas: '', descripcion: '' };
+  horaError = '';
+  horaSaving = false;
 
   constructor(private erpService: ErpService, private cdr: ChangeDetectorRef) {}
 
@@ -60,7 +44,7 @@ export class ErpProyectosComponent implements OnInit {
   }
 
   get activos() { return this.proyectos.filter(p => p.estado === 'activo').length; }
-  get horasTotales() { return this.proyectos.reduce((s, p) => s + Number(p.horas), 0); }
+  get horasTotales() { return this.proyectos.reduce((s, p) => s + Number(p.horas_registradas ?? 0), 0); }
   get presupuestoTotal() { return this.proyectos.reduce((s, p) => s + Number(p.presupuesto || 0), 0); }
 
   openNew() { this.form = { nombre: '', cliente: '', responsable: '', presupuesto: '' }; this.error = ''; this.dialogOpen = true; }
@@ -79,6 +63,132 @@ export class ErpProyectosComponent implements OnInit {
     }).subscribe({
       next: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
       error: (err) => { this.saving = false; this.error = 'No se pudo guardar el proyecto. Intenta de nuevo.'; this.cdr.detectChanges(); console.error(err); },
+    });
+  }
+
+  // ── Detalle: kanban + horas ──────────────────────────────────────────
+  toggleDetalle(p: ErpProyecto) {
+    if (this.expandidoId === p.id) {
+      this.expandidoId = null;
+      return;
+    }
+    this.expandidoId = p.id;
+    this.detalleTab = 'kanban';
+    this.cargarDetalle(p.id);
+  }
+
+  private cargarDetalle(idProyecto: number) {
+    this.cargandoDetalle = true;
+    this.tareas = [];
+    this.horas = [];
+    this.erpService.cargarTareasProyecto(idProyecto).subscribe({
+      next: data => { this.tareas = data; this.cargandoDetalle = false; this.cdr.detectChanges(); },
+      error: () => { this.cargandoDetalle = false; this.cdr.detectChanges(); },
+    });
+    this.erpService.cargarHorasProyecto(idProyecto).subscribe({
+      next: data => { this.horas = data; this.cdr.detectChanges(); },
+    });
+  }
+
+  tareasByEstado(estado: string) { return this.tareas.filter(t => t.estado === estado); }
+  totalHoras() { return this.horas.reduce((s, h) => s + Number(h.horas), 0); }
+
+  // ── Kanban drag & drop ───────────────────────────────────────────────
+  onDragStart(t: ErpProyectoTarea) { this.draggedTarea = t; }
+  onDragOver(event: DragEvent) { event.preventDefault(); }
+
+  onDrop(event: DragEvent, estado: ErpProyectoTarea['estado']) {
+    event.preventDefault();
+    const t = this.draggedTarea;
+    this.draggedTarea = null;
+    if (!t || t.estado === estado || this.expandidoId === null) return;
+
+    const idProyecto = this.expandidoId;
+    const anterior = t.estado;
+    t.estado = estado;
+    this.cdr.detectChanges();
+
+    this.erpService.moverTareaProyecto(idProyecto, t.id, estado).subscribe({
+      error: () => { t.estado = anterior; this.cdr.detectChanges(); },
+    });
+  }
+
+  // ── Nueva tarea ──────────────────────────────────────────────────────
+  openNuevaTarea(estado: ErpProyectoTarea['estado']) {
+    this.tareaForm = { titulo: '', descripcion: '', asignado: '', estado };
+    this.tareaError = '';
+    this.tareaDialogOpen = true;
+  }
+
+  submitTarea() {
+    if (this.tareaSaving || this.expandidoId === null) return;
+    if (!this.tareaForm.titulo.trim()) { this.tareaError = 'El título es obligatorio.'; return; }
+
+    this.tareaSaving = true;
+    this.tareaError = '';
+    this.erpService.addTareaProyecto(this.expandidoId, this.tareaForm).subscribe({
+      next: nueva => {
+        this.tareas.push(nueva);
+        this.tareaSaving = false;
+        this.tareaDialogOpen = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.tareaSaving = false; this.tareaError = 'No se pudo guardar la tarea.'; this.cdr.detectChanges(); },
+    });
+  }
+
+  eliminarTarea(t: ErpProyectoTarea) {
+    if (this.expandidoId === null || !confirm(`¿Eliminar la tarea "${t.titulo}"?`)) return;
+    this.erpService.eliminarTareaProyecto(this.expandidoId, t.id).subscribe({
+      next: () => { this.tareas = this.tareas.filter(x => x.id !== t.id); this.cdr.detectChanges(); },
+    });
+  }
+
+  // ── Registro de horas ────────────────────────────────────────────────
+  openNuevaHora() {
+    this.horaForm = { colaborador: '', fecha: new Date().toISOString().slice(0, 10), horas: '', descripcion: '' };
+    this.horaError = '';
+    this.horaDialogOpen = true;
+  }
+
+  submitHora() {
+    if (this.horaSaving || this.expandidoId === null) return;
+    if (!this.horaForm.colaborador.trim() || !this.horaForm.fecha || !this.horaForm.horas) {
+      this.horaError = 'Colaborador, fecha y horas son obligatorios.';
+      return;
+    }
+
+    this.horaSaving = true;
+    this.horaError = '';
+    const idProyecto = this.expandidoId;
+    this.erpService.addHoraProyecto(idProyecto, {
+      colaborador: this.horaForm.colaborador,
+      fecha: this.horaForm.fecha,
+      horas: Number(this.horaForm.horas),
+      descripcion: this.horaForm.descripcion || undefined,
+    }).subscribe({
+      next: nuevo => {
+        this.horas.unshift(nuevo);
+        const p = this.proyectos.find(x => x.id === idProyecto);
+        if (p) p.horas_registradas = (p.horas_registradas ?? 0) + nuevo.horas;
+        this.horaSaving = false;
+        this.horaDialogOpen = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.horaSaving = false; this.horaError = 'No se pudo guardar el registro.'; this.cdr.detectChanges(); },
+    });
+  }
+
+  eliminarHora(h: ErpProyectoHora) {
+    if (this.expandidoId === null || !confirm('¿Eliminar este registro de horas?')) return;
+    const idProyecto = this.expandidoId;
+    this.erpService.eliminarHoraProyecto(idProyecto, h.id).subscribe({
+      next: () => {
+        this.horas = this.horas.filter(x => x.id !== h.id);
+        const p = this.proyectos.find(x => x.id === idProyecto);
+        if (p) p.horas_registradas = Math.max(0, (p.horas_registradas ?? 0) - h.horas);
+        this.cdr.detectChanges();
+      },
     });
   }
 }

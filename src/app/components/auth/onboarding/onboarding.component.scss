@@ -1,5 +1,79 @@
 :host { display: block; }
 
+@keyframes float-blob {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(110px, -130px) scale(1.25); }
+  50%  { transform: translate(-70px, -50px) scale(0.85); }
+  75%  { transform: translate(-120px, 100px) scale(1.15); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+.blob {
+  animation: float-blob 10s linear infinite;
+  &--delay { animation-delay: -5s; }
+}
+
+.btn-cta {
+  position: relative;
+  overflow: hidden;
+  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+  &:hover:not(:disabled) { transform: translateY(-1px) scale(1.01); }
+  &:active:not(:disabled) { transform: translateY(0) scale(.98); }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -60%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,.35), transparent);
+    transform: skewX(-20deg);
+    transition: left .55s ease;
+  }
+  &:hover:not(:disabled)::after { left: 130%; }
+}
+
+.input-field {
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  &:hover { border-color: rgba(129,140,248,.4) !important; }
+  &:focus { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,.25); }
+}
+
+@keyframes check-pop {
+  0% { opacity: 0; transform: scale(0); }
+  60% { opacity: 1; transform: scale(1.25); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes select-glow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.15); }
+}
+
+.nicho-card {
+  transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease, background .2s ease, border-color .2s ease;
+
+  &:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(99,102,241,.25);
+  }
+  &:active { transform: translateY(-1px) scale(.99); }
+
+  &--selected {
+    animation: select-glow 2.4s ease-in-out infinite;
+  }
+}
+
+.nicho-icon {
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  .nicho-card:hover & { transform: scale(1.12) rotate(-6deg); }
+}
+
+.nicho-check {
+  animation: check-pop .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+
 .fade-up {
   animation: fadeUp .4s cubic-bezier(.22,1,.36,1) both;
 }
@@ -11,6 +85,8 @@
 
 .icon-pop {
   animation: iconPop .5s cubic-bezier(.22,1,.36,1) .15s both;
+  transition: transform .25s ease;
+  &:hover { transform: scale(1.08) rotate(-3deg); }
 }
 
 @keyframes iconPop {

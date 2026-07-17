@@ -15,7 +15,7 @@
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         Pipelines
       </button>
-      <button class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 border-0 cursor-pointer shadow-btn"
+      <button *appPuede="'oportunidades.crear'" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 border-0 cursor-pointer shadow-btn"
         (click)="openNew()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Nueva
@@ -53,16 +53,16 @@
             <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium">{{ op.pipeline?.nombre }}</span>
           </div>
           <div class="flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
-            <button class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" (click)="handleMove(op.id_oportunidad, 'prev')" title="Mover atrás">
+            <button *appPuede="'oportunidades.editar'" class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" (click)="handleMove(op.id_oportunidad, 'prev')" title="Mover atrás">
               <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <button class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" (click)="handleEdit(op)" title="Editar">
+            <button *appPuede="'oportunidades.editar'" class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" (click)="handleEdit(op)" title="Editar">
               <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
-            <button class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" (click)="deleteOp(op.id_oportunidad)" title="Eliminar">
+            <button *appPuede="'oportunidades.eliminar'" class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" (click)="deleteOp(op.id_oportunidad)" title="Eliminar">
               <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
             </button>
-            <button class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" (click)="handleMove(op.id_oportunidad, 'next')" title="Mover adelante">
+            <button *appPuede="'oportunidades.editar'" class="bg-transparent border-0 cursor-pointer p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" (click)="handleMove(op.id_oportunidad, 'next')" title="Mover adelante">
               <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
             </button>
           </div>
@@ -95,10 +95,10 @@
             </td>
             <td class="px-4 py-3 font-medium text-indigo-600">${{ (op.valor ?? 0).toLocaleString() }}</td>
             <td class="px-4 py-3 text-right">
-              <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" (click)="handleEdit(op)">
+              <button *appPuede="'oportunidades.editar'" class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" (click)="handleEdit(op)">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
-              <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50" (click)="deleteOp(op.id_oportunidad)">
+              <button *appPuede="'oportunidades.eliminar'" class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50" (click)="deleteOp(op.id_oportunidad)">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
               </button>
             </td>
@@ -182,18 +182,18 @@
         </span>
       </div>
       <div class="flex items-center gap-1">
-        <button class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-slate-50 text-slate-500 hover:bg-slate-100"
+        <button *appPuede="'pipelines.editar'" class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-slate-50 text-slate-500 hover:bg-slate-100"
           title="Activar/Desactivar" (click)="togglePipelineActivo(p)">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         </button>
-        <button class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+        <button *appPuede="'pipelines.editar'" class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
           title="Editar" (click)="handleEditPipeline(p)">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
           </svg>
         </button>
-        <button class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-rose-50 text-rose-600 hover:bg-rose-100"
+        <button *appPuede="'pipelines.eliminar'" class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-rose-50 text-rose-600 hover:bg-rose-100"
           title="Eliminar" (click)="deletePipeline(p)">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -221,11 +221,13 @@
       </div>
     </div>
 
-    <button *ngIf="!pipelineFormOpen" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 cursor-pointer"
-      (click)="openNewPipeline()">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Nuevo Pipeline
-    </button>
+    <ng-container *ngIf="!pipelineFormOpen">
+      <button *appPuede="'pipelines.crear'" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 cursor-pointer"
+        (click)="openNewPipeline()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo Pipeline
+      </button>
+    </ng-container>
   </div>
 </div>
 

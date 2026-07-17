@@ -19,7 +19,7 @@
         <option *ngFor="let e of estatusOptionsFiltro" [value]="e">{{ e }}</option>
       </select>
     </div>
-    <button (click)="openNew()"
+    <button *appPuede="'leads.crear'" (click)="openNew()"
       class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
       style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.4)">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -81,15 +81,17 @@
             <td class="px-5 py-3.5 text-[11px] text-slate-400 font-medium">{{ lead.created_at | date:'dd/MM/yyyy' }}</td>
             <td class="px-5 py-3.5">
               <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button *ngIf="lead.estado !== 'convertido'" (click)="openConvert(lead)" title="Convertir a Oportunidad"
-                  class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110"
-                  style="background:#ecfdf5;color:#059669">
-                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                    <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                    <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-                  </svg>
-                </button>
-                <button (click)="handleEdit(lead)"
+                <ng-container *ngIf="lead.estado !== 'convertido'">
+                  <button *appPuede="'leads.editar'" (click)="openConvert(lead)" title="Convertir a Oportunidad"
+                    class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110"
+                    style="background:#ecfdf5;color:#059669">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                      <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                      <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                    </svg>
+                  </button>
+                </ng-container>
+                <button *appPuede="'leads.editar'" (click)="handleEdit(lead)"
                   class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110"
                   style="background:#eef2ff;color:#6366f1">
                   <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -97,7 +99,7 @@
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
                 </button>
-                <button (click)="deleteLead(lead.id_lead)"
+                <button *appPuede="'leads.eliminar'" (click)="deleteLead(lead.id_lead)"
                   class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110"
                   style="background:#fff1f2;color:#e11d48">
                   <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">

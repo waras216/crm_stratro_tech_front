@@ -7,6 +7,7 @@ import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
 import { ModuleService, SidebarNavItem, ErpTab, PosTab } from '../../core/services/module.service';
 import { CrmService } from '../../core/services/crm-service';
+import { NotifyService } from '../../core/services/notify.service';
 
 @Component({
   selector: 'app-shell-layout',
@@ -19,7 +20,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   mobileOpen = false;
   userName = '';
   userEmail = '';
-  logo: string | null = null;
+  subiendoFoto = false;
   currentUrl = '';
   activeErpTab: ErpTab = 'dashboard';
   activePosTab: PosTab = 'terminal';
@@ -42,7 +43,13 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   get darkMode() { return this.theme.isDark; }
   get activeModule() { return this.module.activeModule(); }
   get sidebarSections() { return this.module.getSidebar(this.activeModule.id); }
-  get isConfigRoute() { return this.currentUrl.startsWith('/configuracion'); }
+  get isConfigRoute() {
+    return this.currentUrl.startsWith('/configuracion')
+      || this.currentUrl.startsWith('/admin/empresas')
+      || this.currentUrl.startsWith('/admin/planes')
+      || this.currentUrl.startsWith('/admin/roles');
+  }
+  get logo(): string | null { return this.auth.session?.foto_perfil ?? null; }
 
   constructor(
     public module: ModuleService,
@@ -52,6 +59,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer,
     private crm: CrmService,
     private cdr: ChangeDetectorRef,
+    private notify: NotifyService,
   ) {}
 
   get companyName(): string {
@@ -62,7 +70,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
     const s = this.auth.session;
     this.userName = (s as any)?.nombre ?? 'Usuario';
     this.userEmail = (s as any)?.email ?? '';
-    this.logo = this.auth.getLogo();
+    this.collapsed = localStorage.getItem('sidebarCompacto') === 'true';
 
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
@@ -177,6 +185,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
       dashboard: 'Dashboard', finanzas: 'Finanzas', compras: 'Compras',
       ventas: 'Ventas', inventario: 'Inventario', fabricacion: 'Fabricación',
       scm: 'Supply Chain', rrhh: 'Recursos Humanos', crm: 'CRM', proyectos: 'Proyectos',
+      reportes: 'Reportes',
     };
     return m[tab] ?? tab;
   }
@@ -194,6 +203,46 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   }
   toggleUserMenu()  { this.showUserMenu = !this.showUserMenu; this.showSearch = false; this.showNotifPanel = false; }
   closeAll()        { this.showSearch = false; this.showNotifPanel = false; this.showUserMenu = false; }
+
+  onFotoSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.notify.error('Selecciona un archivo de imagen válido.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      this.notify.error('La imagen no puede pesar más de 2MB.');
+      return;
+    }
+
+    this.subiendoFoto = true;
+    this.auth.subirFotoPerfil(file).subscribe(ok => {
+      this.subiendoFoto = false;
+      if (ok) {
+        this.showUserMenu = false;
+        this.notify.success('Tu foto de perfil se actualizó.');
+      } else {
+        this.notify.error('No pudimos subir tu foto. Intenta de nuevo.');
+      }
+    });
+  }
+
+  async eliminarFotoPerfil() {
+    const ok = await this.notify.confirm('¿Quitar tu foto de perfil?', { confirmText: 'Quitar' });
+    if (!ok) return;
+    this.auth.eliminarFotoPerfil().subscribe(success => {
+      if (success) {
+        this.showUserMenu = false;
+        this.notify.success('Foto de perfil eliminada.');
+      } else {
+        this.notify.error('No pudimos quitar tu foto. Intenta de nuevo.');
+      }
+    });
+  }
   markAllRead() {
     this.notifications.forEach(n => n.unread = false);
     this.crm.marcarTodasNotificacionesLeidas().subscribe();
@@ -208,6 +257,8 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
 
   goToConfig()      { this.router.navigate(['/configuracion']); this.closeAll(); }
   goToPlanes()      { this.router.navigate(['/admin/planes']); this.closeAll(); }
+  goToEmpresas()    { this.router.navigate(['/admin/empresas']); this.closeAll(); }
+  goToRoles()       { this.router.navigate(['/admin/roles']); this.closeAll(); }
 
   cambiarEmpresa(idTenant: number) {
     if (idTenant === this.auth.session?.id_tenant) { this.closeAll(); return; }

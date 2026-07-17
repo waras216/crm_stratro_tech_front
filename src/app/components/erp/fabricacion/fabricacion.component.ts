@@ -12,7 +12,7 @@ import { ErpOrdenProduccion } from '../../../models/erp.models';
           <h2 class="m-0 text-lg font-bold text-slate-800">Fabricación</h2>
           <p class="text-xs text-slate-500 m-0 mt-1">Órdenes de producción, BOM y calidad</p>
         </div>
-        <button (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Orden de Producción</button>
+        <button *appPuede="'erp_fabricacion.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Orden de Producción</button>
       </div>
       <div class="grid grid-cols-3 gap-4">
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1">

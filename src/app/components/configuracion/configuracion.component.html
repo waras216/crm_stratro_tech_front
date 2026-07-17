@@ -102,6 +102,7 @@
             </select>
           </div>
         </div>
+        <p *ngIf="errorGeneral" class="text-xs text-red-600 m-0">{{ errorGeneral }}</p>
       </div>
 
       <!-- Cuenta -->
@@ -133,6 +134,7 @@
           <label class="text-[11px] font-semibold" style="color:#6366f1">Email</label>
           <input [(ngModel)]="email" type="email" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
         </div>
+        <p *ngIf="errorCuenta" class="text-xs text-red-600 m-0">{{ errorCuenta }}</p>
         <div class="pt-3" style="border-top:1px solid #eef2ff">
           <button (click)="logout()"
             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-all hover:scale-105"

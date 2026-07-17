@@ -2,8 +2,8 @@
   style="background:linear-gradient(135deg,#0f0a2e 0%,#1a1452 50%,#251b6e 100%)">
 
   <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-    <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-10" style="background:radial-gradient(circle,#818cf8,transparent 70%)"></div>
-    <div class="absolute -bottom-32 -left-32 w-80 h-80 rounded-full opacity-8" style="background:radial-gradient(circle,#6366f1,transparent 70%)"></div>
+    <div class="blob absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-25" style="background:radial-gradient(circle,#818cf8,transparent 70%)"></div>
+    <div class="blob blob--delay absolute -bottom-32 -left-32 w-80 h-80 rounded-full opacity-20" style="background:radial-gradient(circle,#6366f1,transparent 70%)"></div>
   </div>
 
   <div class="relative w-full" [class]="step===0 ? 'max-w-2xl' : 'max-w-lg'">
@@ -30,10 +30,12 @@
       </div>
 
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <ng-container *ngFor="let n of nichos">
-          <button (click)="selectNicho(n)" class="relative flex flex-col gap-3 p-5 rounded-2xl border text-left cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+        <ng-container *ngFor="let n of nichos; let i = index">
+          <button (click)="selectNicho(n)" class="nicho-card scale-in relative flex flex-col gap-3 p-5 rounded-2xl border text-left cursor-pointer"
+            [class.nicho-card--selected]="nichoIsSelected(n)"
+            [style.animation-delay]="(i * 60) + 'ms'"
             [style]="nichoIsSelected(n) ? 'background:'+n.colorBg+';border-color:'+n.color+';box-shadow:0 0 28px '+n.colorBg : 'background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)'">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+            <div class="nicho-icon w-10 h-10 rounded-xl flex items-center justify-center transition-all"
               [style]="nichoIsSelected(n) ? 'background:'+n.colorAccent : 'background:rgba(255,255,255,.06)'">
 
               <!-- Hotel icon -->
@@ -74,7 +76,7 @@
               <p class="text-xs mt-0.5 m-0" style="color:#a5b4fc">{{ n.descripcion }}</p>
             </div>
 
-            <div *ngIf="nichoIsSelected(n)" class="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
+            <div *ngIf="nichoIsSelected(n)" class="nicho-check absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
               [style]="'background:'+n.color">
               <svg width="10" height="10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
@@ -90,7 +92,7 @@
 
       <div class="mt-6 flex justify-end">
         <button (click)="next()" [disabled]="!nichoSeleccionado"
-          class="px-8 py-3 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+          class="btn-cta px-8 py-3 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
           [style]="'background:linear-gradient(135deg,'+nichoColor+','+nichoColor+'bb);box-shadow:0 4px 20px '+nichoBg">
           Continuar →
         </button>
@@ -135,7 +137,7 @@
           <label class="text-xs font-medium" style="color:#c7d2fe">Nombre *</label>
           <input type="text" [(ngModel)]="empresa"
             [placeholder]="nichoSeleccionado?.id==='hotel' ? 'Hotel Las Palmas' : nichoSeleccionado?.id==='restaurante' ? 'Restaurante El Rincón' : nichoSeleccionado?.id==='almacen' ? 'Bodega Central SA' : nichoSeleccionado?.id==='farmacia' ? 'Farmacia San Juan' : 'Mi Startup'"
-            class="w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:ring-2"
+            class="input-field w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:ring-2"
             style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)" />
         </div>
 
@@ -484,7 +486,7 @@
           ← Atrás
         </button>
         <button (click)="next()" [disabled]="!canNext() || guardando"
-          class="px-6 py-2.5 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-40"
+          class="btn-cta px-6 py-2.5 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-40"
           [style]="'background:linear-gradient(135deg,'+nichoColor+','+nichoColor+'bb);box-shadow:0 4px 20px '+nichoBg">
           {{ step === 4 ? (guardando ? 'Guardando…' : 'Comenzar') : 'Siguiente →' }}
         </button>
@@ -510,7 +512,7 @@
       {{ nichoSeleccionado?.nombre }}
     </div>
     <button (click)="goToDashboard()"
-      class="w-full py-3.5 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all hover:opacity-90"
+      class="btn-cta w-full py-3.5 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all hover:opacity-90"
       [style]="'background:linear-gradient(135deg,'+nichoColor+','+nichoColor+'bb);box-shadow:0 4px 20px '+nichoBg">
       Ir al Dashboard →
     </button>

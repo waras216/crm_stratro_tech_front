@@ -1,0 +1,104 @@
+import { Component, OnInit } from '@angular/core';
+import { Location } from '@angular/common';
+import { EmpresaService } from '../../../core/services/empresa.service';
+import { PlanService } from '../../../core/services/plan.service';
+import { Empresa, Plan } from '../../../models/crm.models';
+
+@Component({
+  selector: 'app-empresas',
+  standalone: false,
+  templateUrl: './empresas.component.html',
+  styleUrls: ['./empresas.component.scss'],
+})
+export class EmpresasComponent implements OnInit {
+  empresas: Empresa[] = [];
+  planes: Plan[] = [];
+  cargando = false;
+  error = '';
+
+  expandidoId: number | null = null;
+  detalle: Empresa | null = null;
+  cargandoDetalle = false;
+  guardandoId: number | null = null;
+
+  constructor(
+    private empresaService: EmpresaService,
+    private planService: PlanService,
+    private location: Location,
+  ) {}
+
+  ngOnInit() {
+    this.cargarEmpresas();
+    this.planService.cargarPlanes().subscribe({ next: planes => this.planes = planes });
+  }
+
+  goBack() { this.location.back(); }
+
+  cargarEmpresas() {
+    this.cargando = true;
+    this.error = '';
+    this.empresaService.cargarEmpresas().subscribe({
+      next: empresas => { this.empresas = empresas; this.cargando = false; },
+      error: err => { this.error = err?.error?.message || 'No se pudieron cargar las empresas'; this.cargando = false; },
+    });
+  }
+
+  toggleDetalle(empresa: Empresa) {
+    if (this.expandidoId === empresa.id_tenant) {
+      this.expandidoId = null;
+      this.detalle = null;
+      return;
+    }
+    this.expandidoId = empresa.id_tenant;
+    this.detalle = null;
+    this.cargandoDetalle = true;
+    this.empresaService.verEmpresa(empresa.id_tenant).subscribe({
+      next: detalle => { this.detalle = detalle; this.cargandoDetalle = false; },
+      error: err => { this.error = err?.error?.message || 'No se pudo cargar el detalle'; this.cargandoDetalle = false; },
+    });
+  }
+
+  toggleSuspension(empresa: Empresa) {
+    const nuevoEstado = empresa.estado === 'activo' ? 'suspendido' : 'activo';
+    const accion = nuevoEstado === 'suspendido' ? 'suspender' : 'reactivar';
+    if (!confirm(`¿Seguro que quieres ${accion} "${empresa.empresa}"?`)) return;
+
+    this.error = '';
+    this.guardandoId = empresa.id_tenant;
+    this.empresaService.actualizarEmpresa(empresa.id_tenant, { estado: nuevoEstado }).subscribe({
+      next: actualizada => {
+        empresa.estado = actualizada.estado;
+        this.guardandoId = null;
+      },
+      error: err => { this.error = err?.error?.message || 'No se pudo actualizar el estado'; this.guardandoId = null; },
+    });
+  }
+
+  cambiarPlan(empresa: Empresa, idPlanStr: string) {
+    const idPlan = Number(idPlanStr);
+    if (!idPlan || idPlan === empresa.id_plan) return;
+
+    this.error = '';
+    this.guardandoId = empresa.id_tenant;
+    this.empresaService.actualizarEmpresa(empresa.id_tenant, { id_plan: idPlan }).subscribe({
+      next: actualizada => {
+        empresa.id_plan = actualizada.id_plan;
+        empresa.plan = actualizada.plan;
+        this.guardandoId = null;
+      },
+      error: err => { this.error = err?.error?.message || 'No se pudo cambiar el plan'; this.guardandoId = null; },
+    });
+  }
+
+  eliminar(empresa: Empresa) {
+    if (!confirm(`¿Eliminar la empresa "${empresa.empresa}"? Esta acción se puede revertir solo desde la base de datos.`)) return;
+
+    this.error = '';
+    this.empresaService.eliminarEmpresa(empresa.id_tenant).subscribe({
+      next: () => {
+        if (this.expandidoId === empresa.id_tenant) { this.expandidoId = null; this.detalle = null; }
+      },
+      error: err => { this.error = err?.error?.message || 'No se pudo eliminar la empresa'; },
+    });
+  }
+}

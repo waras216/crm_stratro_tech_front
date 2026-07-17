@@ -37,10 +37,11 @@ export class CrmService {
   leads$ = this._leads.asObservable();
   get leads() { return this._leads.getValue(); }
 
-  cargarLeads(page = 1, search = '', estado = ''): Observable<ApiPage<Lead>> {
+  cargarLeads(page = 1, search = '', estado = '', perPage?: number): Observable<ApiPage<Lead>> {
     let params = new HttpParams().set('page', page);
     if (search) params = params.set('search', search);
     if (estado && estado !== 'todos') params = params.set('estado', estado);
+    if (perPage) params = params.set('per_page', perPage);
     return this.http.get<any>(`${API}/leads`, { params }).pipe(
       map(res => toPage<Lead>(res)),
       tap(page => this._leads.next(page.data))
@@ -83,10 +84,11 @@ export class CrmService {
   clientes$ = this._clientes.asObservable();
   get clientes() { return this._clientes.getValue(); }
 
-  cargarClientes(page = 1, search = '', tipo = ''): Observable<ApiPage<Cliente>> {
+  cargarClientes(page = 1, search = '', tipo = '', perPage?: number): Observable<ApiPage<Cliente>> {
     let params = new HttpParams().set('page', page);
     if (search) params = params.set('search', search);
     if (tipo && tipo !== 'todos') params = params.set('tipo', tipo);
+    if (perPage) params = params.set('per_page', perPage);
     return this.http.get<any>(`${API}/clientes`, { params }).pipe(
       map(res => toPage<Cliente>(res)),
       tap(page => this._clientes.next(page.data))

@@ -27,7 +27,10 @@ import { NotFoundComponent }      from './components/shared/not-found/not-found.
 import { AuthGuard }              from './core/auth/auth.guard';
 
 import { PlanesComponent }        from './components/admin/planes/planes.component';
+import { EmpresasComponent }      from './components/admin/empresas/empresas.component';
+import { RolesComponent }         from './components/admin/roles/roles.component';
 import { SuperAdminGuard }        from './core/auth/superadmin.guard';
+import { AdminTenantGuard }       from './core/auth/admin-tenant.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: 'crm/dashboard', pathMatch: 'full' },
@@ -65,6 +68,8 @@ const routes: Routes = [
       { path: 'pos', component: PosPageComponent },
       { path: 'configuracion', component: ConfiguracionComponent },
       { path: 'admin/planes', component: PlanesComponent, canActivate: [SuperAdminGuard] },
+      { path: 'admin/empresas', component: EmpresasComponent, canActivate: [SuperAdminGuard] },
+      { path: 'admin/roles', component: RolesComponent, canActivate: [AdminTenantGuard] },
     ],
   },
 

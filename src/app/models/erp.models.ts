@@ -134,7 +134,29 @@ export interface ErpProyecto {
   estado: 'activo' | 'pausado' | 'completado';
   progreso: number;
   horas: number;
+  horas_registradas?: number;
   presupuesto?: number | null;
+}
+
+export interface ErpProyectoTarea {
+  id: number;
+  id_tenant?: number;
+  id_proyecto: number;
+  titulo: string;
+  descripcion?: string | null;
+  estado: 'pendiente' | 'en_progreso' | 'completada';
+  asignado?: string | null;
+  orden: number;
+}
+
+export interface ErpProyectoHora {
+  id: number;
+  id_tenant?: number;
+  id_proyecto: number;
+  colaborador: string;
+  fecha: string;
+  horas: number;
+  descripcion?: string | null;
 }
 
 export interface ErpInteraccion {
@@ -178,4 +200,21 @@ export interface ErpDashboardResumen {
   kpis: ErpDashboardKpi[];
   modulos: ErpDashboardModulo[];
   actividad: ErpDashboardActividad[];
+}
+
+export interface ErpReportesResumen {
+  kpis: {
+    valorInventario: number;
+    ingresosTotal: number;
+    egresosTotal: number;
+    balance: number;
+    comprasPendientes: number;
+    ventasPorCobrar: number;
+  };
+  inventarioPorCategoria: Record<string, number>;
+  comprasPorEstado: Record<string, number>;
+  comprasPorProveedor: Record<string, number>;
+  ventasPorEstado: Record<string, number>;
+  movimientosPorCategoria: Record<string, number>;
+  movimientosPorMes: { mes: string; ingresos: number; egresos: number }[];
 }

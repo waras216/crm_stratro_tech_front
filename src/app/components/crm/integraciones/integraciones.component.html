@@ -29,7 +29,7 @@
 
       <div class="flex items-center justify-between border-t border-slate-100 pt-3">
         <label class="flex items-center gap-2 cursor-pointer">
-          <div class="relative w-10 h-5 rounded-full transition-colors cursor-pointer"
+          <div *appPuede="'integraciones.editar'" class="relative w-10 h-5 rounded-full transition-colors cursor-pointer"
             [class.bg-blue-500]="integ.estado === 'conectada'" [class.bg-slate-200]="integ.estado !== 'conectada'"
             (click)="toggle(integ.id)">
             <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
@@ -37,7 +37,7 @@
           </div>
           <span class="text-xs text-slate-500">{{ integ.estado === 'conectada' ? 'Activada' : 'Desactivada' }}</span>
         </label>
-        <button class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border-0 cursor-pointer"
+        <button *appPuede="'integraciones.editar'" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border-0 cursor-pointer"
           [class.bg-red-100]="integ.estado === 'conectada'" [class.text-red-700]="integ.estado === 'conectada'"
           [class.hover:bg-red-200]="integ.estado === 'conectada'"
           [class.bg-blue-600]="integ.estado !== 'conectada'" [class.text-white]="integ.estado !== 'conectada'"
@@ -81,7 +81,7 @@
       <span class="text-slate-400 capitalize">{{ entry.k }}</span>
       <span class="font-medium">{{ entry.v }}</span>
     </div>
-    <button class="w-full mt-4 px-4 py-2.5 rounded-lg text-sm font-medium border-0 cursor-pointer"
+    <button *appPuede="'integraciones.editar'" class="w-full mt-4 px-4 py-2.5 rounded-lg text-sm font-medium border-0 cursor-pointer"
       [class.bg-red-100]="selected.estado === 'conectada'" [class.text-red-700]="selected.estado === 'conectada'"
       [class.bg-blue-600]="selected.estado !== 'conectada'" [class.text-white]="selected.estado !== 'conectada'"
       (click)="toggle(selected.id); closeConfig()">

@@ -69,6 +69,8 @@ export class ConfiguracionComponent implements OnInit {
   ];
 
   saved = false;
+  errorCuenta = '';
+  errorGeneral = '';
   logoPreview: string | null = null;
 
   // Equipo
@@ -98,6 +100,10 @@ export class ConfiguracionComponent implements OnInit {
       this.nombre = session.nombre;
       this.email = session.email;
       this.nombreEmpresa = session.empresa || '';
+      this.sector = session.sector || '';
+      this.idioma = session.idioma || 'es';
+      this.zonaHoraria = session.zonaHoraria || 'America/Mexico_City';
+      this.moneda = session.nichoData?.moneda || 'MXN';
     }
     this.tema = (localStorage.getItem('tema') as any) || (this.theme.isDark ? 'dark' : 'light');
     this.sidebarCompacto = localStorage.getItem('sidebarCompacto') === 'true';
@@ -222,13 +228,29 @@ export class ConfiguracionComponent implements OnInit {
     document.documentElement.style.setProperty('--radius', radii[this.borderRadius]);
     document.documentElement.classList.toggle('no-animations', !this.animaciones);
 
-    // General
+    // General (nombre de empresa, solo local por ahora)
     const session = this.auth.session;
     if (session) {
-      session.nombre = this.nombre;
       session.empresa = this.nombreEmpresa;
       localStorage.setItem('crm_session', JSON.stringify(session));
     }
+
+    // General (sector/idioma/zona horaria/moneda persisten en el backend)
+    this.errorGeneral = '';
+    this.auth.actualizarTenant({
+      sector: this.sector,
+      idioma: this.idioma,
+      zonaHoraria: this.zonaHoraria,
+      moneda: this.moneda,
+    }).subscribe({
+      next: () => {
+        this.saved = true;
+        setTimeout(() => this.saved = false, 2500);
+      },
+      error: err => {
+        this.errorGeneral = err?.error?.message || 'No se pudo actualizar la configuración general.';
+      },
+    });
 
     // Notificaciones
     localStorage.setItem('notifEmail', String(this.notifEmail));
@@ -241,8 +263,17 @@ export class ConfiguracionComponent implements OnInit {
     localStorage.setItem('dosFactores', String(this.dosFactores));
     localStorage.setItem('sesionActiva', String(this.sesionActiva));
 
-    this.saved = true;
-    setTimeout(() => this.saved = false, 2500);
+    // Cuenta (nombre/email persisten en el backend)
+    this.errorCuenta = '';
+    this.auth.actualizarPerfil({ nombre: this.nombre, email: this.email }).subscribe({
+      next: () => {
+        this.saved = true;
+        setTimeout(() => this.saved = false, 2500);
+      },
+      error: err => {
+        this.errorCuenta = err?.error?.message || 'No se pudo actualizar tu perfil.';
+      },
+    });
   }
 
   private applyStoredStyles() {

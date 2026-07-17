@@ -4,7 +4,7 @@
       <h2 class="m-0 text-lg font-bold text-slate-800">Ventas</h2>
       <p class="text-xs text-slate-500 m-0 mt-1">Pedidos, presupuestos y facturación</p>
     </div>
-    <button (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Pedido</button>
+    <button *appPuede="'erp_ventas.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Pedido</button>
   </div>
   <div class="grid grid-cols-3 gap-4">
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1">
@@ -38,7 +38,9 @@
             <span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="p.estado==='enviado' || p.estado==='facturado' ? 'badge-green' : p.estado==='pendiente' ? 'badge-amber' : 'badge-red'">{{ p.estado }}</span>
           </td>
           <td class="px-4 py-3 text-right">
-            <button *ngIf="p.estado!=='cancelada' && p.estado!=='facturado'" (click)="cancelar(p.id)" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Cancelar</button>
+            <ng-container *ngIf="p.estado!=='cancelada' && p.estado!=='facturado'">
+              <button *appPuede="'erp_ventas.editar'" (click)="cancelar(p.id)" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Cancelar</button>
+            </ng-container>
           </td>
         </tr>
       </tbody>

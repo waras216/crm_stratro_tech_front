@@ -5,7 +5,7 @@ import { filter } from 'rxjs/operators';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 export type ModuleId = 'crm' | 'erp' | 'pos';
-export type ErpTab = 'dashboard' | 'finanzas' | 'compras' | 'ventas' | 'inventario' | 'fabricacion' | 'scm' | 'rrhh' | 'crm' | 'proyectos';
+export type ErpTab = 'dashboard' | 'finanzas' | 'compras' | 'ventas' | 'inventario' | 'fabricacion' | 'scm' | 'rrhh' | 'crm' | 'proyectos' | 'reportes';
 export type PosTab = 'terminal' | 'historial';
 
 export interface ModuleConfig {
@@ -167,6 +167,12 @@ const ERP_SIDEBAR: SidebarSection[] = [
     items: [
       { label: 'RR.HH.',       svg: S(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`),                               erpTab: 'rrhh' },
       { label: 'CRM',          svg: S(`<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>`),                                      erpTab: 'crm' },
+    ],
+  },
+  {
+    label: 'Análisis',
+    items: [
+      { label: 'Reportes',     svg: S(`<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>`),                                                                                erpTab: 'reportes' },
     ],
   },
 ];

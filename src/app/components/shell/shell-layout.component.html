@@ -109,14 +109,14 @@
 
     <!-- ── User card ── -->
     <div *ngIf="!collapsed" class="user-card" [style]="'border:1px solid ' + activeModule.borderColor">
-      <div class="user-avatar-wrap">
+      <div class="user-avatar-wrap" (click)="toggleUserMenu()" style="cursor:pointer" title="Mi perfil">
         <div class="user-avatar" [style]="'background:' + activeModule.activeGradient">
           <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover" alt="avatar" />
           <span *ngIf="!logo">{{ userName.charAt(0) }}</span>
         </div>
         <span class="online-dot"></span>
       </div>
-      <div class="user-info">
+      <div class="user-info" (click)="toggleUserMenu()" style="cursor:pointer">
         <p class="user-name">{{ userName }}</p>
         <p class="user-email" [style]="'color:' + activeModule.textMuted">{{ userEmail }}</p>
       </div>
@@ -129,7 +129,7 @@
       </button>
     </div>
 
-    <div *ngIf="collapsed" class="user-avatar-sm-wrap">
+    <div *ngIf="collapsed" class="user-avatar-sm-wrap" (click)="toggleUserMenu()" title="Mi perfil">
       <div class="user-avatar-sm" [style]="'background:' + activeModule.activeGradient">
         <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover" alt="avatar" />
         <span *ngIf="!logo">{{ userName.charAt(0) }}</span>
@@ -271,10 +271,23 @@
   <div *ngIf="showUserMenu" class="floating-panel"
     [style]="darkMode ? 'background:#1f2937;border-color:rgba(75,85,99,.4)' : 'background:#fff;border-color:rgba(0,0,0,.08)'">
     <div class="user-menu-header">
-      <div class="user-menu-avatar" [style]="'background:' + activeModule.activeGradient">{{ userName.charAt(0) }}</div>
-      <div>
+      <div class="user-menu-avatar-wrap">
+        <div class="user-menu-avatar" [style]="logo ? 'background:transparent' : 'background:' + activeModule.activeGradient">
+          <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover" alt="Tu foto de perfil" />
+          <span *ngIf="!logo">{{ userName.charAt(0) }}</span>
+          <div *ngIf="subiendoFoto" class="user-menu-avatar-spinner"></div>
+        </div>
+        <button class="user-menu-avatar-edit" (click)="fotoInput.click()" title="Cambiar foto de perfil" [disabled]="subiendoFoto">
+          <svg width="11" height="11" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+          </svg>
+        </button>
+        <input #fotoInput type="file" accept="image/*" class="hidden" (change)="onFotoSelected($event)" />
+      </div>
+      <div class="min-w-0 flex-1">
         <p class="user-menu-name" [style]="darkMode?'color:#f3f4f6':'color:#1e1b4b'">{{ userName }}</p>
         <p class="user-menu-email" [style]="darkMode?'color:#9ca3af':'color:#64748b'">{{ userEmail }}</p>
+        <button *ngIf="logo" (click)="eliminarFotoPerfil()" class="user-menu-remove-photo">Quitar foto</button>
       </div>
     </div>
     <ng-container *ngIf="(auth.session?.membresias?.length ?? 0) > 1">
@@ -299,11 +312,23 @@
       </svg>
       Configuración
     </button>
+    <button *ngIf="auth.session?.es_admin || auth.session?.es_superadmin" (click)="goToRoles()" class="user-menu-item" [style]="darkMode?'color:#d1d5db':'color:#374151'">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M20.59 13.41L13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+      </svg>
+      Roles y Permisos
+    </button>
     <button *ngIf="auth.session?.es_superadmin" (click)="goToPlanes()" class="user-menu-item" [style]="darkMode?'color:#d1d5db':'color:#374151'">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
         <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
       </svg>
       Planes (Admin)
+    </button>
+    <button *ngIf="auth.session?.es_superadmin" (click)="goToEmpresas()" class="user-menu-item" [style]="darkMode?'color:#d1d5db':'color:#374151'">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/>
+      </svg>
+      Empresas (Admin)
     </button>
     <div class="dropdown-divider" [style]="darkMode?'background:rgba(75,85,99,.3)':'background:rgba(0,0,0,.06)'"></div>
     <button (click)="auth.logout()" class="user-menu-item user-menu-item--danger">

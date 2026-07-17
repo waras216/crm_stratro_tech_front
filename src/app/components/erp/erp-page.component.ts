@@ -17,6 +17,7 @@ import { ModuleService, ErpTab } from '../../core/services/module.service';
     <app-erp-rrhh        *ngIf="tab==='rrhh'"></app-erp-rrhh>
     <app-erp-crm         *ngIf="tab==='crm'"></app-erp-crm>
     <app-erp-proyectos   *ngIf="tab==='proyectos'"></app-erp-proyectos>
+    <app-erp-reportes    *ngIf="tab==='reportes'"></app-erp-reportes>
   `,
   styles: [':host { display: block; height: 100%; }'],
 })

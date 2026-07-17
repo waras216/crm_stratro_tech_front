@@ -68,7 +68,7 @@ export class OportunidadesComponent implements OnInit {
   opsByEtapa(etapa: string) { return this.filtered.filter(o => o.etapa === etapa); }
 
   totalByEtapa(etapa: string) {
-    return this.opsByEtapa(etapa).reduce((sum, o) => sum + (o.valor ?? 0), 0);
+    return this.opsByEtapa(etapa).reduce((sum, o) => sum + Number(o.valor ?? 0), 0);
   }
 
   resetForm() { this.form = { titulo: '', id_pipeline: this.pipelines[0]?.id_pipeline ?? null, etapa: 'prospeccion', valor: '', id_cliente: null }; this.editingOp = null; }
