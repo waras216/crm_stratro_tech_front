@@ -18,19 +18,19 @@
       <p class="text-xs mt-2">Carrito vacío</p>
     </div>
     <div *ngFor="let item of items" class="flex items-center gap-2 py-2 border-b border-slate-50">
-      <span class="text-lg flex-shrink-0">{{ item.producto.imagen }}</span>
+      <span class="text-lg flex-shrink-0">📦</span>
       <div class="flex-1 min-w-0">
         <p class="text-xs font-medium text-slate-700 m-0 truncate">{{ item.producto.nombre }}</p>
         <p class="text-xs text-emerald-600 font-semibold m-0">${{ (item.producto.precio * item.cantidad).toLocaleString() }}</p>
       </div>
       <div class="flex items-center gap-1">
-        <button (click)="cambiarCantidad.emit({id: item.producto.id, delta: -1})"
+        <button (click)="cambiarCantidad.emit({id: item.producto.id_productos, delta: -1})"
           class="w-6 h-6 rounded-md bg-slate-100 border-0 cursor-pointer text-slate-600 hover:bg-slate-200 flex items-center justify-center text-sm font-bold">−</button>
         <span class="w-6 text-center text-xs font-bold">{{ item.cantidad }}</span>
-        <button (click)="cambiarCantidad.emit({id: item.producto.id, delta: 1})"
+        <button (click)="cambiarCantidad.emit({id: item.producto.id_productos, delta: 1})"
           class="w-6 h-6 rounded-md bg-slate-100 border-0 cursor-pointer text-slate-600 hover:bg-slate-200 flex items-center justify-center text-sm font-bold">+</button>
       </div>
-      <button (click)="quitar.emit(item.producto.id)" class="p-1 bg-transparent border-0 cursor-pointer text-slate-300 hover:text-red-500">
+      <button (click)="quitar.emit(item.producto.id_productos)" class="p-1 bg-transparent border-0 cursor-pointer text-slate-300 hover:text-red-500">
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>

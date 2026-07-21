@@ -407,10 +407,30 @@
               <p class="text-sm font-medium m-0" style="color:#1e1b4b">
                 {{ u.nombre }}
                 <span *ngIf="u.es_admin" class="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-2" style="background:#eef2ff;color:#6366f1">Admin</span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-1"
+                  [style]="u.estado === 'ocupado' ? 'background:#fffbeb;color:#b45309' : u.estado === 'suspendido' ? 'background:#fef2f2;color:#dc2626' : 'background:#f0fdf4;color:#16a34a'">
+                  {{ u.estado ?? 'activo' }}
+                </span>
               </p>
               <p class="text-[11px] text-slate-400 m-0 mt-0.5">{{ u.email }}</p>
             </div>
+
+            <!-- Mi propia fila: solo puedo alternar mi disponibilidad -->
+            <div *ngIf="u.id_usuario === miIdUsuario">
+              <select (change)="cambiarMiEstado($any($event.target).value)"
+                class="text-[11px] font-medium px-3 py-1.5 rounded-lg focus:outline-none" style="background:#faf5ff;border:1px solid #e0e7ff;color:#1e1b4b">
+                <option value="activo" [selected]="u.estado !== 'ocupado'">Activo</option>
+                <option value="ocupado" [selected]="u.estado === 'ocupado'">Ocupado</option>
+              </select>
+            </div>
+
             <div class="flex items-center gap-2" *ngIf="u.id_usuario !== miIdUsuario">
+              <select (change)="cambiarEstado(u, $any($event.target).value)"
+                class="text-[11px] font-medium px-3 py-1.5 rounded-lg focus:outline-none" style="background:#faf5ff;border:1px solid #e0e7ff;color:#1e1b4b">
+                <option value="activo" [selected]="u.estado === 'activo' || !u.estado">Activo</option>
+                <option value="ocupado" [selected]="u.estado === 'ocupado'">Ocupado</option>
+                <option value="suspendido" [selected]="u.estado === 'suspendido'">Suspendido</option>
+              </select>
               <button (click)="toggleAdmin(u)"
                 class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
                 style="background:#f8fafc;color:#64748b">

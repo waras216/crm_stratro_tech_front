@@ -21,6 +21,25 @@
     {{ error }}
   </div>
 
+  <!-- KPI: usuarios registrados por nicho -->
+  <div class="rounded-2xl p-6 flex flex-col gap-3 fade-up"
+    style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Usuarios registrados por nicho</h2>
+
+    <div *ngIf="cargandoKpis" class="flex gap-2 flex-wrap">
+      <div *ngFor="let _ of [1,2,3]" class="h-14 w-32 rounded-xl bg-slate-100 animate-pulse"></div>
+    </div>
+
+    <div *ngIf="!cargandoKpis" class="flex gap-2 flex-wrap">
+      <div *ngFor="let k of kpisPorNicho" class="rounded-xl px-4 py-2.5 flex flex-col" style="background:#faf5ff;border:1px solid #e0e7ff;min-width:8rem">
+        <span class="text-[11px] font-semibold" style="color:#6366f1">{{ k.nicho }}</span>
+        <span class="text-lg font-bold" style="color:#1e1b4b">{{ k.usuarios }}</span>
+        <span class="text-[10px] text-slate-400">{{ k.empresas }} empresa(s)</span>
+      </div>
+      <p *ngIf="kpisPorNicho.length === 0" class="text-xs text-slate-400 m-0">Sin datos todavía.</p>
+    </div>
+  </div>
+
   <!-- Lista -->
   <div class="rounded-2xl p-6 flex flex-col gap-2 fade-up"
     style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
@@ -73,6 +92,18 @@
               <span *ngIf="m.es_owner" class="font-semibold" style="color:#6366f1">(dueño)</span>
             </div>
             <p *ngIf="detalle.miembros?.length === 0" class="text-[11px] text-slate-400 m-0">Sin miembros activos.</p>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <p class="text-[11px] font-semibold m-0" style="color:#1e1b4b">Módulos habilitados</p>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button *ngFor="let m of [{ key: 'crm', label: 'CRM' }, { key: 'erp', label: 'ERP' }, { key: 'pos', label: 'POS' }]"
+                (click)="toggleModulo(e, $any(m.key))" [disabled]="guardandoId === e.id_tenant"
+                class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+                [style]="$any(e.modulos)[m.key] ? 'background:#f0fdf4;color:#16a34a' : 'background:#f8fafc;color:#94a3b8'">
+                {{ m.label }} · {{ $any(e.modulos)[m.key] ? 'activo' : 'inactivo' }}
+              </button>
+            </div>
           </div>
 
           <div class="flex items-center gap-2 flex-wrap">

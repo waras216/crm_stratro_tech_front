@@ -6,7 +6,7 @@ import { environment } from '../../../environments/environment';
 import {
   Producto, Categoria, Proveedor, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
   ErpOrdenProduccion, ErpEnvio, ErpProyecto, ErpProyectoTarea, ErpProyectoHora, ErpInteraccion, ErpCrmResumen,
-  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock
+  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpReceta
 } from '../../models/erp.models';
 
 const API = environment.apiUrl;
@@ -204,6 +204,173 @@ export class ErpService {
   cancelarPedido(id: number): Observable<ErpPedido> {
     return this.http.patch<ErpPedido>(`${API}/erp/ventas/${id}/cancelar`, {}).pipe(
       tap(actualizado => this._pedidos.next(this.pedidos.map(p => p.id === id ? actualizado : p)))
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // MESAS (terminal POS de restaurante)
+  // ════════════════════════════════════════════════════════════════════
+  private _mesas = new BehaviorSubject<ErpMesa[]>([]);
+  mesas$ = this._mesas.asObservable();
+  get mesas() { return this._mesas.getValue(); }
+
+  private actualizarMesaLocal(actualizada: ErpMesa) {
+    this._mesas.next(this.mesas.map(m => m.id === actualizada.id ? actualizada : m));
+  }
+
+  cargarMesas(): Observable<ErpMesa[]> {
+    return this.http.get<ErpMesa[]>(`${API}/erp/mesas`).pipe(
+      tap(data => this._mesas.next(data))
+    );
+  }
+
+  crearMesa(mesa: { numero: number; capacidad?: number }): Observable<ErpMesa> {
+    return this.http.post<ErpMesa>(`${API}/erp/mesas`, mesa).pipe(
+      tap(nueva => this._mesas.next([...this.mesas, nueva]))
+    );
+  }
+
+  eliminarMesa(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/mesas/${id}`).pipe(
+      tap(() => this._mesas.next(this.mesas.filter(m => m.id !== id)))
+    );
+  }
+
+  abrirMesa(id: number, mesero?: string): Observable<ErpMesa> {
+    return this.http.patch<ErpMesa>(`${API}/erp/mesas/${id}/abrir`, { mesero }).pipe(
+      tap(actualizada => this.actualizarMesaLocal(actualizada))
+    );
+  }
+
+  pedirCuenta(id: number): Observable<ErpMesa> {
+    return this.http.patch<ErpMesa>(`${API}/erp/mesas/${id}/pedir-cuenta`, {}).pipe(
+      tap(actualizada => this.actualizarMesaLocal(actualizada))
+    );
+  }
+
+  agregarItemMesa(id: number, item: { id_producto: number; cantidad?: number }): Observable<ErpMesa> {
+    return this.http.post<ErpMesa>(`${API}/erp/mesas/${id}/items`, item).pipe(
+      tap(actualizada => this.actualizarMesaLocal(actualizada))
+    );
+  }
+
+  actualizarItemMesa(id: number, itemId: number, cantidad: number): Observable<ErpMesa> {
+    return this.http.patch<ErpMesa>(`${API}/erp/mesas/${id}/items/${itemId}`, { cantidad }).pipe(
+      tap(actualizada => this.actualizarMesaLocal(actualizada))
+    );
+  }
+
+  quitarItemMesa(id: number, itemId: number): Observable<ErpMesa> {
+    return this.http.delete<ErpMesa>(`${API}/erp/mesas/${id}/items/${itemId}`).pipe(
+      tap(actualizada => this.actualizarMesaLocal(actualizada))
+    );
+  }
+
+  enviarCocina(id: number): Observable<ErpMesa> {
+    return this.http.post<ErpMesa>(`${API}/erp/mesas/${id}/enviar-cocina`, {}).pipe(
+      tap(actualizada => this.actualizarMesaLocal(actualizada))
+    );
+  }
+
+  cobrarMesa(id: number, idCliente: number): Observable<{ mesa: ErpMesa; pedido: ErpPedido }> {
+    return this.http.post<{ mesa: ErpMesa; pedido: ErpPedido }>(`${API}/erp/mesas/${id}/cobrar`, { id_cliente: idCliente }).pipe(
+      tap(res => {
+        this.actualizarMesaLocal(res.mesa);
+        this._pedidos.next([res.pedido, ...this.pedidos]);
+      })
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // HABITACIONES (terminal POS de hotel)
+  // ════════════════════════════════════════════════════════════════════
+  private _habitaciones = new BehaviorSubject<ErpHabitacion[]>([]);
+  habitaciones$ = this._habitaciones.asObservable();
+  get habitaciones() { return this._habitaciones.getValue(); }
+
+  private actualizarHabitacionLocal(actualizada: ErpHabitacion) {
+    this._habitaciones.next(this.habitaciones.map(h => h.id === actualizada.id ? actualizada : h));
+  }
+
+  cargarHabitaciones(): Observable<ErpHabitacion[]> {
+    return this.http.get<ErpHabitacion[]>(`${API}/erp/habitaciones`).pipe(
+      tap(data => this._habitaciones.next(data))
+    );
+  }
+
+  crearHabitacion(habitacion: { numero: number; tipo?: string; piso?: number }): Observable<ErpHabitacion> {
+    return this.http.post<ErpHabitacion>(`${API}/erp/habitaciones`, habitacion).pipe(
+      tap(nueva => this._habitaciones.next([...this.habitaciones, nueva]))
+    );
+  }
+
+  eliminarHabitacion(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/habitaciones/${id}`).pipe(
+      tap(() => this._habitaciones.next(this.habitaciones.filter(h => h.id !== id)))
+    );
+  }
+
+  checkInHabitacion(id: number, huesped: string, noches: number): Observable<ErpHabitacion> {
+    return this.http.patch<ErpHabitacion>(`${API}/erp/habitaciones/${id}/check-in`, { huesped, noches }).pipe(
+      tap(actualizada => this.actualizarHabitacionLocal(actualizada))
+    );
+  }
+
+  agregarConsumoHabitacion(id: number, item: { id_producto: number; cantidad?: number }): Observable<ErpHabitacion> {
+    return this.http.post<ErpHabitacion>(`${API}/erp/habitaciones/${id}/consumos`, item).pipe(
+      tap(actualizada => this.actualizarHabitacionLocal(actualizada))
+    );
+  }
+
+  quitarConsumoHabitacion(id: number, consumoId: number): Observable<ErpHabitacion> {
+    return this.http.delete<ErpHabitacion>(`${API}/erp/habitaciones/${id}/consumos/${consumoId}`).pipe(
+      tap(actualizada => this.actualizarHabitacionLocal(actualizada))
+    );
+  }
+
+  marcarMantenimiento(id: number, estado: 'mantenimiento' | 'libre'): Observable<ErpHabitacion> {
+    return this.http.patch<ErpHabitacion>(`${API}/erp/habitaciones/${id}/mantenimiento`, { estado }).pipe(
+      tap(actualizada => this.actualizarHabitacionLocal(actualizada))
+    );
+  }
+
+  checkOutHabitacion(id: number, idCliente?: number): Observable<{ habitacion: ErpHabitacion; pedido: ErpPedido | null }> {
+    const body = idCliente ? { id_cliente: idCliente } : {};
+    return this.http.post<{ habitacion: ErpHabitacion; pedido: ErpPedido | null }>(`${API}/erp/habitaciones/${id}/check-out`, body).pipe(
+      tap(res => {
+        this.actualizarHabitacionLocal(res.habitacion);
+        if (res.pedido) this._pedidos.next([res.pedido, ...this.pedidos]);
+      })
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // RECETAS (terminal POS de farmacia)
+  // ════════════════════════════════════════════════════════════════════
+  private _recetas = new BehaviorSubject<ErpReceta[]>([]);
+  recetas$ = this._recetas.asObservable();
+  get recetas() { return this._recetas.getValue(); }
+
+  cargarRecetas(idCliente?: number): Observable<ErpReceta[]> {
+    let params = new HttpParams();
+    if (idCliente) params = params.set('id_cliente', idCliente);
+    return this.http.get<ErpReceta[]>(`${API}/erp/recetas`, { params }).pipe(
+      tap(data => this._recetas.next(data))
+    );
+  }
+
+  addReceta(receta: { id_cliente: number; id_producto: number; dosis?: string; cantidad: number }): Observable<ErpReceta> {
+    return this.http.post<ErpReceta>(`${API}/erp/recetas`, receta).pipe(
+      tap(nueva => this._recetas.next([nueva, ...this.recetas]))
+    );
+  }
+
+  dispensarLote(ids: number[], idCliente: number): Observable<ErpPedido> {
+    return this.http.post<ErpPedido>(`${API}/erp/recetas/dispensar-lote`, { ids, id_cliente: idCliente }).pipe(
+      tap(pedido => {
+        this._recetas.next(this.recetas.map(r => ids.includes(r.id) ? { ...r, pendiente: false } : r));
+        this._pedidos.next([pedido, ...this.pedidos]);
+      })
     );
   }
 

@@ -17,7 +17,7 @@ export class ErpProyectosComponent implements OnInit {
 
   // Detalle expandido (kanban + horas) de un proyecto a la vez
   expandidoId: number | null = null;
-  detalleTab: 'kanban' | 'horas' = 'kanban';
+  detalleTab: 'kanban' | 'horas' | 'gantt' = 'kanban';
   cargandoDetalle = false;
   tareas: ErpProyectoTarea[] = [];
   horas: ErpProyectoHora[] = [];
@@ -27,7 +27,7 @@ export class ErpProyectosComponent implements OnInit {
   estadoLabels: Record<string, string> = { pendiente: 'Pendiente', en_progreso: 'En Progreso', completada: 'Completada' };
 
   tareaDialogOpen = false;
-  tareaForm = { titulo: '', descripcion: '', asignado: '', estado: 'pendiente' as ErpProyectoTarea['estado'] };
+  tareaForm = { titulo: '', descripcion: '', asignado: '', estado: 'pendiente' as ErpProyectoTarea['estado'], fecha_inicio: '', fecha_fin: '' };
   tareaError = '';
   tareaSaving = false;
 
@@ -115,9 +115,49 @@ export class ErpProyectosComponent implements OnInit {
 
   // ── Nueva tarea ──────────────────────────────────────────────────────
   openNuevaTarea(estado: ErpProyectoTarea['estado']) {
-    this.tareaForm = { titulo: '', descripcion: '', asignado: '', estado };
+    this.tareaForm = { titulo: '', descripcion: '', asignado: '', estado, fecha_inicio: '', fecha_fin: '' };
     this.tareaError = '';
     this.tareaDialogOpen = true;
+  }
+
+  // ── Gantt ────────────────────────────────────────────────────────────
+  get tareasConFechas(): ErpProyectoTarea[] {
+    return this.tareas.filter(t => t.fecha_inicio && t.fecha_fin);
+  }
+
+  get ganttRango(): { inicio: Date; fin: Date; dias: number } | null {
+    const conFechas = this.tareasConFechas;
+    if (!conFechas.length) return null;
+
+    const inicios = conFechas.map(t => new Date(t.fecha_inicio!).getTime());
+    const fines = conFechas.map(t => new Date(t.fecha_fin!).getTime());
+    const inicio = new Date(Math.min(...inicios));
+    const fin = new Date(Math.max(...fines));
+    const dias = Math.max(1, Math.round((fin.getTime() - inicio.getTime()) / 86400000) + 1);
+    return { inicio, fin, dias };
+  }
+
+  ganttBarStyle(t: ErpProyectoTarea): { left: string; width: string } {
+    const rango = this.ganttRango;
+    if (!rango || !t.fecha_inicio || !t.fecha_fin) return { left: '0%', width: '0%' };
+
+    const offsetDias = Math.round((new Date(t.fecha_inicio).getTime() - rango.inicio.getTime()) / 86400000);
+    const duracionDias = Math.max(1, Math.round((new Date(t.fecha_fin).getTime() - new Date(t.fecha_inicio).getTime()) / 86400000) + 1);
+    const left = (offsetDias / rango.dias) * 100;
+    const width = Math.min((duracionDias / rango.dias) * 100, 100 - left);
+    return { left: left + '%', width: width + '%' };
+  }
+
+  ganttFechaChange(t: ErpProyectoTarea, campo: 'fecha_inicio' | 'fecha_fin', valor: string) {
+    if (this.expandidoId === null) return;
+    const idProyecto = this.expandidoId;
+    this.erpService.actualizarTareaProyecto(idProyecto, t.id, { [campo]: valor || null }).subscribe({
+      next: actualizada => {
+        t.fecha_inicio = actualizada.fecha_inicio;
+        t.fecha_fin = actualizada.fecha_fin;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   submitTarea() {

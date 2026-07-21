@@ -155,6 +155,27 @@ export class ConfiguracionComponent implements OnInit {
     });
   }
 
+  cambiarEstado(usuario: Usuario, estado: string) {
+    if (!estado || estado === usuario.estado) return;
+    this.errorEquipo = '';
+    this.usuarioService.actualizarUsuario(usuario.id_usuario, { estado } as Partial<Usuario>).subscribe({
+      next: () => { usuario.estado = estado as Usuario['estado']; },
+      error: err => { this.errorEquipo = err?.error?.message || 'No se pudo actualizar el estado'; },
+    });
+  }
+
+  cambiarMiEstado(estado: 'activo' | 'ocupado') {
+    if (estado === this.auth.session?.estado) return;
+    this.errorEquipo = '';
+    this.auth.cambiarMiEstado(estado).subscribe({
+      next: () => {
+        const mio = this.usuarios.find(u => u.id_usuario === this.miIdUsuario);
+        if (mio) mio.estado = estado;
+      },
+      error: () => { this.errorEquipo = 'No se pudo actualizar tu estado'; },
+    });
+  }
+
   eliminarUsuario(usuario: Usuario) {
     if (!confirm(`¿Eliminar a ${usuario.nombre} del equipo?`)) return;
     this.errorEquipo = '';

@@ -46,6 +46,7 @@ export interface UserSession {
   membresias?: MembresiaInfo[];
   foto_perfil?: string | null;
   permisos?: string[];
+  estado?: 'activo' | 'ocupado' | 'suspendido';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -97,6 +98,7 @@ export class AuthService {
       membresias:         user.membresias,
       foto_perfil:        user.foto_perfil ?? null,
       permisos:           user.permisos ?? [],
+      estado:             user.estado ?? 'activo',
     };
   }
 
@@ -157,6 +159,14 @@ export class AuthService {
         session.onboardingCompleto = res.onboardingCompleto;
         this.guardarSesion(session);
       }),
+      map(() => true),
+      catchError(() => of(false)),
+    );
+  }
+
+  cambiarMiEstado(estado: 'activo' | 'ocupado'): Observable<boolean> {
+    return this.http.patch<any>(`${environment.apiUrl}/perfil/estado`, { estado }).pipe(
+      tap(user => this.guardarSesion(this.mapSesion(user))),
       map(() => true),
       catchError(() => of(false)),
     );

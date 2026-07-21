@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { EmpresaService } from '../../../core/services/empresa.service';
 import { PlanService } from '../../../core/services/plan.service';
-import { Empresa, Plan } from '../../../models/crm.models';
+import { Empresa, EmpresaKpiNicho, Plan } from '../../../models/crm.models';
 
 @Component({
   selector: 'app-empresas',
@@ -13,7 +13,9 @@ import { Empresa, Plan } from '../../../models/crm.models';
 export class EmpresasComponent implements OnInit {
   empresas: Empresa[] = [];
   planes: Plan[] = [];
+  kpisPorNicho: EmpresaKpiNicho[] = [];
   cargando = false;
+  cargandoKpis = false;
   error = '';
 
   expandidoId: number | null = null;
@@ -29,7 +31,16 @@ export class EmpresasComponent implements OnInit {
 
   ngOnInit() {
     this.cargarEmpresas();
+    this.cargarKpisPorNicho();
     this.planService.cargarPlanes().subscribe({ next: planes => this.planes = planes });
+  }
+
+  cargarKpisPorNicho() {
+    this.cargandoKpis = true;
+    this.empresaService.cargarKpisPorNicho().subscribe({
+      next: kpis => { this.kpisPorNicho = kpis; this.cargandoKpis = false; },
+      error: () => { this.cargandoKpis = false; },
+    });
   }
 
   goBack() { this.location.back(); }
@@ -71,6 +82,19 @@ export class EmpresasComponent implements OnInit {
         this.guardandoId = null;
       },
       error: err => { this.error = err?.error?.message || 'No se pudo actualizar el estado'; this.guardandoId = null; },
+    });
+  }
+
+  toggleModulo(empresa: Empresa, modulo: 'crm' | 'pos' | 'erp') {
+    this.error = '';
+    this.guardandoId = empresa.id_tenant;
+    const nuevoValor = !empresa.modulos[modulo];
+    this.empresaService.actualizarModulos(empresa.id_tenant, { [modulo]: nuevoValor }).subscribe({
+      next: actualizada => {
+        empresa.modulos = actualizada.modulos;
+        this.guardandoId = null;
+      },
+      error: err => { this.error = err?.error?.message || 'No se pudo actualizar el módulo'; this.guardandoId = null; },
     });
   }
 

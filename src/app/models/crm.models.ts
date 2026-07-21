@@ -130,12 +130,15 @@ export interface Integracion {
   configuracion?: Record<string, string | undefined>;
 }
 
+export type EstadoUsuario = 'activo' | 'ocupado' | 'suspendido';
+
 export interface Usuario {
   id_usuario: number;
   id_tenant:  number;
   nombre:     string;
   email:      string;
   es_admin?:  boolean;
+  estado?:    EstadoUsuario;
   created_at?: string;
 }
 
@@ -170,6 +173,13 @@ export interface Empresa {
   onboardingCompleto: boolean;
   creadoEn: string;
   miembros?: EmpresaMiembro[];
+}
+
+export interface EmpresaKpiNicho {
+  id_tiponegocio: number | null;
+  nicho: string;
+  empresas: number;
+  usuarios: number;
 }
 
 export type ModuloCRM =

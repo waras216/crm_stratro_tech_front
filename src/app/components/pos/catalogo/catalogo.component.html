@@ -9,15 +9,19 @@
       {{ cat }}
     </button>
   </div>
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 overflow-y-auto flex-1">
+  <p *ngIf="cargando" class="text-xs text-slate-400 m-0">Cargando productos...</p>
+  <p *ngIf="!cargando && !productos.length" class="text-xs text-slate-400 m-0">Sin productos en inventario todavía.</p>
+
+  <div *ngIf="!cargando" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 overflow-y-auto flex-1">
     <button *ngFor="let p of filtrados; let i = index"
-      (click)="agregar.emit(p)"
-      class="flex flex-col items-center gap-1.5 p-3 bg-white border border-slate-100 rounded-xl cursor-pointer hover:shadow-md hover:border-emerald-200 transition-all group text-center hover-scale card-enter"
+      (click)="agregar.emit(p)" [disabled]="p.stock <= 0"
+      class="flex flex-col items-center gap-1.5 p-3 bg-white border border-slate-100 rounded-xl cursor-pointer hover:shadow-md hover:border-emerald-200 transition-all group text-center hover-scale card-enter disabled:opacity-40 disabled:cursor-not-allowed"
       [style.animation-delay]="(i * 0.03) + 's'"
       style="border:1px solid #e2e8f0">
-      <span class="text-2xl group-hover:scale-110 transition-transform">{{ p.imagen }}</span>
+      <span class="text-2xl group-hover:scale-110 transition-transform">📦</span>
       <span class="text-[11px] font-semibold text-slate-700 leading-tight">{{ p.nombre }}</span>
       <span class="text-sm font-bold text-emerald-600">${{ p.precio }}</span>
+      <span class="text-[10px] text-slate-400">{{ p.stock > 0 ? p.stock + ' en stock' : 'Sin stock' }}</span>
     </button>
   </div>
 </div>

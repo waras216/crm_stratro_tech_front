@@ -97,6 +97,67 @@ export interface ErpPedido {
   fecha: string;
 }
 
+export interface ErpComandaItem {
+  id: number;
+  id_producto: number | null;
+  producto?: Producto;
+  nombre: string;
+  precio_unitario: number;
+  cantidad: number;
+}
+
+export interface ErpComanda {
+  id: number;
+  estado: 'abierta' | 'enviada' | 'cerrada';
+  enviada_cocina: boolean;
+  total: number;
+  items: ErpComandaItem[];
+}
+
+export interface ErpMesa {
+  id: number;
+  id_tenant?: number;
+  numero: number;
+  capacidad: number;
+  estado: 'libre' | 'ocupada' | 'cuenta' | 'reservada';
+  mesero: string | null;
+  comanda_activa: ErpComanda | null;
+}
+
+export interface ErpHabitacionConsumo {
+  id: number;
+  id_producto: number | null;
+  producto?: Producto;
+  nombre: string;
+  precio_unitario: number;
+  cantidad: number;
+}
+
+export interface ErpHabitacion {
+  id: number;
+  id_tenant?: number;
+  numero: number;
+  tipo: string;
+  piso: number;
+  estado: 'libre' | 'ocupada' | 'checkout' | 'mantenimiento';
+  huesped: string | null;
+  check_in: string | null;
+  check_out: string | null;
+  noches: number | null;
+  consumos: ErpHabitacionConsumo[];
+}
+
+export interface ErpReceta {
+  id: number;
+  id_cliente: number;
+  cliente?: Cliente;
+  id_producto: number;
+  producto?: Producto;
+  dosis: string | null;
+  cantidad: number;
+  pendiente: boolean;
+}
+
 export interface ErpEmpleado {
   id: number;
   id_tenant?: number;
@@ -147,6 +208,8 @@ export interface ErpProyectoTarea {
   estado: 'pendiente' | 'en_progreso' | 'completada';
   asignado?: string | null;
   orden: number;
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
 }
 
 export interface ErpProyectoHora {

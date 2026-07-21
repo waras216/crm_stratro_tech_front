@@ -31,6 +31,8 @@
             [style.background]="detalleTab==='kanban' ? '#fff' : 'transparent'" [style.color]="detalleTab==='kanban' ? '#d97706' : '#94a3b8'">Tablero Kanban</button>
           <button (click)="detalleTab='horas'" class="px-3 py-1.5 text-xs font-semibold rounded-lg border-0 cursor-pointer"
             [style.background]="detalleTab==='horas' ? '#fff' : 'transparent'" [style.color]="detalleTab==='horas' ? '#d97706' : '#94a3b8'">Registro de Horas</button>
+          <button (click)="detalleTab='gantt'" class="px-3 py-1.5 text-xs font-semibold rounded-lg border-0 cursor-pointer"
+            [style.background]="detalleTab==='gantt' ? '#fff' : 'transparent'" [style.color]="detalleTab==='gantt' ? '#d97706' : '#94a3b8'">Gantt</button>
         </div>
 
         <p *ngIf="cargandoDetalle" class="text-xs text-slate-400 m-0">Cargando...</p>
@@ -90,6 +92,38 @@
           </table>
           <p *ngIf="!horas.length" class="text-xs text-slate-400 m-0 px-4 py-4 text-center">Sin registros de horas todavía.</p>
         </div>
+
+        <!-- Gantt -->
+        <div *ngIf="!cargandoDetalle && detalleTab==='gantt'" class="bg-white rounded-xl border border-slate-100 p-4 flex flex-col gap-3">
+          <p *ngIf="!tareas.length" class="text-xs text-slate-400 m-0 py-4 text-center">Sin tareas todavía. Crea tareas desde el tablero Kanban.</p>
+
+          <ng-container *ngIf="tareas.length">
+            <p *ngIf="ganttRango as rango" class="text-[11px] text-slate-400 m-0">
+              {{ rango.inicio | date:'dd/MM/yy' }} — {{ rango.fin | date:'dd/MM/yy' }} · {{ rango.dias }} día(s)
+            </p>
+            <p *ngIf="!ganttRango" class="text-[11px] text-slate-400 m-0">Ponle fecha de inicio y fin a las tareas para ver la línea de tiempo.</p>
+
+            <div class="flex flex-col gap-2">
+              <div *ngFor="let t of tareas" class="flex items-center gap-3">
+                <div class="w-44 flex-shrink-0">
+                  <p class="text-xs font-medium text-slate-700 m-0 truncate" [title]="t.titulo">{{ t.titulo }}</p>
+                  <div class="flex gap-1 mt-1">
+                    <input type="date" [value]="t.fecha_inicio ?? ''" (change)="ganttFechaChange(t, 'fecha_inicio', $any($event.target).value)"
+                      class="text-[10px] border border-slate-200 rounded px-1 py-0.5 w-[92px]" title="Fecha de inicio" />
+                    <input type="date" [value]="t.fecha_fin ?? ''" (change)="ganttFechaChange(t, 'fecha_fin', $any($event.target).value)"
+                      class="text-[10px] border border-slate-200 rounded px-1 py-0.5 w-[92px]" title="Fecha de fin" />
+                  </div>
+                </div>
+                <div class="flex-1 relative h-5 bg-slate-50 rounded-md overflow-hidden">
+                  <div *ngIf="t.fecha_inicio && t.fecha_fin" class="absolute top-0.5 h-4 rounded"
+                    [ngClass]="t.estado==='completada' ? 'bg-emerald-400' : t.estado==='en_progreso' ? 'bg-amber-400' : 'bg-slate-300'"
+                    [style.left]="ganttBarStyle(t).left" [style.width]="ganttBarStyle(t).width"
+                    [title]="t.titulo + ': ' + t.fecha_inicio + ' → ' + t.fecha_fin"></div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
       </div>
     </div>
   </div>
@@ -117,6 +151,10 @@
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="tareaForm.titulo" placeholder="Título de la tarea" />
     <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm" rows="2" [(ngModel)]="tareaForm.descripcion" placeholder="Descripción (opcional)"></textarea>
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="tareaForm.asignado" placeholder="Asignado a (opcional)" />
+    <div class="grid grid-cols-2 gap-3">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="tareaForm.fecha_inicio" placeholder="Inicio" />
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="tareaForm.fecha_fin" placeholder="Fin" />
+    </div>
     <p *ngIf="tareaError" class="text-xs text-red-600 m-0">{{ tareaError }}</p>
     <button (click)="submitTarea()" [disabled]="tareaSaving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ tareaSaving ? 'Guardando...' : 'Crear Tarea' }}</button>
   </div>

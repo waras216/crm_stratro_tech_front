@@ -1,7 +1,7 @@
 // src/app/core/services/crm-service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap, map } from 'rxjs';
+import { BehaviorSubject, Observable, of, tap, map, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Lead, Oportunidad, Cliente, Actividad, Pipeline,
@@ -115,6 +115,27 @@ export class CrmService {
 
   verCliente(id: number): Observable<Cliente> {
     return this.http.get<Cliente>(`${API}/clientes/${id}`);
+  }
+
+  private clienteMostradorId: number | null = null;
+  private static readonly CLIENTE_MOSTRADOR = 'Público General';
+
+  /** Cliente genérico para ventas de mostrador (POS) que no piden datos del cliente -- se crea una vez por tenant. */
+  obtenerClienteMostrador(): Observable<number> {
+    if (this.clienteMostradorId) return of(this.clienteMostradorId);
+
+    return this.cargarClientes(1, CrmService.CLIENTE_MOSTRADOR, '', 5).pipe(
+      switchMap(pagina => {
+        const existente = pagina.data.find(c => c.nombre === CrmService.CLIENTE_MOSTRADOR);
+        if (existente) {
+          this.clienteMostradorId = existente.id_cliente;
+          return of(existente.id_cliente);
+        }
+        return this.addCliente({ nombre: CrmService.CLIENTE_MOSTRADOR, tipo: 'persona' }).pipe(
+          map(c => { this.clienteMostradorId = c.id_cliente; return c.id_cliente; }),
+        );
+      }),
+    );
   }
 
   // ════════════════════════════════════════════════════════════════════
