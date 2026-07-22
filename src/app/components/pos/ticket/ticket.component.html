@@ -17,6 +17,9 @@
         <span class="text-emerald-600">${{ total }}</span>
       </div>
     </div>
-    <button (click)="cerrar.emit()" class="w-full py-2.5 bg-emerald-600 text-white rounded-xl border-0 cursor-pointer text-sm font-semibold hover:bg-emerald-700">Cerrar</button>
+    <div class="flex gap-2">
+      <button (click)="imprimir()" class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl border-0 cursor-pointer text-sm font-semibold hover:bg-slate-200">Imprimir</button>
+      <button (click)="cerrar.emit()" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl border-0 cursor-pointer text-sm font-semibold hover:bg-emerald-700">Cerrar</button>
+    </div>
   </div>
 </div>
