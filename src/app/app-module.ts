@@ -24,6 +24,7 @@ import { AuthRegistroComponent }   from './components/auth/registro/registro.com
 import { AuthOnboardingComponent } from './components/auth/onboarding/onboarding.component';
 import { AuthForgotPasswordComponent } from './components/auth/forgot-password/forgot-password.component';
 import { AuthResetPasswordComponent }  from './components/auth/reset-password/reset-password.component';
+import { AuthSocialCallbackComponent } from './components/auth/social-callback/social-callback.component';
 
 // CRM
 import { DashboardComponent }    from './components/crm/dashboard/dashboard.component';
@@ -87,6 +88,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     AuthOnboardingComponent,
     AuthForgotPasswordComponent,
     AuthResetPasswordComponent,
+    AuthSocialCallbackComponent,
     // CRM
     DashboardComponent,
     LeadsComponent,

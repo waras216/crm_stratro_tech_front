@@ -1,0 +1,17 @@
+<div class="min-h-screen flex items-center justify-center p-4"
+  style="background:linear-gradient(135deg,#0f0a2e 0%,#1a1452 50%,#251b6e 100%)">
+  <div class="relative w-full max-w-md">
+    <div class="bg-white/[.04] backdrop-blur-xl rounded-2xl p-8 border border-white/10 text-center">
+      <ng-container *ngIf="!error">
+        <div class="w-10 h-10 mx-auto mb-4 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin"></div>
+        <p class="text-sm" style="color:#c7d2fe">Iniciando sesión...</p>
+      </ng-container>
+
+      <ng-container *ngIf="error">
+        <p class="px-4 py-2.5 rounded-xl text-sm font-medium text-red-300 border border-red-500/30 mb-4"
+          style="background:rgba(239,68,68,.1)">{{ error }}</p>
+        <a routerLink="/auth/login" class="text-sm font-semibold text-white cursor-pointer link-underline">Volver al inicio de sesión</a>
+      </ng-container>
+    </div>
+  </div>
+</div>

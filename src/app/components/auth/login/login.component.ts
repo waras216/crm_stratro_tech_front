@@ -1,6 +1,7 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/authservices';
+import { environment } from '../../../../environments/environment';
 
 @Component({ selector: 'app-auth-login', standalone: false, templateUrl: './login.component.html', styleUrls: ['./login.component.scss'] })
 export class AuthLoginComponent {
@@ -26,5 +27,11 @@ export class AuthLoginComponent {
       },
       error: () => { this.loading = false; this.error = 'Error de conexión con el servidor'; this.cdr.detectChanges(); },
     });
+  }
+
+  /** Redirect de página completa -- Auth0Controller (backend, routes/web.php)
+   * maneja todo el intercambio OAuth2 y regresa a /auth/social-callback. */
+  continuarConGoogle() {
+    window.location.href = `${environment.apiUrl.replace(/\/api$/, '')}/auth/auth0/redirect`;
   }
 }

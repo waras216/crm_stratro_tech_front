@@ -172,6 +172,13 @@ export class AuthService {
     );
   }
 
+  /** Completa el login social: guarda el token que mandó el callback de Auth0
+   * (ver Auth0Controller en el backend) y carga la sesión igual que login(). */
+  iniciarSesionConToken(token: string): Observable<boolean> {
+    localStorage.setItem(this.TOKEN_KEY, token);
+    return this.refreshSession();
+  }
+
   refreshSession(): Observable<boolean> {
     if (!this.getToken()) return of(false);
     return this.http.get<any>(`${environment.apiUrl}/user`).pipe(

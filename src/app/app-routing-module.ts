@@ -6,6 +6,7 @@ import { AuthRegistroComponent }  from './components/auth/registro/registro.comp
 import { AuthOnboardingComponent }from './components/auth/onboarding/onboarding.component';
 import { AuthForgotPasswordComponent } from './components/auth/forgot-password/forgot-password.component';
 import { AuthResetPasswordComponent }  from './components/auth/reset-password/reset-password.component';
+import { AuthSocialCallbackComponent } from './components/auth/social-callback/social-callback.component';
 
 import { ShellLayoutComponent }   from './components/shell/shell-layout.component';
 
@@ -41,6 +42,7 @@ const routes: Routes = [
   { path: 'auth/onboarding',  component: AuthOnboardingComponent },
   { path: 'auth/forgot-password', component: AuthForgotPasswordComponent },
   { path: 'auth/reset-password',  component: AuthResetPasswordComponent },
+  { path: 'auth/social-callback', component: AuthSocialCallbackComponent },
   { path: 'pricing',          component: PricingComponent },
 
   // Shell: single persistent layout for all authenticated modules
