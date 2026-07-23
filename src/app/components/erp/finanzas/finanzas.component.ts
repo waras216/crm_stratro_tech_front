@@ -64,6 +64,7 @@ export class ErpFinanzasComponent implements OnInit {
   ngOnInit() {
     this.contabilidad.cargarCuentas().subscribe(data => { this.cuentas = data; this.cdr.detectChanges(); });
     this.contabilidad.cuentas$.subscribe(data => { this.cuentas = data; this.cdr.detectChanges(); });
+    this.contabilidad.asientos$.subscribe(data => { this.asientos = data; this.cdr.detectChanges(); });
     this.cargarAsientos();
   }
 
