@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
+import { NichoService } from '../../../core/services/nicho.service';
 import { ErpPedido, Producto } from '../../../models/erp.models';
 import { Cliente } from '../../../models/crm.models';
 
@@ -25,7 +26,12 @@ export class ErpVentasComponent implements OnInit {
   pedidos: ErpPedido[] = [];
   productos: Producto[] = [];
 
-  constructor(private erpService: ErpService, private crmService: CrmService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private erpService: ErpService,
+    private crmService: CrmService,
+    private cdr: ChangeDetectorRef,
+    public nicho: NichoService,
+  ) {}
 
   ngOnInit() {
     this.erpService.cargarPedidos().subscribe();

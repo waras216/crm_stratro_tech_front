@@ -1,8 +1,19 @@
 <div class="flex flex-col gap-5 page-enter">
+
+  <div *ngIf="nicho.nicho==='restaurante'" class="h-[560px]">
+    <app-pos-terminal-restaurante></app-pos-terminal-restaurante>
+  </div>
+  <div *ngIf="nicho.nicho==='hotel'" class="h-[560px]">
+    <app-pos-terminal-hotel></app-pos-terminal-hotel>
+  </div>
+  <div *ngIf="nicho.nicho==='farmacia'" class="h-[560px]">
+    <app-pos-terminal-farmacia></app-pos-terminal-farmacia>
+  </div>
+
   <div class="flex items-center justify-between">
     <div>
-      <h2 class="m-0 text-lg font-bold text-slate-800">Ventas</h2>
-      <p class="text-xs text-slate-500 m-0 mt-1">Pedidos, presupuestos y facturación</p>
+      <h2 class="m-0 text-lg font-bold text-slate-800">Pedidos</h2>
+      <p class="text-xs text-slate-500 m-0 mt-1">Historial de pedidos, presupuestos y facturación</p>
     </div>
     <button *appPuede="'erp_ventas.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Pedido</button>
   </div>

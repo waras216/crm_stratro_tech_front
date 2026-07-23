@@ -177,6 +177,32 @@ const ERP_SIDEBAR: SidebarSection[] = [
   },
 ];
 
+// Tabs del ERP que no aplican por nicho — mismo criterio que el filtro de
+// módulos en Erp/DashboardController::resumen (backend), mantener sincronizados.
+// "Fabricación": ninguno de estos nichos produce/manufactura.
+// "SCM" (envíos y logística a distribuidores/clientes): no aplica a servicios
+// en sitio como hotel/restaurante/farmacia — sí a almacen y tienda (e-commerce).
+// "startup" es un negocio de software/servicio: no tiene inventario físico,
+// no compra mercancía a proveedores, no fabrica ni despacha envíos.
+const ERP_TABS_OCULTOS_POR_NICHO: Partial<Record<string, ErpTab[]>> = {
+  restaurante: ['fabricacion', 'scm'],
+  hotel: ['fabricacion', 'scm'],
+  farmacia: ['fabricacion', 'scm'],
+  tienda: ['fabricacion'],
+  startup: ['inventario', 'compras', 'fabricacion', 'scm'],
+};
+
+// Label del tab "Ventas" del ERP con el término operativo del nicho.
+const ERP_VENTAS_LABEL_POR_NICHO: Partial<Record<string, string>> = {
+  restaurante: 'Comandas',
+  hotel: 'Reservas',
+  farmacia: 'Dispensario',
+};
+
+export function erpVentasLabel(nicho?: string): string {
+  return (nicho && ERP_VENTAS_LABEL_POR_NICHO[nicho]) || 'Ventas';
+}
+
 const POS_SIDEBAR: SidebarSection[] = [
   {
     items: [
@@ -228,11 +254,25 @@ export class ModuleService {
   setErpTab(tab: ErpTab) { this.erpTab$.next(tab); }
   setPosTab(tab: PosTab) { this.posTab$.next(tab); }
 
-  getSidebar(moduleId: ModuleId): SidebarSection[] {
+  getSidebar(moduleId: ModuleId, nicho?: string): SidebarSection[] {
     switch (moduleId) {
       case 'crm': return CRM_SIDEBAR;
-      case 'erp': return ERP_SIDEBAR;
+      case 'erp': return this.buildErpSidebar(nicho);
       case 'pos': return POS_SIDEBAR;
     }
+  }
+
+  private buildErpSidebar(nicho?: string): SidebarSection[] {
+    const ocultos = (nicho && ERP_TABS_OCULTOS_POR_NICHO[nicho]) || [];
+    const labelVentas = erpVentasLabel(nicho);
+
+    return ERP_SIDEBAR
+      .map(section => ({
+        ...section,
+        items: section.items
+          .filter(item => !item.erpTab || !ocultos.includes(item.erpTab))
+          .map(item => item.erpTab === 'ventas' ? { ...item, label: labelVentas } : item),
+      }))
+      .filter(section => section.items.length > 0);
   }
 }

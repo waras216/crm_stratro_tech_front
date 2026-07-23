@@ -1,94 +1,296 @@
 <div class="flex flex-col gap-5 page-enter">
-  <div class="flex items-center justify-end gap-2">
-    <button *appPuede="'erp_finanzas.eliminar'" (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Papelera</button>
-    <button *appPuede="'erp_finanzas.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Movimiento</button>
+
+  <!-- Sub-nav -->
+  <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+    <button (click)="cambiarVista('asientos')" class="px-4 py-2 rounded-lg text-sm font-medium border-0 cursor-pointer transition-all"
+      [ngClass]="vista==='asientos' ? 'bg-amber-600 text-white' : 'bg-transparent text-slate-600 hover:bg-slate-50'">Asientos</button>
+    <button (click)="cambiarVista('cuentas')" class="px-4 py-2 rounded-lg text-sm font-medium border-0 cursor-pointer transition-all"
+      [ngClass]="vista==='cuentas' ? 'bg-amber-600 text-white' : 'bg-transparent text-slate-600 hover:bg-slate-50'">Plan de Cuentas</button>
+    <button (click)="cambiarVista('estados')" class="px-4 py-2 rounded-lg text-sm font-medium border-0 cursor-pointer transition-all"
+      [ngClass]="vista==='estados' ? 'bg-amber-600 text-white' : 'bg-transparent text-slate-600 hover:bg-slate-50'">Estados Financieros</button>
   </div>
 
-  <!-- KPIs -->
-  <div class="grid grid-cols-3 gap-4">
-    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1">
-      <p class="text-xs text-slate-500 m-0">Ingresos</p>
-      <p class="text-2xl font-bold text-emerald-600 m-0">${{ ingresos.toLocaleString() }}</p>
-    </div>
-    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2">
-      <p class="text-xs text-slate-500 m-0">Egresos</p>
-      <p class="text-2xl font-bold text-red-600 m-0">${{ egresos.toLocaleString() }}</p>
-    </div>
-    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3">
-      <p class="text-xs text-slate-500 m-0">Balance</p>
-      <p class="text-2xl font-bold m-0" [ngClass]="balance >= 0 ? 'text-emerald-600' : 'text-red-600'">${{ balance.toLocaleString() }}</p>
-    </div>
-  </div>
-
-  <!-- Movimientos -->
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-    <div class="px-4 py-3 border-b border-slate-100">
-      <h3 class="m-0 text-sm font-bold text-slate-800">Movimientos</h3>
-    </div>
-    <table class="w-full text-sm border-collapse">
-      <thead>
-        <tr class="bg-slate-50">
-          <th class="text-left px-4 py-3 font-medium text-slate-500">Fecha</th>
-          <th class="text-left px-4 py-3 font-medium text-slate-500">Concepto</th>
-          <th class="text-left px-4 py-3 font-medium text-slate-500">Categoría</th>
-          <th class="text-center px-4 py-3 font-medium text-slate-500">Tipo</th>
-          <th class="text-right px-4 py-3 font-medium text-slate-500">Monto</th>
-          <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let m of movimientos" class="border-b border-slate-100 hover:bg-slate-50">
-          <td class="px-4 py-3 text-slate-500 text-xs">{{ m.fecha }}</td>
-          <td class="px-4 py-3 font-medium">{{ m.concepto }}</td>
-          <td class="px-4 py-3 text-slate-500">{{ m.categoria }}</td>
-          <td class="px-4 py-3 text-center">
-            <span class="px-2 py-0.5 rounded-full text-xs font-medium"
-              [ngClass]="m.tipo==='ingreso' ? 'badge-green' : 'badge-red'">{{ m.tipo }}</span>
-          </td>
-          <td class="px-4 py-3 text-right font-semibold" [ngClass]="m.tipo==='ingreso' ? 'text-emerald-600' : 'text-red-600'">
-            {{ m.tipo==='ingreso' ? '+' : '-' }}${{ m.monto.toLocaleString() }}
-          </td>
-          <td class="px-4 py-3 text-right">
-            <button *appPuede="'erp_finanzas.eliminar'" (click)="eliminar(m)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
-<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Nuevo Movimiento</h3>
-  <div class="flex flex-col gap-3">
-    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.concepto" placeholder="Concepto" />
-    <div class="grid grid-cols-2 gap-3">
-      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.tipo">
-        <option value="ingreso">Ingreso</option>
-        <option value="egreso">Egreso</option>
-      </select>
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.monto" placeholder="Monto $" />
-    </div>
-    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.categoria" placeholder="Categoría (opcional)" />
-    <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
-    <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Agregar' }}</button>
-  </div>
-</div>
-
-<!-- Modal: papelera -->
-<div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
-<div *ngIf="papeleraOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Papelera de Movimientos</h3>
-  <div class="flex flex-col gap-2">
-    <p *ngIf="papelera.length === 0" class="text-sm text-slate-400 m-0">No hay movimientos eliminados.</p>
-    <div *ngFor="let m of papelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
-      <div>
-        <p class="m-0 font-medium">{{ m.concepto }}</p>
-        <p class="m-0 text-xs text-slate-500">{{ m.tipo }} · ${{ m.monto.toLocaleString() }}</p>
+  <!-- ══════════════ ASIENTOS ══════════════ -->
+  <ng-container *ngIf="vista==='asientos'">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center gap-2">
+        <input type="date" [(ngModel)]="filtroDesde" (change)="cargarAsientos()" class="px-3 py-2 border border-slate-200 rounded-lg text-xs" />
+        <span class="text-xs text-slate-400">a</span>
+        <input type="date" [(ngModel)]="filtroHasta" (change)="cargarAsientos()" class="px-3 py-2 border border-slate-200 rounded-lg text-xs" />
+        <select [(ngModel)]="filtroOrigen" (change)="cargarAsientos()" class="px-3 py-2 border border-slate-200 rounded-lg text-xs">
+          <option value="">Todos los orígenes</option>
+          <option value="manual">Manual</option>
+          <option value="venta">Venta</option>
+          <option value="compra">Compra</option>
+          <option value="nomina">Nómina</option>
+          <option value="migracion">Migración</option>
+          <option value="ajuste">Ajuste</option>
+        </select>
       </div>
-      <button (click)="restaurar(m.id)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Restaurar</button>
+      <button *appPuede="'erp_finanzas.crear'" (click)="openNewAsiento()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Asiento</button>
     </div>
+
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-slate-50">
+            <th class="text-left px-4 py-3 font-medium text-slate-500">Fecha</th>
+            <th class="text-left px-4 py-3 font-medium text-slate-500">Concepto</th>
+            <th class="text-center px-4 py-3 font-medium text-slate-500">Origen</th>
+            <th class="text-right px-4 py-3 font-medium text-slate-500">Total</th>
+            <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let a of asientos">
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" (click)="toggleExpandido(a.id)">
+              <td class="px-4 py-3 text-slate-500 text-xs">{{ a.fecha }}</td>
+              <td class="px-4 py-3 font-medium">{{ a.concepto }}</td>
+              <td class="px-4 py-3 text-center">
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{{ a.origen }}</span>
+              </td>
+              <td class="px-4 py-3 text-right font-semibold text-slate-700">${{ a.total_debe.toLocaleString() }}</td>
+              <td class="px-4 py-3 text-right">
+                <button *ngIf="a.origen!=='ajuste'" (click)="reversar(a); $event.stopPropagation()"
+                  class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Reversar</button>
+              </td>
+            </tr>
+            <tr *ngIf="asientoExpandido===a.id" class="bg-slate-50/60">
+              <td colspan="5" class="px-6 py-3">
+                <table class="w-full text-xs border-collapse">
+                  <thead>
+                    <tr class="text-slate-400">
+                      <th class="text-left py-1 font-medium">Cuenta</th>
+                      <th class="text-left py-1 font-medium">Descripción</th>
+                      <th class="text-right py-1 font-medium">Debe</th>
+                      <th class="text-right py-1 font-medium">Haber</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let d of a.detalles">
+                      <td class="py-1">{{ d.cuenta?.codigo }} — {{ d.cuenta?.nombre }}</td>
+                      <td class="py-1 text-slate-500">{{ d.descripcion }}</td>
+                      <td class="py-1 text-right">{{ d.debe > 0 ? ('$' + d.debe.toLocaleString()) : '' }}</td>
+                      <td class="py-1 text-right">{{ d.haber > 0 ? ('$' + d.haber.toLocaleString()) : '' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </ng-container>
+          <tr *ngIf="asientos.length===0"><td colspan="5" class="text-center py-10 text-slate-400 text-xs">Sin asientos registrados en este rango.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <!-- ══════════════ PLAN DE CUENTAS ══════════════ -->
+  <ng-container *ngIf="vista==='cuentas'">
+    <div class="flex items-center justify-end">
+      <button *appPuede="'erp_finanzas.crear'" (click)="openNewCuenta()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nueva Cuenta</button>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-slate-50">
+            <th class="text-left px-4 py-3 font-medium text-slate-500">Código</th>
+            <th class="text-left px-4 py-3 font-medium text-slate-500">Nombre</th>
+            <th class="text-center px-4 py-3 font-medium text-slate-500">Tipo</th>
+            <th class="text-center px-4 py-3 font-medium text-slate-500">Naturaleza</th>
+            <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of cuentas" class="border-b border-slate-100 hover:bg-slate-50" [class.font-bold]="!c.es_movible">
+            <td class="px-4 py-3 font-mono text-xs">{{ c.codigo }}</td>
+            <td class="px-4 py-3" [class.pl-8]="c.es_movible">{{ c.nombre }}</td>
+            <td class="px-4 py-3 text-center text-slate-500 text-xs">{{ c.tipo }}</td>
+            <td class="px-4 py-3 text-center text-slate-500 text-xs">{{ c.naturaleza }}</td>
+            <td class="px-4 py-3 text-right">
+              <button *ngIf="c.es_movible" (click)="eliminarCuenta(c)" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <!-- ══════════════ ESTADOS FINANCIEROS ══════════════ -->
+  <ng-container *ngIf="vista==='estados'">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+        <button (click)="cambiarEfVista('comprobacion')" class="px-3 py-1.5 rounded-lg text-xs font-medium border-0 cursor-pointer" [ngClass]="efVista==='comprobacion' ? 'bg-amber-600 text-white' : 'bg-transparent text-slate-600 hover:bg-slate-50'">Balance de Comprobación</button>
+        <button (click)="cambiarEfVista('resultados')" class="px-3 py-1.5 rounded-lg text-xs font-medium border-0 cursor-pointer" [ngClass]="efVista==='resultados' ? 'bg-amber-600 text-white' : 'bg-transparent text-slate-600 hover:bg-slate-50'">Estado de Resultados</button>
+        <button (click)="cambiarEfVista('general')" class="px-3 py-1.5 rounded-lg text-xs font-medium border-0 cursor-pointer" [ngClass]="efVista==='general' ? 'bg-amber-600 text-white' : 'bg-transparent text-slate-600 hover:bg-slate-50'">Balance General</button>
+      </div>
+      <div class="flex items-center gap-2" *ngIf="efVista!=='general'">
+        <input type="date" [(ngModel)]="efDesde" (change)="cargarEstadoActivo()" class="px-3 py-2 border border-slate-200 rounded-lg text-xs" />
+        <span class="text-xs text-slate-400">a</span>
+        <input type="date" [(ngModel)]="efHasta" (change)="cargarEstadoActivo()" class="px-3 py-2 border border-slate-200 rounded-lg text-xs" />
+      </div>
+      <div class="flex items-center gap-2" *ngIf="efVista==='general'">
+        <span class="text-xs text-slate-400">Corte al</span>
+        <input type="date" [(ngModel)]="efCorte" (change)="cargarEstadoActivo()" class="px-3 py-2 border border-slate-200 rounded-lg text-xs" />
+      </div>
+    </div>
+
+    <p *ngIf="efCargando" class="text-center py-10 text-slate-400 text-xs">Cargando...</p>
+
+    <!-- Balance de comprobación -->
+    <div *ngIf="!efCargando && efVista==='comprobacion' && balanceComprobacion" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-slate-50">
+            <th class="text-left px-4 py-3 font-medium text-slate-500">Cuenta</th>
+            <th class="text-right px-4 py-3 font-medium text-slate-500">Debe</th>
+            <th class="text-right px-4 py-3 font-medium text-slate-500">Haber</th>
+            <th class="text-right px-4 py-3 font-medium text-slate-500">Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of balanceComprobacion.cuentas" class="border-b border-slate-100">
+            <td class="px-4 py-3">{{ c.codigo }} — {{ c.nombre }}</td>
+            <td class="px-4 py-3 text-right">${{ c.debe.toLocaleString() }}</td>
+            <td class="px-4 py-3 text-right">${{ c.haber.toLocaleString() }}</td>
+            <td class="px-4 py-3 text-right font-semibold" [ngClass]="c.saldo >= 0 ? 'text-emerald-600' : 'text-red-600'">${{ c.saldo.toLocaleString() }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="bg-slate-50 font-bold">
+            <td class="px-4 py-3">Total</td>
+            <td class="px-4 py-3 text-right">${{ balanceComprobacion.total_debe.toLocaleString() }}</td>
+            <td class="px-4 py-3 text-right">${{ balanceComprobacion.total_haber.toLocaleString() }}</td>
+            <td class="px-4 py-3 text-right" [ngClass]="balanceComprobacion.total_debe===balanceComprobacion.total_haber ? 'text-emerald-600' : 'text-red-600'">
+              {{ balanceComprobacion.total_debe===balanceComprobacion.total_haber ? 'Cuadrado ✓' : 'No cuadra' }}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Estado de resultados -->
+    <div *ngIf="!efCargando && efVista==='resultados' && estadoResultados" class="bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-4">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 m-0 mb-2">Ingresos</p>
+        <div *ngFor="let f of estadoResultados.ingresos" class="flex justify-between text-sm py-1"><span>{{ f.nombre }}</span><span>${{ f.monto.toLocaleString() }}</span></div>
+        <div class="flex justify-between text-sm font-bold pt-2 border-t border-slate-100 mt-1"><span>Total Ingresos</span><span>${{ estadoResultados.total_ingresos.toLocaleString() }}</span></div>
+      </div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 m-0 mb-2">Costos</p>
+        <div *ngFor="let f of estadoResultados.costos" class="flex justify-between text-sm py-1"><span>{{ f.nombre }}</span><span>${{ f.monto.toLocaleString() }}</span></div>
+        <div class="flex justify-between text-sm font-bold pt-2 border-t border-slate-100 mt-1"><span>Total Costos</span><span>${{ estadoResultados.total_costos.toLocaleString() }}</span></div>
+      </div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 m-0 mb-2">Gastos</p>
+        <div *ngFor="let f of estadoResultados.gastos" class="flex justify-between text-sm py-1"><span>{{ f.nombre }}</span><span>${{ f.monto.toLocaleString() }}</span></div>
+        <div class="flex justify-between text-sm font-bold pt-2 border-t border-slate-100 mt-1"><span>Total Gastos</span><span>${{ estadoResultados.total_gastos.toLocaleString() }}</span></div>
+      </div>
+      <div class="flex justify-between text-base font-bold pt-3 border-t-2 border-slate-200">
+        <span>Utilidad Neta</span>
+        <span [ngClass]="estadoResultados.utilidad_neta >= 0 ? 'text-emerald-600' : 'text-red-600'">${{ estadoResultados.utilidad_neta.toLocaleString() }}</span>
+      </div>
+    </div>
+
+    <!-- Balance general -->
+    <div *ngIf="!efCargando && efVista==='general' && balanceGeneral" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 m-0 mb-2">Activo</p>
+        <div *ngFor="let f of balanceGeneral.activo" class="flex justify-between text-sm py-1"><span>{{ f.nombre }}</span><span>${{ f.saldo.toLocaleString() }}</span></div>
+        <div class="flex justify-between text-sm font-bold pt-2 border-t border-slate-100 mt-1"><span>Total Activo</span><span>${{ balanceGeneral.total_activo.toLocaleString() }}</span></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-4">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400 m-0 mb-2">Pasivo</p>
+          <div *ngFor="let f of balanceGeneral.pasivo" class="flex justify-between text-sm py-1"><span>{{ f.nombre }}</span><span>${{ f.saldo.toLocaleString() }}</span></div>
+          <div class="flex justify-between text-sm font-bold pt-2 border-t border-slate-100 mt-1"><span>Total Pasivo</span><span>${{ balanceGeneral.total_pasivo.toLocaleString() }}</span></div>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400 m-0 mb-2">Capital</p>
+          <div *ngFor="let f of balanceGeneral.capital" class="flex justify-between text-sm py-1"><span>{{ f.nombre }}</span><span>${{ f.saldo.toLocaleString() }}</span></div>
+          <div class="flex justify-between text-sm py-1"><span>Resultado del Ejercicio</span><span>${{ balanceGeneral.resultado_ejercicio.toLocaleString() }}</span></div>
+          <div class="flex justify-between text-sm font-bold pt-2 border-t border-slate-100 mt-1"><span>Total Capital</span><span>${{ balanceGeneral.total_capital.toLocaleString() }}</span></div>
+        </div>
+      </div>
+      <div class="md:col-span-2 flex justify-between text-base font-bold px-5 py-3 rounded-xl" [ngClass]="balanceGeneral.cuadra ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'">
+        <span>Activo = Pasivo + Capital</span>
+        <span>{{ balanceGeneral.cuadra ? 'Cuadrado ✓' : 'No cuadra' }}</span>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<!-- ══════════════ MODAL: Nuevo Asiento ══════════════ -->
+<div *ngIf="dialogAsientoOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogAsientoOpen=false"></div>
+<div *ngIf="dialogAsientoOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Nuevo Asiento</h3>
+  <div class="flex flex-col gap-3">
+    <div class="grid grid-cols-2 gap-3">
+      <input type="date" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="asientoForm.fecha" />
+      <button type="button" (click)="modoAvanzado=!modoAvanzado" class="text-xs font-semibold text-amber-600 bg-transparent border-0 cursor-pointer hover:underline text-right">
+        {{ modoAvanzado ? '← Modo simple' : 'Modo avanzado (N líneas) →' }}
+      </button>
+    </div>
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="asientoForm.concepto" placeholder="Concepto" />
+
+    <!-- Modo simple -->
+    <ng-container *ngIf="!modoAvanzado">
+      <div class="grid grid-cols-2 gap-3">
+        <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="asientoForm.tipoSimple">
+          <option value="ingreso">Ingreso (entra a Caja)</option>
+          <option value="egreso">Egreso (sale de Caja)</option>
+        </select>
+        <input type="number" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="asientoForm.monto" placeholder="Monto $" />
+      </div>
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="asientoForm.idCuentaContrapartida">
+        <option value="">Cuenta contrapartida...</option>
+        <option *ngFor="let c of cuentasContrapartida" [value]="c.id">{{ c.codigo }} — {{ c.nombre }}</option>
+      </select>
+    </ng-container>
+
+    <!-- Modo avanzado -->
+    <ng-container *ngIf="modoAvanzado">
+      <div class="flex flex-col gap-2">
+        <div *ngFor="let l of lineas; let i = index" class="grid grid-cols-[1fr_80px_80px_auto] gap-2 items-center">
+          <select class="px-2 py-2 border border-slate-200 rounded-lg text-xs" [(ngModel)]="l.id_cuenta">
+            <option value="">Cuenta...</option>
+            <option *ngFor="let c of cuentas" [value]="c.id" [disabled]="!c.es_movible">{{ c.codigo }} — {{ c.nombre }}</option>
+          </select>
+          <input type="number" class="px-2 py-2 border border-slate-200 rounded-lg text-xs" [(ngModel)]="l.debe" placeholder="Debe" />
+          <input type="number" class="px-2 py-2 border border-slate-200 rounded-lg text-xs" [(ngModel)]="l.haber" placeholder="Haber" />
+          <button (click)="removeLinea(i)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">✕</button>
+        </div>
+        <button (click)="addLinea()" class="text-xs text-amber-600 font-medium bg-transparent border-0 cursor-pointer hover:underline text-left">+ Agregar línea</button>
+      </div>
+      <div class="flex justify-between text-xs font-semibold text-slate-600">
+        <span>Debe: ${{ totalDebeAvanzado.toLocaleString() }}</span>
+        <span>Haber: ${{ totalHaberAvanzado.toLocaleString() }}</span>
+      </div>
+    </ng-container>
+
+    <p *ngIf="asientoError" class="text-xs text-red-600 m-0">{{ asientoError }}</p>
+    <button (click)="submitAsiento()" [disabled]="asientoSaving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ asientoSaving ? 'Guardando...' : 'Registrar Asiento' }}</button>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL: Nueva Cuenta ══════════════ -->
+<div *ngIf="dialogCuentaOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogCuentaOpen=false"></div>
+<div *ngIf="dialogCuentaOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Cuenta</h3>
+  <div class="flex flex-col gap-3">
+    <div class="grid grid-cols-2 gap-3">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="cuentaForm.codigo" placeholder="Código" />
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="cuentaForm.tipo" (ngModelChange)="onTipoCuentaChange()">
+        <option value="activo">Activo</option>
+        <option value="pasivo">Pasivo</option>
+        <option value="capital">Capital</option>
+        <option value="ingreso">Ingreso</option>
+        <option value="costo">Costo</option>
+        <option value="gasto">Gasto</option>
+      </select>
+    </div>
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="cuentaForm.nombre" placeholder="Nombre de la cuenta" />
+    <p class="text-xs text-slate-400 m-0">Naturaleza: {{ cuentaForm.naturaleza }}</p>
+    <p *ngIf="cuentaError" class="text-xs text-red-600 m-0">{{ cuentaError }}</p>
+    <button (click)="submitCuenta()" [disabled]="cuentaSaving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ cuentaSaving ? 'Guardando...' : 'Crear Cuenta' }}</button>
   </div>
 </div>

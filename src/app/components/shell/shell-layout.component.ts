@@ -5,9 +5,10 @@ import { filter, takeUntil } from 'rxjs/operators';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
-import { ModuleService, SidebarNavItem, ErpTab, PosTab } from '../../core/services/module.service';
+import { ModuleService, SidebarNavItem, ErpTab, PosTab, erpVentasLabel } from '../../core/services/module.service';
 import { CrmService } from '../../core/services/crm-service';
 import { NotifyService } from '../../core/services/notify.service';
+import { NichoService } from '../../core/services/nicho.service';
 
 @Component({
   selector: 'app-shell-layout',
@@ -42,7 +43,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
 
   get darkMode() { return this.theme.isDark; }
   get activeModule() { return this.module.activeModule(); }
-  get sidebarSections() { return this.module.getSidebar(this.activeModule.id); }
+  get sidebarSections() { return this.module.getSidebar(this.activeModule.id, this.nicho.nicho); }
   get isConfigRoute() {
     return this.currentUrl.startsWith('/configuracion')
       || this.currentUrl.startsWith('/admin/empresas')
@@ -55,6 +56,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
     public module: ModuleService,
     public auth: AuthService,
     public theme: ThemeService,
+    public nicho: NichoService,
     private router: Router,
     private sanitizer: DomSanitizer,
     private crm: CrmService,
@@ -181,6 +183,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   }
 
   private erpLabel(tab: ErpTab): string {
+    if (tab === 'ventas') return erpVentasLabel(this.nicho.nicho);
     const m: Record<ErpTab, string> = {
       dashboard: 'Dashboard', finanzas: 'Finanzas', compras: 'Compras',
       ventas: 'Ventas', inventario: 'Inventario', fabricacion: 'Fabricación',
