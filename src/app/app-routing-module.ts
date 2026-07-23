@@ -26,6 +26,7 @@ import { PosPageComponent }       from './components/pos/pos-page.component';
 import { PricingComponent }       from './components/pricing/pricing.component';
 import { NotFoundComponent }      from './components/shared/not-found/not-found.component';
 import { AuthGuard }              from './core/auth/auth.guard';
+import { ModuloGuard }            from './core/auth/modulo.guard';
 
 import { PlanesComponent }        from './components/admin/planes/planes.component';
 import { EmpresasComponent }      from './components/admin/empresas/empresas.component';
@@ -53,6 +54,8 @@ const routes: Routes = [
     children: [
       {
         path: 'crm',
+        canActivate: [ModuloGuard],
+        data: { modulo: 'crm' },
         children: [
           { path: '',             redirectTo: 'dashboard', pathMatch: 'full' },
           { path: 'dashboard',    component: DashboardComponent },
@@ -66,8 +69,8 @@ const routes: Routes = [
           { path: 'integraciones',component: IntegracionesComponent },
         ],
       },
-      { path: 'erp', component: ErpPageComponent },
-      { path: 'pos', component: PosPageComponent },
+      { path: 'erp', component: ErpPageComponent, canActivate: [ModuloGuard], data: { modulo: 'erp' } },
+      { path: 'pos', component: PosPageComponent, canActivate: [ModuloGuard], data: { modulo: 'pos' } },
       { path: 'configuracion', component: ConfiguracionComponent },
       { path: 'admin/planes', component: PlanesComponent, canActivate: [SuperAdminGuard] },
       { path: 'admin/empresas', component: EmpresasComponent, canActivate: [SuperAdminGuard] },

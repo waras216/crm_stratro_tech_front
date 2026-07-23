@@ -12,7 +12,7 @@ import { Usuario } from '../../models/crm.models';
   styleUrls: ['./configuracion.component.scss'],
 })
 export class ConfiguracionComponent implements OnInit {
-  activeTab: 'general' | 'cuenta' | 'notificaciones' | 'apariencia' | 'seguridad' | 'equipo' = 'general';
+  activeTab: 'general' | 'cuenta' | 'notificaciones' | 'apariencia' | 'seguridad' | 'equipo' | 'negocio' = 'general';
 
   // General
   nombreEmpresa = '';
@@ -20,6 +20,17 @@ export class ConfiguracionComponent implements OnInit {
   moneda = 'MXN';
   idioma = 'es';
   zonaHoraria = 'America/Mexico_City';
+
+  // Negocio (nicho + módulos contratados, solo admin)
+  nichos = ['hotel', 'restaurante', 'almacen', 'farmacia', 'startup', 'tienda'];
+  nichoSeleccionado = '';
+  modulosNegocio = { crm: true, pos: false, erp: false };
+  guardandoNegocio = false;
+  errorNegocio = '';
+
+  get modulosNegocioValidos(): boolean {
+    return this.modulosNegocio.crm || this.modulosNegocio.pos || this.modulosNegocio.erp;
+  }
 
   // Cuenta
   nombre = '';
@@ -66,6 +77,7 @@ export class ConfiguracionComponent implements OnInit {
     { id: 'apariencia' as const, label: 'Apariencia', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="2.5"/><path d="M17.1 13.1A7.5 7.5 0 0 0 12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1.7 0 3.3-.4 4.7-1.2"/><path d="M19 17l3 3-3 3"/></svg>' },
     { id: 'seguridad' as const, label: 'Seguridad', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' },
     { id: 'equipo' as const, label: 'Equipo', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+    { id: 'negocio' as const, label: 'Negocio', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>' },
   ];
 
   saved = false;
@@ -104,6 +116,8 @@ export class ConfiguracionComponent implements OnInit {
       this.idioma = session.idioma || 'es';
       this.zonaHoraria = session.zonaHoraria || 'America/Mexico_City';
       this.moneda = session.nichoData?.moneda || 'MXN';
+      this.nichoSeleccionado = session.nichoData?.nicho || '';
+      if (session.nichoData?.modulos) this.modulosNegocio = { ...session.nichoData.modulos };
     }
     this.tema = (localStorage.getItem('tema') as any) || (this.theme.isDark ? 'dark' : 'light');
     this.sidebarCompacto = localStorage.getItem('sidebarCompacto') === 'true';
@@ -119,7 +133,7 @@ export class ConfiguracionComponent implements OnInit {
     this.notifReportes = localStorage.getItem('notifReportes') === 'true';
     this.dosFactores = localStorage.getItem('dosFactores') === 'true';
     this.sesionActiva = localStorage.getItem('sesionActiva') !== 'false';
-    this.logoPreview = this.auth.getLogo();
+    this.logoPreview = this.auth.session?.logo ?? null;
     this.applyStoredStyles();
     if (this.esAdmin) this.cargarUsuarios();
   }
@@ -184,15 +198,45 @@ export class ConfiguracionComponent implements OnInit {
     });
   }
 
+  subiendoLogo = false;
+
   onLogoSelected(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.logoPreview = reader.result as string;
-      this.auth.setLogo(this.logoPreview);
-    };
-    reader.readAsDataURL(file);
+
+    this.subiendoLogo = true;
+    this.auth.subirLogoEmpresa(file).subscribe({
+      next: ok => {
+        this.subiendoLogo = false;
+        if (ok) this.logoPreview = this.auth.session?.logo ?? null;
+        else this.errorGeneral = 'No se pudo subir el logo.';
+      },
+      error: () => { this.subiendoLogo = false; this.errorGeneral = 'No se pudo subir el logo.'; },
+    });
+  }
+
+  eliminarLogo() {
+    this.auth.eliminarLogoEmpresa().subscribe(() => { this.logoPreview = null; });
+  }
+
+  guardarNegocio() {
+    if (this.guardandoNegocio || !this.modulosNegocioValidos) return;
+
+    this.guardandoNegocio = true;
+    this.errorNegocio = '';
+    this.auth.actualizarTenant({ nicho: this.nichoSeleccionado, modulos: this.modulosNegocio }).subscribe({
+      next: () => {
+        this.guardandoNegocio = false;
+        this.saved = true;
+        setTimeout(() => this.saved = false, 2500);
+      },
+      error: err => {
+        this.guardandoNegocio = false;
+        this.errorNegocio = err?.error?.message || 'No se pudo actualizar la configuración del negocio.';
+      },
+    });
   }
 
   cambiarTema(t: 'light' | 'dark' | 'system') {
@@ -249,20 +293,14 @@ export class ConfiguracionComponent implements OnInit {
     document.documentElement.style.setProperty('--radius', radii[this.borderRadius]);
     document.documentElement.classList.toggle('no-animations', !this.animaciones);
 
-    // General (nombre de empresa, solo local por ahora)
-    const session = this.auth.session;
-    if (session) {
-      session.empresa = this.nombreEmpresa;
-      localStorage.setItem('crm_session', JSON.stringify(session));
-    }
-
-    // General (sector/idioma/zona horaria/moneda persisten en el backend)
+    // General (sector/idioma/zona horaria/moneda/nombre de empresa)
     this.errorGeneral = '';
     this.auth.actualizarTenant({
       sector: this.sector,
       idioma: this.idioma,
       zonaHoraria: this.zonaHoraria,
       moneda: this.moneda,
+      empresa: this.nombreEmpresa,
     }).subscribe({
       next: () => {
         this.saved = true;

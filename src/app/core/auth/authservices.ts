@@ -9,8 +9,8 @@ export interface NichoData {
   nicho: string;
   moneda: string;
   modulos: { crm: boolean; pos: boolean; erp: boolean };
-  hotelTipo?: string; hotelHabitaciones?: string; hotelAmenidades?: string[];
-  restTipo?: string; restMesas?: string; restCanales?: string[];
+  hotelTipo?: string; hotelHabitaciones?: number | null; hotelAmenidades?: string[];
+  restTipo?: string; restMesas?: number | null; restCanales?: string[];
   almacenTipo?: string; almacenSkus?: string; almacenOps?: string[];
   farmTipo?: string; farmAtencion?: string[]; farmEspecialidades?: string[];
   startupEtapa?: string; startupModelo?: string; startupMetricas?: string[];
@@ -33,6 +33,7 @@ export interface UserSession {
   email: string;
   nombre: string;
   empresa?: string;
+  logo?: string | null;
   sector?: string;
   idioma?: string;
   zonaHoraria?: string;
@@ -85,6 +86,7 @@ export class AuthService {
       email:              user.email ?? fallback?.email ?? '',
       nombre:             user.nombre ?? fallback?.nombre ?? '',
       empresa:            user.empresa,
+      logo:               user.logo ?? null,
       sector:             user.sector,
       idioma:             user.idioma,
       zonaHoraria:        user.zonaHoraria,
@@ -148,7 +150,7 @@ export class AuthService {
     const { nicho, moneda, modulos, ...datosNicho } = data.nichoData;
     const payload = { empresa: data.empresa, nicho, moneda, modulos, datos_nicho: datosNicho };
 
-    return this.http.post<{ empresa: string; onboardingCompleto: boolean; nichoData: NichoData }>(
+    return this.http.post<{ empresa: string; onboardingCompleto: boolean; nichoData: NichoData; logo?: string | null }>(
       `${environment.apiUrl}/tenant/onboarding`, payload
     ).pipe(
       tap(res => {
@@ -157,6 +159,7 @@ export class AuthService {
         session.empresa = res.empresa;
         session.nichoData = res.nichoData;
         session.onboardingCompleto = res.onboardingCompleto;
+        if (res.logo !== undefined) session.logo = res.logo;
         this.guardarSesion(session);
       }),
       map(() => true),
@@ -206,12 +209,32 @@ export class AuthService {
     this.router.navigate(['/auth/login']);
   }
 
-  setLogo(dataUrl: string) {
-    localStorage.setItem('crm_logo', dataUrl);
+  subirLogoEmpresa(file: File): Observable<boolean> {
+    const form = new FormData();
+    form.append('logo', file);
+    return this.http.post<any>(`${environment.apiUrl}/tenant/logo`, form).pipe(
+      tap(res => {
+        const session = this.session;
+        if (!session) return;
+        session.logo = res.logo ?? null;
+        this.guardarSesion(session);
+      }),
+      map(() => true),
+      catchError(() => of(false)),
+    );
   }
 
-  getLogo(): string | null {
-    return localStorage.getItem('crm_logo');
+  eliminarLogoEmpresa(): Observable<boolean> {
+    return this.http.delete<any>(`${environment.apiUrl}/tenant/logo`).pipe(
+      tap(res => {
+        const session = this.session;
+        if (!session) return;
+        session.logo = res.logo ?? null;
+        this.guardarSesion(session);
+      }),
+      map(() => true),
+      catchError(() => of(false)),
+    );
   }
 
   actualizarPerfil(data: { nombre: string; email: string }): Observable<any> {
@@ -226,7 +249,10 @@ export class AuthService {
     );
   }
 
-  actualizarTenant(data: { sector?: string; idioma?: string; zonaHoraria?: string; moneda?: string }): Observable<any> {
+  actualizarTenant(data: {
+    sector?: string; idioma?: string; zonaHoraria?: string; moneda?: string;
+    empresa?: string; nicho?: string; modulos?: { crm: boolean; pos: boolean; erp: boolean };
+  }): Observable<any> {
     return this.http.put<any>(`${environment.apiUrl}/tenant`, data).pipe(
       tap(res => {
         const session = this.session;
@@ -234,6 +260,7 @@ export class AuthService {
         session.sector = res.sector;
         session.idioma = res.idioma;
         session.zonaHoraria = res.zonaHoraria;
+        session.empresa = res.empresa;
         if (res.nichoData) session.nichoData = res.nichoData;
         this.guardarSesion(session);
       }),

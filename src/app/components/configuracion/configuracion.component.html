@@ -36,7 +36,7 @@
     <!-- Tabs lateral -->
     <div class="w-52 flex-shrink-0 flex flex-col gap-1">
       <ng-container *ngFor="let tab of tabs">
-      <button *ngIf="tab.id !== 'equipo' || esAdmin" (click)="activeTab=tab.id"
+      <button *ngIf="(tab.id !== 'equipo' && tab.id !== 'negocio') || esAdmin" (click)="activeTab=tab.id"
         class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all text-left w-full"
         [ngClass]="activeTab===tab.id ? 'text-white' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'"
         [style]="activeTab===tab.id ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.3)' : 'background:transparent'">
@@ -64,12 +64,16 @@
           </div>
           <div class="flex flex-col gap-2">
             <p class="text-xs font-medium m-0" style="color:#1e1b4b">Logo de la empresa</p>
-            <label class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all hover:scale-105"
-              style="background:#eef2ff;color:#6366f1">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Cambiar logo
-              <input type="file" accept="image/*" (change)="onLogoSelected($event)" class="hidden" />
-            </label>
+            <div class="flex items-center gap-2">
+              <label class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all hover:scale-105"
+                style="background:#eef2ff;color:#6366f1">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                {{ subiendoLogo ? 'Subiendo...' : 'Cambiar logo' }}
+                <input type="file" accept="image/*" (change)="onLogoSelected($event)" [disabled]="subiendoLogo" class="hidden" />
+              </label>
+              <button *ngIf="logoPreview" (click)="eliminarLogo()" type="button"
+                class="text-xs font-semibold bg-transparent border-0 cursor-pointer hover:underline" style="color:#ef4444">Quitar</button>
+            </div>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
@@ -466,6 +470,45 @@
             {{ invitando ? 'Invitando…' : 'Invitar' }}
           </button>
         </div>
+      </div>
+
+      <!-- Negocio: nicho y módulos contratados -->
+      <div *ngIf="activeTab==='negocio' && esAdmin" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
+        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        <div>
+          <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Nicho y Módulos</h2>
+          <p class="text-[11px] text-slate-400 m-0 mt-1">Cambia el giro de negocio y qué módulos tiene contratados tu empresa</p>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[11px] font-semibold" style="color:#6366f1">Nicho de negocio</label>
+          <select [(ngModel)]="nichoSeleccionado" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer w-64" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
+            <option *ngFor="let n of nichos" [value]="n">{{ n }}</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-[11px] font-semibold" style="color:#6366f1">Módulos contratados</label>
+          <label class="flex items-center gap-2 text-sm" style="color:#1e1b4b">
+            <input type="checkbox" [(ngModel)]="modulosNegocio.crm" /> CRM
+          </label>
+          <label class="flex items-center gap-2 text-sm" style="color:#1e1b4b">
+            <input type="checkbox" [(ngModel)]="modulosNegocio.pos" /> POS
+          </label>
+          <label class="flex items-center gap-2 text-sm" style="color:#1e1b4b">
+            <input type="checkbox" [(ngModel)]="modulosNegocio.erp" /> ERP
+          </label>
+          <p *ngIf="!modulosNegocioValidos" class="text-xs m-0" style="color:#dc2626">Selecciona al menos un módulo.</p>
+        </div>
+
+        <p *ngIf="errorNegocio" class="text-xs text-red-600 m-0">{{ errorNegocio }}</p>
+
+        <button (click)="guardarNegocio()" [disabled]="guardandoNegocio || !modulosNegocioValidos"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 w-fit"
+          style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"
+          [style.opacity]="(guardandoNegocio || !modulosNegocioValidos) ? 0.5 : 1">
+          {{ guardandoNegocio ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
       </div>
 
     </div>

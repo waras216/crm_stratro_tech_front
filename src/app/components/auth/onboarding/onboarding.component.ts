@@ -25,6 +25,7 @@ export class AuthOnboardingComponent {
   totalSteps = 5; // 0=nicho, 1=empresa, 2=tipo, 3=servicios, 4=modulos
   showWelcome = false;
   logoPreview: string | null = null;
+  logoFile: File | null = null;
 
   // Empresa
   empresa = '';
@@ -36,10 +37,9 @@ export class AuthOnboardingComponent {
 
   // --- Hotel ---
   hotelTipo = '';
-  hotelHabitaciones = '';
+  hotelHabitaciones: number | null = null;
   hotelAmenidades: string[] = [];
   hotelTipos = ['Boutique', 'Resort', 'Business / Corporativo', 'Hostal / Hostel'];
-  hotelCapacidades = ['1-10 habitaciones', '11-30 habitaciones', '31-100 habitaciones', '100+ habitaciones'];
   hotelAmenidadesOpciones = [
     { id: 'restaurante', label: 'Restaurante propio', icon: '🍽️' },
     { id: 'bar', label: 'Bar / Lounge', icon: '🍸' },
@@ -51,10 +51,9 @@ export class AuthOnboardingComponent {
 
   // --- Restaurante ---
   restTipo = '';
-  restMesas = '';
+  restMesas: number | null = null;
   restCanales: string[] = [];
   restTipos = ['Fast Food / Comida rápida', 'Casual / Familiar', 'Fine Dining', 'Cafetería / Bakery', 'Dark Kitchen'];
-  restCapacidades = ['1-5 mesas', '6-20 mesas', '21-50 mesas', '50+ mesas'];
   restCanalesOpciones = [
     { id: 'comedor', label: 'Comedor / Mesas' },
     { id: 'delivery_propio', label: 'Delivery propio' },
@@ -184,6 +183,7 @@ export class AuthOnboardingComponent {
   onLogoSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
+    this.logoFile = file;
     const reader = new FileReader();
     reader.onload = e => this.logoPreview = e.target?.result as string;
     reader.readAsDataURL(file);
@@ -192,6 +192,7 @@ export class AuthOnboardingComponent {
   canNext(): boolean {
     if (this.step === 0) return !!this.nichoSeleccionado;
     if (this.step === 1) return !!this.empresa.trim();
+    if (this.step === 4) return this.modulos.crm || this.modulos.pos || this.modulos.erp;
     return true;
   }
 
@@ -208,7 +209,6 @@ export class AuthOnboardingComponent {
 
   finish() {
     if (this.guardando) return;
-    if (this.logoPreview) this.auth.setLogo(this.logoPreview);
     const nichoData: NichoData = {
       nicho: this.nichoSeleccionado?.id || '',
       moneda: this.moneda,
@@ -224,9 +224,11 @@ export class AuthOnboardingComponent {
     this.errorGuardado = false;
     this.auth.completarOnboarding({ empresa: this.empresa, nichoData }).subscribe(ok => {
       this.guardando = false;
-      if (ok) this.showWelcome = true;
-      else this.errorGuardado = true;
+      if (!ok) { this.errorGuardado = true; this.cdr.detectChanges(); return; }
+
+      this.showWelcome = true;
       this.cdr.detectChanges();
+      if (this.logoFile) this.auth.subirLogoEmpresa(this.logoFile).subscribe();
     });
   }
 

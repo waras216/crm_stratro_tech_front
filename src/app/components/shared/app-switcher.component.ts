@@ -41,7 +41,7 @@ export class AppSwitcherComponent implements OnInit, OnDestroy {
   get modules(): ModuleConfig[]       { return this.moduleService.modules; }
   get futureModules(): FutureModule[] { return this.moduleService.futureModules; }
   get companyName(): string           { return (this.auth.session as any)?.empresa || 'Mi Empresa'; }
-  get logo(): string | null           { return this.auth.getLogo(); }
+  get logo(): string | null           { return this.auth.session?.logo ?? null; }
 
   isActive(id: ModuleId): boolean { return !this.isConfigRoute && this.activeModule.id === id; }
 
