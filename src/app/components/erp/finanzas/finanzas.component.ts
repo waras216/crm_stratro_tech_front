@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ContabilidadService } from '../../../core/services/contabilidad-service';
+import { ReportExportService, ReportExportData } from '../../../core/services/report-export.service';
 import { NotifyService } from '../../../core/services/notify.service';
 import {
   ErpAsiento, ErpCuentaContable, ErpBalanceComprobacion, ErpEstadoResultados, ErpBalanceGeneral,
@@ -57,6 +58,7 @@ export class ErpFinanzasComponent implements OnInit {
 
   constructor(
     private contabilidad: ContabilidadService,
+    private exportSvc: ReportExportService,
     private notify: NotifyService,
     private cdr: ChangeDetectorRef,
   ) {}
@@ -235,5 +237,41 @@ export class ErpFinanzasComponent implements OnInit {
       },
       error: () => { this.efCargando = false; this.cdr.detectChanges(); },
     });
+  }
+
+  private buildBalanceGeneralExportData(): ReportExportData | null {
+    const bg = this.balanceGeneral;
+    if (!bg) return null;
+
+    return {
+      title: `Balance General al ${bg.corte}`,
+      kpis: [
+        { label: 'Total Activo', value: bg.total_activo },
+        { label: 'Total Pasivo', value: bg.total_pasivo },
+        { label: 'Total Capital', value: bg.total_capital },
+        { label: 'Cuadra', value: bg.cuadra ? 'Sí' : 'No' },
+      ],
+      sections: [
+        { heading: 'Activo', rows: bg.activo.map(f => ({ label: `${f.codigo} — ${f.nombre}`, value: f.saldo })) },
+        { heading: 'Pasivo', rows: bg.pasivo.map(f => ({ label: `${f.codigo} — ${f.nombre}`, value: f.saldo })) },
+        {
+          heading: 'Capital',
+          rows: [
+            ...bg.capital.map(f => ({ label: `${f.codigo} — ${f.nombre}`, value: f.saldo })),
+            { label: 'Resultado del Ejercicio', value: bg.resultado_ejercicio },
+          ],
+        },
+      ],
+    };
+  }
+
+  exportarBalanceGeneralPdf() {
+    const data = this.buildBalanceGeneralExportData();
+    if (data) this.exportSvc.exportPdf(data);
+  }
+
+  exportarBalanceGeneralExcel() {
+    const data = this.buildBalanceGeneralExportData();
+    if (data) this.exportSvc.exportExcel(data);
   }
 }

@@ -192,6 +192,9 @@
     </div>
 
     <!-- Balance general -->
+    <div *ngIf="!efCargando && efVista==='general' && balanceGeneral" class="flex justify-end">
+      <app-report-export-buttons (pdf)="exportarBalanceGeneralPdf()" (excel)="exportarBalanceGeneralExcel()"></app-report-export-buttons>
+    </div>
     <div *ngIf="!efCargando && efVista==='general' && balanceGeneral" class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="bg-white border border-slate-200 rounded-xl p-5">
         <p class="text-xs font-bold uppercase tracking-wider text-slate-400 m-0 mb-2">Activo</p>
