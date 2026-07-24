@@ -16,7 +16,7 @@ export class PlanesComponent implements OnInit {
 
   editandoId: number | null = null;
   guardando = false;
-  form: { nombre_plan: string; precio: number | null; max_usuarios: number | null; fecha_inicio: string; fecha_fin: string } =
+  form: { nombre_plan: string; precio: number | null; stripe_price_id: string; max_usuarios: number | null; fecha_inicio: string; fecha_fin: string } =
     this.formVacio();
 
   constructor(private planService: PlanService, private location: Location) {}
@@ -28,7 +28,7 @@ export class PlanesComponent implements OnInit {
   goBack() { this.location.back(); }
 
   private formVacio() {
-    return { nombre_plan: '', precio: null, max_usuarios: null, fecha_inicio: '', fecha_fin: '' };
+    return { nombre_plan: '', precio: null, stripe_price_id: '', max_usuarios: null, fecha_inicio: '', fecha_fin: '' };
   }
 
   cargarPlanes() {
@@ -44,6 +44,7 @@ export class PlanesComponent implements OnInit {
     this.form = {
       nombre_plan: plan.nombre_plan,
       precio: plan.precio,
+      stripe_price_id: plan.stripe_price_id ?? '',
       max_usuarios: plan.max_usuarios,
       fecha_inicio: plan.fecha_inicio?.slice(0, 10),
       fecha_fin: plan.fecha_fin?.slice(0, 10),
@@ -59,7 +60,11 @@ export class PlanesComponent implements OnInit {
     if (!this.form.nombre_plan || this.form.precio === null || !this.form.fecha_inicio || !this.form.fecha_fin) return;
     this.error = '';
     this.guardando = true;
-    const payload: Partial<Plan> = { ...this.form, precio: this.form.precio! };
+    const payload: Partial<Plan> = {
+      ...this.form,
+      precio: this.form.precio!,
+      stripe_price_id: this.form.stripe_price_id.trim() || null,
+    };
     const obs = this.editandoId
       ? this.planService.actualizarPlan(this.editandoId, payload)
       : this.planService.crearPlan(payload);

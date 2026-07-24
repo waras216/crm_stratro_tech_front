@@ -262,6 +262,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   goToPlanes()      { this.router.navigate(['/admin/planes']); this.closeAll(); }
   goToEmpresas()    { this.router.navigate(['/admin/empresas']); this.closeAll(); }
   goToRoles()       { this.router.navigate(['/admin/roles']); this.closeAll(); }
+  goToSuscripcion() { this.router.navigate(['/configuracion/suscripcion']); this.closeAll(); }
 
   cambiarEmpresa(idTenant: number) {
     if (idTenant === this.auth.session?.id_tenant) { this.closeAll(); return; }

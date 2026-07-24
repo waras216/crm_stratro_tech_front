@@ -21,6 +21,9 @@ export interface PlanInfo {
   nombre_plan: string;
   max_usuarios: number | null;
   usuarios_actuales: number;
+  estado_suscripcion?: string;
+  fecha_fin_periodo_actual?: string | null;
+  cancela_al_final_periodo?: boolean;
 }
 
 export interface MembresiaInfo {

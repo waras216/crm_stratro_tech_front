@@ -1,0 +1,94 @@
+<div class="min-h-screen bg-slate-50 p-6 md:p-10 page-enter">
+<div class="max-w-3xl mx-auto flex flex-col gap-5">
+
+  <!-- Header -->
+  <div class="flex items-center gap-3">
+    <button (click)="goBack()"
+      class="inline-flex items-center justify-center w-8 h-8 rounded-lg border-0 cursor-pointer transition-all hover:scale-105 active:scale-95 flex-shrink-0"
+      style="background:rgba(99,102,241,.1);color:#6366f1"
+      title="Volver">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <div>
+      <h1 class="text-lg font-bold m-0" style="color:#1e1b4b">Mi Suscripción</h1>
+      <p class="text-xs text-slate-400 m-0 mt-1">Gestiona el plan y el pago de tu empresa en STRATO</p>
+    </div>
+  </div>
+
+  <div *ngIf="checkoutResultado === 'success'" class="text-xs font-medium px-4 py-2.5 rounded-xl" style="background:#f0fdf4;color:#16a34a">
+    Pago recibido. Puede tardar unos segundos en reflejarse mientras Stripe confirma la suscripción.
+  </div>
+  <div *ngIf="checkoutResultado === 'cancel'" class="text-xs font-medium px-4 py-2.5 rounded-xl" style="background:#fffbeb;color:#d97706">
+    El pago fue cancelado. Podés intentarlo de nuevo cuando quieras.
+  </div>
+  <div *ngIf="error" class="text-xs font-medium px-4 py-2.5 rounded-xl" style="background:#fef2f2;color:#dc2626">
+    {{ error }}
+  </div>
+
+  <!-- Estado actual -->
+  <div class="rounded-2xl p-6 flex flex-col gap-4 fade-up"
+    style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Estado actual</h2>
+
+    <div *ngIf="suscripcion as sus; else sinSuscripcion" class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-[11px] font-semibold px-3 py-1 rounded-full" [style]="badgeEstilo(sus.estado)">
+          {{ etiquetaEstado(sus.estado) }}
+        </span>
+        <p class="text-xs text-slate-400 m-0" *ngIf="sus.fecha_fin_periodo_actual">
+          {{ sus.cancela_al_final_periodo ? 'Se cancela el' : 'Próxima renovación:' }}
+          {{ sus.fecha_fin_periodo_actual | date:'d MMM y' }}
+        </p>
+      </div>
+      <button (click)="gestionarPago()" [disabled]="abriendoPortal"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
+        style="background:#f8fafc;color:#374151">
+        {{ abriendoPortal ? 'Abriendo...' : 'Gestionar pago' }}
+      </button>
+    </div>
+
+    <ng-template #sinSuscripcion>
+      <p class="text-xs text-slate-400 m-0">Todavía no tenés una suscripción paga activa. Elegí un plan abajo para empezar.</p>
+    </ng-template>
+  </div>
+
+  <!-- Planes disponibles -->
+  <div class="rounded-2xl p-6 flex flex-col gap-2 fade-up"
+    style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    <h2 class="text-sm font-bold m-0 mb-2" style="color:#1e1b4b">Planes disponibles</h2>
+
+    <ng-container *ngIf="cargando">
+      <div *ngFor="let _ of [1,2,3]" class="flex flex-col gap-2 py-3 px-3 rounded-xl" style="border:1px solid #eef2ff">
+        <div class="h-3 bg-slate-100 rounded-full w-1/3 animate-pulse"></div>
+        <div class="h-2 bg-slate-50 rounded-full w-1/2 animate-pulse"></div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!cargando">
+      <div *ngFor="let p of planes" class="flex items-center justify-between py-3 px-3 rounded-xl" style="border:1px solid #eef2ff">
+        <div>
+          <p class="text-sm font-medium m-0" style="color:#1e1b4b">{{ p.nombre_plan }}</p>
+          <p class="text-[11px] text-slate-400 m-0 mt-0.5">
+            ${{ p.precio }}/mes · {{ p.max_usuarios ?? 'ilimitados' }} usuarios
+          </p>
+        </div>
+
+        <span *ngIf="esPlanActual(p)" class="text-[11px] font-semibold px-3 py-1.5 rounded-lg" style="background:#f0fdf4;color:#16a34a">
+          Plan actual
+        </span>
+        <button *ngIf="!esPlanActual(p) && p.stripe_price_id" (click)="suscribirse(p)" [disabled]="idPlanEnCurso === p.id_plan"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
+          style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.4)">
+          {{ idPlanEnCurso === p.id_plan ? 'Redirigiendo...' : 'Suscribirme' }}
+        </button>
+        <span *ngIf="!esPlanActual(p) && !p.stripe_price_id" class="text-[11px] text-slate-300">No disponible</span>
+      </div>
+
+      <p *ngIf="planes.length === 0" class="text-xs text-slate-400 m-0 py-3">No hay planes disponibles.</p>
+    </ng-container>
+  </div>
+
+</div>
+</div>

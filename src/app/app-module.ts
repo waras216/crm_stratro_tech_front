@@ -68,6 +68,7 @@ import { NotFoundComponent }      from './components/shared/not-found/not-found.
 // Admin
 import { PlanesComponent } from './components/admin/planes/planes.component';
 import { EmpresasComponent } from './components/admin/empresas/empresas.component';
+import { SuscripcionComponent } from './components/configuracion/suscripcion/suscripcion.component';
 
 // Interceptors
 import { AuthInterceptor }  from './core/interceptors/auth-interceptor-interceptor';
@@ -127,6 +128,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     PlanesComponent,
     EmpresasComponent,
     RolesComponent,
+    SuscripcionComponent,
   ],
   imports: [
     BrowserModule,

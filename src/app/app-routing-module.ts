@@ -31,6 +31,7 @@ import { ModuloGuard }            from './core/auth/modulo.guard';
 import { PlanesComponent }        from './components/admin/planes/planes.component';
 import { EmpresasComponent }      from './components/admin/empresas/empresas.component';
 import { RolesComponent }         from './components/admin/roles/roles.component';
+import { SuscripcionComponent }   from './components/configuracion/suscripcion/suscripcion.component';
 import { SuperAdminGuard }        from './core/auth/superadmin.guard';
 import { AdminTenantGuard }       from './core/auth/admin-tenant.guard';
 
@@ -72,6 +73,7 @@ const routes: Routes = [
       { path: 'erp', component: ErpPageComponent, canActivate: [ModuloGuard], data: { modulo: 'erp' } },
       { path: 'pos', component: PosPageComponent, canActivate: [ModuloGuard], data: { modulo: 'pos' } },
       { path: 'configuracion', component: ConfiguracionComponent },
+      { path: 'configuracion/suscripcion', component: SuscripcionComponent, canActivate: [AdminTenantGuard] },
       { path: 'admin/planes', component: PlanesComponent, canActivate: [SuperAdminGuard] },
       { path: 'admin/empresas', component: EmpresasComponent, canActivate: [SuperAdminGuard] },
       { path: 'admin/roles', component: RolesComponent, canActivate: [AdminTenantGuard] },

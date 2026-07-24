@@ -146,10 +146,23 @@ export interface Plan {
   id_plan: number;
   nombre_plan: string;
   precio: number;
+  stripe_price_id?: string | null;
   max_usuarios: number | null;
   fecha_inicio: string;
   fecha_fin: string;
   tenants_count?: number;
+}
+
+export type EstadoSuscripcion = 'activa' | 'periodo_gracia' | 'cancelada' | 'vencida' | 'incompleta';
+
+export interface Suscripcion {
+  id_suscripcion: number;
+  id_tenant: number;
+  id_plan: number;
+  estado: EstadoSuscripcion;
+  fecha_inicio: string | null;
+  fecha_fin_periodo_actual: string | null;
+  cancela_al_final_periodo: boolean;
 }
 
 export interface EmpresaMiembro {
