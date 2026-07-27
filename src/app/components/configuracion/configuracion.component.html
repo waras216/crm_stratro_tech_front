@@ -36,7 +36,7 @@
     <!-- Tabs lateral -->
     <div class="w-52 flex-shrink-0 flex flex-col gap-1">
       <ng-container *ngFor="let tab of tabs">
-      <button *ngIf="(tab.id !== 'equipo' && tab.id !== 'negocio') || esAdmin" (click)="activeTab=tab.id"
+      <button *ngIf="(tab.id !== 'equipo' && tab.id !== 'negocio') || esAdmin" (click)="setActiveTab(tab.id)"
         class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all text-left w-full"
         [ngClass]="activeTab===tab.id ? 'text-white' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'"
         [style]="activeTab===tab.id ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.3)' : 'background:transparent'">
@@ -403,6 +403,9 @@
         <div *ngIf="errorEquipo" class="text-xs font-medium px-4 py-2.5 rounded-xl" style="background:#fef2f2;color:#dc2626">
           {{ errorEquipo }}
         </div>
+        <div *ngIf="avisoEquipo" class="text-xs font-medium px-4 py-2.5 rounded-xl" style="background:#eff6ff;color:#1d4ed8">
+          {{ avisoEquipo }}
+        </div>
 
         <!-- Lista -->
         <div class="flex flex-col gap-2">
@@ -411,6 +414,8 @@
               <p class="text-sm font-medium m-0" style="color:#1e1b4b">
                 {{ u.nombre }}
                 <span *ngIf="u.es_admin" class="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-2" style="background:#eef2ff;color:#6366f1">Admin</span>
+                <span *ngFor="let r of u.roles" class="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-1" style="background:#f5f3ff;color:#7c3aed">{{ r }}</span>
+                <span *ngIf="!u.es_admin && (!u.roles || u.roles.length === 0)" class="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-1" style="background:#f8fafc;color:#94a3b8">Sin rol</span>
                 <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-1"
                   [style]="u.estado === 'ocupado' ? 'background:#fffbeb;color:#b45309' : u.estado === 'suspendido' ? 'background:#fef2f2;color:#dc2626' : 'background:#f0fdf4;color:#16a34a'">
                   {{ u.estado ?? 'activo' }}
@@ -420,12 +425,17 @@
             </div>
 
             <!-- Mi propia fila: solo puedo alternar mi disponibilidad -->
-            <div *ngIf="u.id_usuario === miIdUsuario">
+            <div class="flex items-center gap-2" *ngIf="u.id_usuario === miIdUsuario">
               <select (change)="cambiarMiEstado($any($event.target).value)"
                 class="text-[11px] font-medium px-3 py-1.5 rounded-lg focus:outline-none" style="background:#faf5ff;border:1px solid #e0e7ff;color:#1e1b4b">
                 <option value="activo" [selected]="u.estado !== 'ocupado'">Activo</option>
                 <option value="ocupado" [selected]="u.estado === 'ocupado'">Ocupado</option>
               </select>
+              <button (click)="abrirEditarUsuario(u)"
+                class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+                style="background:#f8fafc;color:#64748b">
+                Editar
+              </button>
             </div>
 
             <div class="flex items-center gap-2" *ngIf="u.id_usuario !== miIdUsuario">
@@ -435,6 +445,11 @@
                 <option value="ocupado" [selected]="u.estado === 'ocupado'">Ocupado</option>
                 <option value="suspendido" [selected]="u.estado === 'suspendido'">Suspendido</option>
               </select>
+              <button (click)="abrirEditarUsuario(u)"
+                class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+                style="background:#f8fafc;color:#64748b">
+                Editar
+              </button>
               <button (click)="toggleAdmin(u)"
                 class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
                 style="background:#f8fafc;color:#64748b">
@@ -455,19 +470,95 @@
           <div *ngIf="limiteAlcanzado" class="text-xs font-medium px-4 py-2.5 rounded-xl mb-3" style="background:#fffbeb;color:#b45309">
             Alcanzaste el límite de usuarios de tu plan. Actualiza tu plan para agregar más.
           </div>
-          <div class="grid grid-cols-3 gap-3">
-            <input [(ngModel)]="nuevoUsuario.nombre" placeholder="Nombre" [disabled]="limiteAlcanzado"
-              class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
-            <input [(ngModel)]="nuevoUsuario.email" placeholder="Email" [disabled]="limiteAlcanzado"
-              class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
-            <input [(ngModel)]="nuevoUsuario.password" placeholder="Contraseña" type="password" [disabled]="limiteAlcanzado"
-              class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
+          <div class="flex gap-2 mb-3">
+            <button type="button" (click)="modoInvitar='con_correo'; erroresNuevoUsuario={}"
+              class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+              [style]="modoInvitar==='con_correo' ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff' : 'background:#f8fafc;color:#64748b'">
+              Con correo
+            </button>
+            <button type="button" (click)="modoInvitar='cajero'; erroresNuevoUsuario={}"
+              class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+              [style]="modoInvitar==='cajero' ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff' : 'background:#f8fafc;color:#64748b'">
+              Cajero (sin correo, solo PIN)
+            </button>
+          </div>
+
+          <div class="grid gap-3" [ngClass]="modoInvitar==='cajero' ? 'grid-cols-1' : 'grid-cols-3'">
+            <div class="flex flex-col gap-1">
+              <input [(ngModel)]="nuevoUsuario.nombre" placeholder="Nombre" [disabled]="limiteAlcanzado"
+                class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none w-full" style="background:#f8fafc" />
+              <span *ngIf="erroresNuevoUsuario.nombre" class="text-[11px] font-medium" style="color:#dc2626">{{ erroresNuevoUsuario.nombre }}</span>
+            </div>
+            <ng-container *ngIf="modoInvitar==='con_correo'">
+              <div class="flex flex-col gap-1">
+                <input [(ngModel)]="nuevoUsuario.email" placeholder="Email" [disabled]="limiteAlcanzado"
+                  class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none w-full" style="background:#f8fafc" />
+                <span *ngIf="erroresNuevoUsuario.email" class="text-[11px] font-medium" style="color:#dc2626">{{ erroresNuevoUsuario.email }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <input [(ngModel)]="nuevoUsuario.password" placeholder="Contraseña" type="password" [disabled]="limiteAlcanzado"
+                  class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none w-full" style="background:#f8fafc" />
+                <span *ngIf="erroresNuevoUsuario.password" class="text-[11px] font-medium" style="color:#dc2626">{{ erroresNuevoUsuario.password }}</span>
+              </div>
+            </ng-container>
+          </div>
+          <div class="mt-3">
+            <label class="text-[11px] font-semibold m-0 mb-1 block" style="color:#64748b">
+              {{ modoInvitar==='cajero' ? 'PIN de acceso (con esto entra, no necesita correo)' : 'PIN de acceso rápido (opcional, para cajeros)' }}
+            </label>
+            <input [(ngModel)]="nuevoUsuario.pin" placeholder="4 a 8 dígitos" inputmode="numeric" pattern="[0-9]*" [disabled]="limiteAlcanzado"
+              class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none w-full" style="background:#f8fafc" />
+            <span *ngIf="erroresNuevoUsuario.pin" class="text-[11px] font-medium block mt-1" style="color:#dc2626">{{ erroresNuevoUsuario.pin }}</span>
+          </div>
+          <div class="mt-3">
+            <label class="text-[11px] font-semibold m-0 mb-1 block" style="color:#64748b">Acceso / módulos</label>
+            <select [(ngModel)]="nuevoUsuario.id_rol" [disabled]="limiteAlcanzado"
+              class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none w-full" style="background:#f8fafc">
+              <option [ngValue]="null">Todos los módulos (rol por defecto)</option>
+              <option *ngFor="let r of rolesAsignables" [ngValue]="r.id_rol">{{ r.nombre }}</option>
+            </select>
+            <p *ngIf="rolesAsignables.length === 0" class="text-[11px] text-slate-400 m-0 mt-1">
+              Para limitar el acceso por módulo (ej. un cajero que solo vea POS), primero crea un rol personalizado en la sección de Roles.
+            </p>
           </div>
           <button (click)="invitarUsuario()" [disabled]="limiteAlcanzado || invitando"
             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 mt-3"
             style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"
             [style.opacity]="(limiteAlcanzado || invitando) ? 0.5 : 1">
             {{ invitando ? 'Invitando…' : 'Invitar' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Editar usuario -->
+      <div *ngIf="dialogUsuarioOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="cerrarEditarUsuario()"></div>
+      <div *ngIf="dialogUsuarioOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-md z-[101] shadow-2xl p-6">
+        <h3 class="text-sm font-bold m-0 mb-4" style="color:#1e1b4b">Editar usuario</h3>
+
+        <div *ngIf="errorDialogUsuario" class="text-xs font-medium px-4 py-2.5 rounded-xl mb-3" style="background:#fef2f2;color:#dc2626">
+          {{ errorDialogUsuario }}
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <input [(ngModel)]="formUsuario.nombre" placeholder="Nombre"
+            class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
+          <input [(ngModel)]="formUsuario.email" placeholder="Email"
+            class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
+          <input [(ngModel)]="formUsuario.password" placeholder="Nueva contraseña (opcional)" type="password"
+            class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
+          <input [(ngModel)]="formUsuario.pin" placeholder="Nuevo PIN de acceso rápido (opcional)" inputmode="numeric" pattern="[0-9]*"
+            class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
+        </div>
+
+        <div class="flex justify-end gap-2 mt-5">
+          <button (click)="cerrarEditarUsuario()"
+            class="text-xs font-semibold px-4 py-2.5 rounded-xl border-0 cursor-pointer" style="background:#f8fafc;color:#64748b">
+            Cancelar
+          </button>
+          <button (click)="guardarUsuario()" [disabled]="guardandoUsuario"
+            class="text-xs font-semibold px-4 py-2.5 rounded-xl border-0 cursor-pointer text-white"
+            style="background:linear-gradient(135deg,#6366f1,#8b5cf6)" [style.opacity]="guardandoUsuario ? 0.6 : 1">
+            {{ guardandoUsuario ? 'Guardando…' : 'Guardar' }}
           </button>
         </div>
       </div>

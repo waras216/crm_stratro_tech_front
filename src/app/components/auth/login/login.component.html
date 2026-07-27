@@ -25,42 +25,96 @@
         <div *ngIf="error" class="error-shake px-4 py-2.5 rounded-xl text-sm font-medium text-red-300 border border-red-500/30"
           style="background:rgba(239,68,68,.1)">{{ error }}</div>
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-medium" style="color:#c7d2fe">Email</label>
-          <input type="email" [(ngModel)]="email" placeholder="tu@email.com"
-            class="input-field w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
-            style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)" />
-        </div>
+        <ng-container *ngIf="modo === 'email'">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium" style="color:#c7d2fe">Email</label>
+            <input type="email" [(ngModel)]="email" placeholder="tu@email.com"
+              class="input-field w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+              style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)" />
+          </div>
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-medium" style="color:#c7d2fe">Contraseña</label>
-          <input type="password" [(ngModel)]="password" placeholder="••••••••"
-            class="input-field w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
-            style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)"
-            (keyup.enter)="submit()" />
-          <a routerLink="/auth/forgot-password" class="link-underline text-xs self-end cursor-pointer" style="color:#a5b4fc">¿Olvidaste tu contraseña?</a>
-        </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium" style="color:#c7d2fe">Contraseña</label>
+            <input type="password" [(ngModel)]="password" placeholder="••••••••"
+              class="input-field w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+              style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)"
+              (keyup.enter)="submit()" />
+            <a routerLink="/auth/forgot-password" class="link-underline text-xs self-end cursor-pointer" style="color:#a5b4fc">¿Olvidaste tu contraseña?</a>
+          </div>
 
-        <button (click)="submit()"
-          class="btn-submit w-full py-3 rounded-xl border-0 cursor-pointer text-sm font-bold text-white"
-          style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 20px rgba(99,102,241,.4)">
-          Iniciar Sesión
-        </button>
+          <button (click)="submit()"
+            class="btn-submit w-full py-3 rounded-xl border-0 cursor-pointer text-sm font-bold text-white"
+            style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 20px rgba(99,102,241,.4)">
+            Iniciar Sesión
+          </button>
 
-        <div class="flex items-center gap-3">
-          <div class="flex-1 h-px" style="background:rgba(129,140,248,.2)"></div>
-          <span class="text-[11px]" style="color:#a5b4fc">o</span>
-          <div class="flex-1 h-px" style="background:rgba(129,140,248,.2)"></div>
-        </div>
+          <div class="flex items-center gap-3">
+            <div class="flex-1 h-px" style="background:rgba(129,140,248,.2)"></div>
+            <span class="text-[11px]" style="color:#a5b4fc">o</span>
+            <div class="flex-1 h-px" style="background:rgba(129,140,248,.2)"></div>
+          </div>
 
-        <button (click)="continuarConGoogle()" type="button"
-          class="w-full py-3 rounded-xl cursor-pointer text-sm font-semibold text-white flex items-center justify-center gap-2"
-          style="background:rgba(255,255,255,.05);border:1px solid rgba(129,140,248,.2)">
-          Continuar con Google
-        </button>
+          <button (click)="continuarConGoogle()" type="button"
+            class="w-full py-3 rounded-xl cursor-pointer text-sm font-semibold text-white flex items-center justify-center gap-2"
+            style="background:rgba(255,255,255,.05);border:1px solid rgba(129,140,248,.2)">
+            Continuar con Google
+          </button>
+
+          <button *ngIf="puedeUsarPin" (click)="entrarModoPin()" type="button"
+            class="w-full py-3 rounded-xl cursor-pointer text-sm font-semibold flex items-center justify-center gap-2"
+            style="background:transparent;border:1px dashed rgba(129,140,248,.3);color:#a5b4fc">
+            Entrar con PIN de cajero
+          </button>
+        </ng-container>
+
+        <ng-container *ngIf="modo === 'pin' && !usuarioSeleccionado">
+          <p class="text-center text-xs m-0" style="color:#a5b4fc">¿Quién eres?</p>
+
+          <p *ngIf="cargandoUsuariosPin" class="text-center text-xs m-0" style="color:#a5b4fc">Cargando…</p>
+          <p *ngIf="!cargandoUsuariosPin && usuariosPin.length === 0" class="text-center text-xs m-0" style="color:#a5b4fc">
+            Nadie tiene un PIN configurado todavía en este negocio.
+          </p>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button *ngFor="let u of usuariosPin" (click)="elegirUsuarioPin(u)" type="button"
+              class="py-4 rounded-xl cursor-pointer text-sm font-semibold text-white flex flex-col items-center gap-2"
+              style="background:rgba(255,255,255,.05);border:1px solid rgba(129,140,248,.2)">
+              <span class="w-10 h-10 rounded-full flex items-center justify-center text-base font-bold"
+                style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">{{ u.nombre.charAt(0).toUpperCase() }}</span>
+              {{ u.nombre }}
+            </button>
+          </div>
+
+          <button (click)="modo='email'; error=''" type="button"
+            class="w-full py-2 rounded-xl cursor-pointer text-xs font-semibold" style="background:transparent;color:#a5b4fc">
+            Cancelar
+          </button>
+        </ng-container>
+
+        <ng-container *ngIf="modo === 'pin' && usuarioSeleccionado">
+          <p class="text-center text-xs m-0" style="color:#a5b4fc">Hola, {{ usuarioSeleccionado.nombre }} — ingresa tu PIN</p>
+
+          <div class="flex items-center justify-center gap-3">
+            <span *ngFor="let i of [0,1,2,3]" class="w-4 h-4 rounded-full"
+              [style.background]="pin.length > i ? '#8b5cf6' : 'rgba(255,255,255,.08)'"></span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <button *ngFor="let d of ['1','2','3','4','5','6','7','8','9']" (click)="digitoPin(d)" type="button"
+              class="py-3 rounded-xl cursor-pointer text-lg font-bold text-white"
+              style="background:rgba(255,255,255,.05);border:1px solid rgba(129,140,248,.2)">{{ d }}</button>
+            <button (click)="volverAListaPin()" type="button"
+              class="py-3 rounded-xl cursor-pointer text-xs font-semibold" style="background:transparent;color:#a5b4fc">Atrás</button>
+            <button (click)="digitoPin('0')" type="button"
+              class="py-3 rounded-xl cursor-pointer text-lg font-bold text-white"
+              style="background:rgba(255,255,255,.05);border:1px solid rgba(129,140,248,.2)">0</button>
+            <button (click)="borrarDigitoPin()" type="button"
+              class="py-3 rounded-xl cursor-pointer text-xs font-semibold" style="background:transparent;color:#a5b4fc">Borrar</button>
+          </div>
+        </ng-container>
       </div>
 
-      <p class="text-center text-xs mt-6 m-0" style="color:#a5b4fc">
+      <p *ngIf="modo === 'email'" class="text-center text-xs mt-6 m-0" style="color:#a5b4fc">
         ¿No tienes cuenta?
         <a routerLink="/auth/registro" class="link-underline font-semibold text-white cursor-pointer">Regístrate</a>
       </p>

@@ -140,6 +140,8 @@ export interface Usuario {
   es_admin?:  boolean;
   estado?:    EstadoUsuario;
   created_at?: string;
+  cuenta_existente?: boolean;
+  roles?: string[];
 }
 
 export interface Plan {

@@ -57,8 +57,19 @@ export interface UserSession {
 export class AuthService {
   private readonly STORAGE_KEY = 'crm_session';
   private readonly TOKEN_KEY   = 'api_token';
+  // A diferencia de STORAGE_KEY/TOKEN_KEY, esto NO se borra en logout() a
+  // propósito: es "qué tenant es este dispositivo/terminal", para que un
+  // cajero pueda entrar solo con su PIN sin volver a pedir correo (ver
+  // pinLogin()). Se graba la primera vez que alguien inicia sesión normal
+  // en este navegador.
+  private readonly TERMINAL_TENANT_KEY = 'pos_terminal_tenant';
 
   constructor(private http: HttpClient, private router: Router) {}
+
+  get terminalTenantId(): number | null {
+    const raw = localStorage.getItem(this.TERMINAL_TENANT_KEY);
+    return raw ? Number(raw) : null;
+  }
 
   get session(): UserSession | null {
     const raw = localStorage.getItem(this.STORAGE_KEY);
@@ -109,6 +120,7 @@ export class AuthService {
 
   private guardarSesion(session: UserSession) {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+    if (session.id_tenant) localStorage.setItem(this.TERMINAL_TENANT_KEY, String(session.id_tenant));
   }
 
   forgotPassword(email: string): Observable<boolean> {
@@ -132,6 +144,30 @@ export class AuthService {
       tap(res => {
         localStorage.setItem(this.TOKEN_KEY, res.token);
         this.guardarSesion(this.mapSesion(res.user, { email }));
+      }),
+      map(() => true),
+      catchError(() => of(false)),
+    );
+  }
+
+  /** Cajeros (con PIN) del tenant recordado en este dispositivo, para elegir
+   * "quién eres" antes de teclear el PIN. */
+  cargarUsuariosPin(): Observable<{ id_usuario: number; nombre: string }[]> {
+    const idTenant = this.terminalTenantId;
+    if (!idTenant) return of([]);
+    return this.http.get<{ id_usuario: number; nombre: string }[]>(`${environment.apiUrl}/pin-login/usuarios`, { params: { id_tenant: idTenant } })
+      .pipe(catchError(() => of([])));
+  }
+
+  /** Login rápido por PIN en este dispositivo (ver TERMINAL_TENANT_KEY). */
+  pinLogin(idUsuario: number, pin: string): Observable<boolean> {
+    const idTenant = this.terminalTenantId;
+    if (!idTenant) return of(false);
+
+    return this.http.post<{ user: any; token: string }>(`${environment.apiUrl}/pin-login`, { id_tenant: idTenant, id_usuario: idUsuario, pin }).pipe(
+      tap(res => {
+        localStorage.setItem(this.TOKEN_KEY, res.token);
+        this.guardarSesion(this.mapSesion(res.user));
       }),
       map(() => true),
       catchError(() => of(false)),

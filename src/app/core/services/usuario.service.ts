@@ -22,13 +22,13 @@ export class UsuarioService {
     );
   }
 
-  invitarUsuario(usuario: { nombre: string; email: string; password: string; es_admin?: boolean }): Observable<Usuario> {
+  invitarUsuario(usuario: { nombre: string; email: string; password: string; es_admin?: boolean; id_rol?: number | null; pin?: string }): Observable<Usuario> {
     return this.http.post<Usuario>(`${API}/usuarios`, usuario).pipe(
       tap(nuevo => this._usuarios.next([...this.usuarios, nuevo]))
     );
   }
 
-  actualizarUsuario(id: number, usuario: Partial<Usuario> & { password?: string }): Observable<Usuario> {
+  actualizarUsuario(id: number, usuario: Partial<Usuario> & { password?: string; pin?: string }): Observable<Usuario> {
     return this.http.put<Usuario>(`${API}/usuarios/${id}`, usuario).pipe(
       tap(updated => this._usuarios.next(this.usuarios.map(u => u.id_usuario === id ? updated : u)))
     );

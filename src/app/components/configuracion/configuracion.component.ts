@@ -3,7 +3,10 @@ import { Location } from '@angular/common';
 import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
 import { UsuarioService } from '../../core/services/usuario.service';
-import { Usuario } from '../../models/crm.models';
+import { RolService } from '../../core/services/rol.service';
+import { Usuario, Rol } from '../../models/crm.models';
+
+type TabConfiguracion = 'general' | 'cuenta' | 'notificaciones' | 'apariencia' | 'seguridad' | 'equipo' | 'negocio';
 
 @Component({
   selector: 'app-configuracion',
@@ -12,7 +15,7 @@ import { Usuario } from '../../models/crm.models';
   styleUrls: ['./configuracion.component.scss'],
 })
 export class ConfiguracionComponent implements OnInit {
-  activeTab: 'general' | 'cuenta' | 'notificaciones' | 'apariencia' | 'seguridad' | 'equipo' | 'negocio' = 'general';
+  activeTab: TabConfiguracion = 'general';
 
   // General
   nombreEmpresa = '';
@@ -90,7 +93,24 @@ export class ConfiguracionComponent implements OnInit {
   cargandoUsuarios = false;
   errorEquipo = '';
   invitando = false;
-  nuevoUsuario = { nombre: '', email: '', password: '', es_admin: false };
+  modoInvitar: 'con_correo' | 'cajero' = 'con_correo';
+  nuevoUsuario: { nombre: string; email: string; password: string; es_admin: boolean; id_rol: number | null; pin: string } =
+    { nombre: '', email: '', password: '', es_admin: false, id_rol: null, pin: '' };
+  erroresNuevoUsuario: { nombre?: string; email?: string; password?: string; pin?: string } = {};
+  roles: Rol[] = [];
+  avisoEquipo = '';
+
+  private readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  private readonly PIN_REGEX = /^\d{4,8}$/;
+
+  get rolesAsignables(): Rol[] { return this.roles.filter(r => !r.es_sistema); }
+
+  // Editar usuario existente
+  dialogUsuarioOpen = false;
+  editandoUsuario: Usuario | null = null;
+  formUsuario = { nombre: '', email: '', password: '', pin: '' };
+  errorDialogUsuario = '';
+  guardandoUsuario = false;
 
   get esAdmin(): boolean { return !!this.auth.session?.es_admin; }
   get maxUsuarios(): number | null { return this.auth.session?.plan?.max_usuarios ?? null; }
@@ -102,11 +122,22 @@ export class ConfiguracionComponent implements OnInit {
     public theme: ThemeService,
     private location: Location,
     private usuarioService: UsuarioService,
+    private rolService: RolService,
   ) {}
 
   goBack() { this.location.back(); }
 
+  setActiveTab(tab: TabConfiguracion) {
+    this.activeTab = tab;
+    localStorage.setItem('configuracionActiveTab', tab);
+  }
+
   ngOnInit() {
+    const tabsPermitidos: TabConfiguracion[] = ['general', 'cuenta', 'notificaciones', 'apariencia', 'seguridad'];
+    if (this.esAdmin) tabsPermitidos.push('equipo', 'negocio');
+    const tabGuardado = localStorage.getItem('configuracionActiveTab') as TabConfiguracion | null;
+    if (tabGuardado && tabsPermitidos.includes(tabGuardado)) this.activeTab = tabGuardado;
+
     const session = this.auth.session;
     if (session) {
       this.nombre = session.nombre;
@@ -135,7 +166,10 @@ export class ConfiguracionComponent implements OnInit {
     this.sesionActiva = localStorage.getItem('sesionActiva') !== 'false';
     this.logoPreview = this.auth.session?.logo ?? null;
     this.applyStoredStyles();
-    if (this.esAdmin) this.cargarUsuarios();
+    if (this.esAdmin) {
+      this.cargarUsuarios();
+      this.rolService.cargarRoles().subscribe({ next: roles => this.roles = roles });
+    }
   }
 
   cargarUsuarios() {
@@ -146,18 +180,94 @@ export class ConfiguracionComponent implements OnInit {
     });
   }
 
+  validarNuevoUsuario(): boolean {
+    const errores: typeof this.erroresNuevoUsuario = {};
+    const u = this.nuevoUsuario;
+
+    if (!u.nombre.trim()) errores.nombre = 'El nombre es obligatorio.';
+    else if (u.nombre.trim().length < 2) errores.nombre = 'El nombre es muy corto.';
+
+    if (this.modoInvitar === 'cajero') {
+      if (!u.pin) errores.pin = 'El PIN es obligatorio para un cajero (así entra, sin correo).';
+      else if (!this.PIN_REGEX.test(u.pin)) errores.pin = 'El PIN debe ser solo números, de 4 a 8 dígitos.';
+    } else {
+      if (!u.email.trim()) errores.email = 'El correo es obligatorio.';
+      else if (!this.EMAIL_REGEX.test(u.email.trim())) errores.email = 'Ese correo no es válido.';
+
+      if (!u.password) errores.password = 'La contraseña es obligatoria.';
+      else if (u.password.length < 6) errores.password = 'Mínimo 6 caracteres.';
+
+      if (u.pin && !this.PIN_REGEX.test(u.pin)) errores.pin = 'El PIN debe ser solo números, de 4 a 8 dígitos.';
+    }
+
+    this.erroresNuevoUsuario = errores;
+    return Object.keys(errores).length === 0;
+  }
+
   invitarUsuario() {
-    if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.email || !this.nuevoUsuario.password) return;
+    if (!this.validarNuevoUsuario()) return;
     this.errorEquipo = '';
+    this.avisoEquipo = '';
     this.invitando = true;
-    this.usuarioService.invitarUsuario(this.nuevoUsuario).subscribe({
-      next: () => {
+
+    const payload = this.modoInvitar === 'cajero'
+      ? { ...this.nuevoUsuario, email: '', password: '' }
+      : this.nuevoUsuario;
+
+    this.usuarioService.invitarUsuario(payload).subscribe({
+      next: nuevo => {
         this.invitando = false;
-        this.nuevoUsuario = { nombre: '', email: '', password: '', es_admin: false };
+        if (nuevo.cuenta_existente) {
+          this.avisoEquipo = `${nuevo.email} ya tenía una cuenta en STRATO — se agregó a tu equipo con su contraseña existente. La contraseña que escribiste aquí no se usó.`;
+        }
+        this.nuevoUsuario = { nombre: '', email: '', password: '', es_admin: false, id_rol: null, pin: '' };
+        this.erroresNuevoUsuario = {};
+        this.cargarUsuarios();
       },
       error: err => {
         this.invitando = false;
         this.errorEquipo = err?.error?.message || 'No se pudo invitar al usuario';
+      },
+    });
+  }
+
+  abrirEditarUsuario(u: Usuario) {
+    this.editandoUsuario = u;
+    this.formUsuario = { nombre: u.nombre, email: u.email, password: '', pin: '' };
+    this.errorDialogUsuario = '';
+    this.dialogUsuarioOpen = true;
+  }
+
+  cerrarEditarUsuario() {
+    this.dialogUsuarioOpen = false;
+    this.editandoUsuario = null;
+  }
+
+  guardarUsuario() {
+    if (!this.editandoUsuario) return;
+    if (!this.formUsuario.nombre || !this.formUsuario.email) {
+      this.errorDialogUsuario = 'Nombre y correo son obligatorios.';
+      return;
+    }
+
+    const payload: Partial<Usuario> & { password?: string; pin?: string } = {
+      nombre: this.formUsuario.nombre,
+      email: this.formUsuario.email,
+    };
+    if (this.formUsuario.password) payload.password = this.formUsuario.password;
+    if (this.formUsuario.pin) payload.pin = this.formUsuario.pin;
+
+    this.errorDialogUsuario = '';
+    this.guardandoUsuario = true;
+    this.usuarioService.actualizarUsuario(this.editandoUsuario.id_usuario, payload).subscribe({
+      next: () => {
+        this.guardandoUsuario = false;
+        this.cerrarEditarUsuario();
+        this.cargarUsuarios();
+      },
+      error: err => {
+        this.guardandoUsuario = false;
+        this.errorDialogUsuario = err?.error?.message || 'No se pudo actualizar el usuario';
       },
     });
   }
