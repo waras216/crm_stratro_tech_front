@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
-import { PlanService } from '../../../core/services/plan.service';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SuscripcionService } from '../../../core/services/suscripcion.service';
 import { AuthService } from '../../../core/auth/authservices';
 import { Plan, Suscripcion } from '../../../models/crm.models';
@@ -22,11 +21,11 @@ export class SuscripcionComponent implements OnInit {
   abriendoPortal = false;
 
   constructor(
-    private planService: PlanService,
     private suscripcionService: SuscripcionService,
     public auth: AuthService,
     private route: ActivatedRoute,
     private location: Location,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -34,18 +33,29 @@ export class SuscripcionComponent implements OnInit {
     if (checkout === 'success' || checkout === 'cancel') {
       this.checkoutResultado = checkout;
       this.auth.refreshSession().subscribe();
+      // El regreso de Stripe Checkout dejó su propia página en el historial
+      // del navegador (fue una navegación de página completa, no del router
+      // de Angular). Limpiamos el query param aquí para que "atrás" no
+      // reabra esa página de Stripe ya expirada.
+      this.location.replaceState('/configuracion/suscripcion');
     }
 
     this.cargar();
   }
 
-  goBack() { this.location.back(); }
+  goBack() {
+    if (this.checkoutResultado) {
+      this.router.navigateByUrl('/crm/dashboard');
+    } else {
+      this.location.back();
+    }
+  }
 
   cargar() {
     this.cargando = true;
     this.error = '';
 
-    this.planService.cargarPlanes().subscribe({
+    this.suscripcionService.planesDisponibles().subscribe({
       next: planes => { this.planes = planes; this.cargando = false; },
       error: () => { this.cargando = false; },
     });

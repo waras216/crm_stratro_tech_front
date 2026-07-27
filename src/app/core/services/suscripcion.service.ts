@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Suscripcion } from '../../models/crm.models';
+import { Plan, Suscripcion } from '../../models/crm.models';
 
 const API = environment.apiUrl;
 
@@ -14,6 +14,10 @@ export class SuscripcionService {
 
   obtenerEstado(): Observable<Suscripcion | null> {
     return this.http.get<Suscripcion | null>(`${API}/suscripcion`);
+  }
+
+  planesDisponibles(): Observable<Plan[]> {
+    return this.http.get<Plan[]>(`${API}/suscripcion/planes`);
   }
 
   iniciarCheckout(idPlan: number): Observable<{ url: string }> {
