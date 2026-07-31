@@ -10,6 +10,14 @@ export class ModuloGuard implements CanActivate {
 
   canActivate(route: ActivatedRouteSnapshot): boolean {
     const modulo = route.data['modulo'] as ModuloId;
+
+    // Un cajero (soloPos, ver AuthService) solo puede entrar a /pos, sin
+    // importar qué módulos tenga contratados el tenant.
+    if (this.auth.session?.soloPos && modulo !== 'pos') {
+      this.router.navigate(['/pos']);
+      return false;
+    }
+
     const modulos = this.auth.session?.nichoData?.modulos;
 
     if (!modulos || modulos[modulo] !== false) return true;

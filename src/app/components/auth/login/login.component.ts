@@ -55,7 +55,7 @@ export class AuthLoginComponent {
         this.loading = false;
         if (!ok) { this.error = 'Credenciales incorrectas'; this.cdr.detectChanges(); return; }
         if (!this.auth.isOnboarded) { this.router.navigate(['/auth/onboarding']); return; }
-        this.router.navigate(['/crm']);
+        this.router.navigate([this.auth.session?.soloPos ? '/pos' : '/crm']);
       },
       error: () => { this.loading = false; this.error = 'Error de conexión con el servidor'; this.cdr.detectChanges(); },
     });
@@ -79,7 +79,7 @@ export class AuthLoginComponent {
         this.loading = false;
         this.pin = '';
         if (!ok) { this.error = 'PIN incorrecto'; this.cdr.detectChanges(); return; }
-        this.router.navigate(['/crm']);
+        this.router.navigate([this.auth.session?.soloPos ? '/pos' : '/crm']);
       },
       error: () => { this.loading = false; this.pin = ''; this.error = 'Error de conexión con el servidor'; this.cdr.detectChanges(); },
     });

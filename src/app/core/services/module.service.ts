@@ -4,6 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { NichoService } from './nicho.service';
+import { AuthService } from '../auth/authservices';
 
 export type ModuleId = 'crm' | 'erp' | 'pos';
 export type ErpTab = 'dashboard' | 'finanzas' | 'compras' | 'ventas' | 'inventario' | 'fabricacion' | 'scm' | 'rrhh' | 'crm' | 'proyectos' | 'reportes';
@@ -217,8 +218,10 @@ const POS_SIDEBAR: SidebarSection[] = [
 export class ModuleService {
   readonly futureModules = FUTURE_MODULES;
 
-  /** Solo los módulos que el tenant tiene contratados (ver nichoData.modulos). */
+  /** Solo los módulos que el tenant tiene contratados (ver nichoData.modulos),
+   * y si el usuario es cajero (soloPos, ver AuthService), solo POS. */
   get modules(): ModuleConfig[] {
+    if (this.auth.session?.soloPos) return MODULES.filter(m => m.id === 'pos');
     const modulos = this.nicho.modulos;
     return MODULES.filter(m => modulos[m.id] !== false);
   }
@@ -235,7 +238,7 @@ export class ModuleService {
     ['pos', '/pos'],
   ]);
 
-  constructor(private router: Router, private nicho: NichoService) {
+  constructor(private router: Router, private nicho: NichoService, private auth: AuthService) {
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(e => this.syncFromUrl(e.urlAfterRedirects));
