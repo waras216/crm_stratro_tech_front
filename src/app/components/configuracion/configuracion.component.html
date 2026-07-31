@@ -464,6 +464,35 @@
           </div>
         </div>
 
+        <!-- Terminal POS -->
+        <div class="pt-4" style="border-top:1px solid #eef2ff">
+          <h3 class="text-xs font-bold m-0" style="color:#1e1b4b">Esta terminal</h3>
+          <p class="text-[11px] text-slate-400 m-0 mt-1 mb-3">
+            El login rápido por PIN de cajero solo aparece en dispositivos que vincules explícitamente a tu negocio. No lo actives en una computadora compartida con otras empresas.
+          </p>
+
+          <div *ngIf="terminalVinculadaAOtroTenant" class="text-xs font-medium px-4 py-2.5 rounded-xl mb-3" style="background:#fffbeb;color:#b45309">
+            Esta terminal está vinculada a otro negocio. Si la vinculás al tuyo, se reemplaza ese vínculo.
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="text-[11px] font-semibold px-3 py-1.5 rounded-full"
+              [style]="terminalVinculada ? 'background:#f0fdf4;color:#16a34a' : 'background:#f8fafc;color:#94a3b8'">
+              {{ terminalVinculada ? 'Vinculada a tu negocio' : 'Sin vincular' }}
+            </span>
+            <button *ngIf="!terminalVinculada" (click)="vincularTerminal()"
+              class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+              style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff">
+              Configurar esta terminal para mi negocio
+            </button>
+            <button *ngIf="terminalVinculada" (click)="desvincularTerminal()"
+              class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+              style="background:#fef2f2;color:#dc2626">
+              Quitar esta terminal
+            </button>
+          </div>
+        </div>
+
         <!-- Invitar -->
         <div class="pt-4" style="border-top:1px solid #eef2ff">
           <h3 class="text-xs font-bold m-0 mb-3" style="color:#1e1b4b">Invitar usuario</h3>
@@ -514,11 +543,14 @@
             <label class="text-[11px] font-semibold m-0 mb-1 block" style="color:#64748b">Acceso / módulos</label>
             <select [(ngModel)]="nuevoUsuario.id_rol" [disabled]="limiteAlcanzado"
               class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none w-full" style="background:#f8fafc">
-              <option [ngValue]="null">Todos los módulos (rol por defecto)</option>
+              <option [ngValue]="null">Todos los permisos (rol por defecto)</option>
               <option *ngFor="let r of rolesAsignables" [ngValue]="r.id_rol">{{ r.nombre }}</option>
             </select>
-            <p *ngIf="rolesAsignables.length === 0" class="text-[11px] text-slate-400 m-0 mt-1">
-              Para limitar el acceso por módulo (ej. un cajero que solo vea POS), primero crea un rol personalizado en la sección de Roles.
+            <p *ngIf="modoInvitar==='cajero'" class="text-[11px] text-slate-400 m-0 mt-1">
+              Un cajero (sin correo, solo PIN) solo ve el módulo POS automáticamente. El rol de acá afina qué puede hacer dentro de POS, no en qué módulo entra.
+            </p>
+            <p *ngIf="modoInvitar==='con_correo' && rolesAsignables.length === 0" class="text-[11px] text-slate-400 m-0 mt-1">
+              Crea un rol personalizado en la sección de Roles para afinar sus permisos.
             </p>
           </div>
           <button (click)="invitarUsuario()" [disabled]="limiteAlcanzado || invitando"

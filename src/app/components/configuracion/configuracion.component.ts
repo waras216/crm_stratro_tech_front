@@ -117,6 +117,23 @@ export class ConfiguracionComponent implements OnInit {
   get limiteAlcanzado(): boolean { return this.maxUsuarios !== null && this.usuarios.length >= this.maxUsuarios; }
   get miIdUsuario(): number | undefined { return this.auth.session?.id_usuario; }
 
+  // Terminal POS (vínculo dispositivo↔tenant para login rápido por PIN)
+  get terminalVinculada(): boolean { return this.auth.terminalVinculadaAMiTenant; }
+  get terminalVinculadaAOtroTenant(): boolean {
+    const idTerminal = this.auth.terminalTenantId;
+    return idTerminal !== null && idTerminal !== this.auth.session?.id_tenant;
+  }
+
+  vincularTerminal() {
+    this.auth.vincularTerminal();
+    this.avisoEquipo = 'Esta terminal quedó configurada para tu negocio: ya puede usarse el login rápido por PIN.';
+  }
+
+  desvincularTerminal() {
+    this.auth.desvincularTerminal();
+    this.avisoEquipo = 'Esta terminal ya no ofrecerá login por PIN hasta que la vuelvas a configurar.';
+  }
+
   constructor(
     private auth: AuthService,
     public theme: ThemeService,

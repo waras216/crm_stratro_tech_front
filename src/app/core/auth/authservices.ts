@@ -46,6 +46,8 @@ export interface UserSession {
   id_tenant?: number;
   es_admin?: boolean;
   es_superadmin?: boolean;
+  /** Cajero (sin correo, entra solo por PIN): solo debe ver el módulo POS. */
+  soloPos?: boolean;
   plan?: PlanInfo | null;
   membresias?: MembresiaInfo[];
   foto_perfil?: string | null;
@@ -60,8 +62,11 @@ export class AuthService {
   // A diferencia de STORAGE_KEY/TOKEN_KEY, esto NO se borra en logout() a
   // propósito: es "qué tenant es este dispositivo/terminal", para que un
   // cajero pueda entrar solo con su PIN sin volver a pedir correo (ver
-  // pinLogin()). Se graba la primera vez que alguien inicia sesión normal
-  // en este navegador.
+  // pinLogin()). A diferencia de antes, YA NO se graba automáticamente en
+  // cada login normal (un mismo navegador puede recibir logins de varios
+  // tenants distintos — dispositivo compartido, pruebas, etc. — y quedaba
+  // pegado al primero que entrara). Solo se graba vía vincularTerminal(),
+  // una acción explícita de un admin del tenant (ver configuracion).
   private readonly TERMINAL_TENANT_KEY = 'pos_terminal_tenant';
 
   constructor(private http: HttpClient, private router: Router) {}
@@ -69,6 +74,26 @@ export class AuthService {
   get terminalTenantId(): number | null {
     const raw = localStorage.getItem(this.TERMINAL_TENANT_KEY);
     return raw ? Number(raw) : null;
+  }
+
+  /** ¿Esta terminal ya está vinculada al tenant de la sesión activa? */
+  get terminalVinculadaAMiTenant(): boolean {
+    return this.terminalTenantId !== null && this.terminalTenantId === this.session?.id_tenant;
+  }
+
+  /** Vincula explícitamente este dispositivo/navegador al tenant de la
+   * sesión activa, para habilitar el login rápido por PIN de cajero en él.
+   * Debe llamarse solo desde una acción deliberada de un admin (ver
+   * configuracion.component), nunca automáticamente en un login normal. */
+  vincularTerminal() {
+    const idTenant = this.session?.id_tenant;
+    if (idTenant) localStorage.setItem(this.TERMINAL_TENANT_KEY, String(idTenant));
+  }
+
+  /** Desvincula este dispositivo: ya no ofrecerá login por PIN hasta que
+   * alguien lo vincule de nuevo explícitamente. */
+  desvincularTerminal() {
+    localStorage.removeItem(this.TERMINAL_TENANT_KEY);
   }
 
   get session(): UserSession | null {
@@ -110,6 +135,7 @@ export class AuthService {
       id_tenant:          user.id_tenant,
       es_admin:           !!user.es_admin,
       es_superadmin:      !!user.es_superadmin,
+      soloPos:            !!user.soloPos,
       plan:               user.plan,
       membresias:         user.membresias,
       foto_perfil:        user.foto_perfil ?? null,
@@ -120,7 +146,6 @@ export class AuthService {
 
   private guardarSesion(session: UserSession) {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
-    if (session.id_tenant) localStorage.setItem(this.TERMINAL_TENANT_KEY, String(session.id_tenant));
   }
 
   forgotPassword(email: string): Observable<boolean> {
