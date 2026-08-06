@@ -85,9 +85,9 @@ export class AuthLoginComponent {
     });
   }
 
-  /** Redirect de página completa -- Auth0Controller (backend, routes/web.php)
+  /** Redirect de página completa -- GoogleAuthController (backend, routes/web.php)
    * maneja todo el intercambio OAuth2 y regresa a /auth/social-callback. */
   continuarConGoogle() {
-    window.location.href = `${environment.apiUrl.replace(/\/api$/, '')}/auth/auth0/redirect`;
+    window.location.href = `${environment.apiUrl.replace(/\/api$/, '')}/auth/google/redirect`;
   }
 }

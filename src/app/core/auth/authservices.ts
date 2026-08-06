@@ -239,8 +239,8 @@ export class AuthService {
     );
   }
 
-  /** Completa el login social: guarda el token que mandó el callback de Auth0
-   * (ver Auth0Controller en el backend) y carga la sesión igual que login(). */
+  /** Completa el login social: guarda el token que mandó el callback de Google
+   * (ver GoogleAuthController en el backend) y carga la sesión igual que login(). */
   iniciarSesionConToken(token: string): Observable<boolean> {
     localStorage.setItem(this.TOKEN_KEY, token);
     return this.refreshSession();
