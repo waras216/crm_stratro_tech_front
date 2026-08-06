@@ -3,7 +3,7 @@ import { switchMap } from 'rxjs/operators';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
-import { ErpMesa, ErpComandaItem, Producto } from '../../../models/erp.models';
+import { ErpMesa, ErpComandaItem, Producto, PedidoPago } from '../../../models/erp.models';
 import { ItemCarrito } from '../carrito/carrito.component';
 
 @Component({
@@ -171,6 +171,8 @@ import { ItemCarrito } from '../carrito/carrito.component';
 </div>
 
 <app-pos-ticket [items]="lastTicket" [visible]="ticketOpen" (cerrar)="ticketOpen=false"></app-pos-ticket>
+<app-pos-pago-modal [visible]="pagoModalOpen" [total]="totalPago"
+  (confirmar)="confirmarPago($event)" (cancelado)="pagoModalOpen=false"></app-pos-pago-modal>
   `,
 })
 export class PosTerminalRestauranteComponent implements OnInit {
@@ -193,6 +195,10 @@ export class PosTerminalRestauranteComponent implements OnInit {
 
   ticketOpen = false;
   lastTicket: ItemCarrito[] = [];
+  pagoModalOpen = false;
+  totalPago = 0;
+  private mesaPendiente: ErpMesa | null = null;
+  private itemsTicketPendiente: ItemCarrito[] = [];
 
   productos: Producto[] = [];
 
@@ -329,15 +335,27 @@ export class PosTerminalRestauranteComponent implements OnInit {
       .filter(item => item.producto)
       .map(item => ({ producto: item.producto!, cantidad: item.cantidad }));
 
+    this.mesaPendiente = mesa;
+    this.itemsTicketPendiente = itemsTicket;
+    this.totalPago = total;
+    this.pagoModalOpen = true;
+  }
+
+  confirmarPago(pagos: PedidoPago[]) {
+    this.pagoModalOpen = false;
+    const mesa = this.mesaPendiente;
+    if (!mesa) return;
+
     this.cobrando = true;
 
     this.crmService.obtenerClienteMostrador().pipe(
-      switchMap(idCliente => this.erpService.cobrarMesa(mesa.id, idCliente)),
+      switchMap(idCliente => this.erpService.cobrarMesa(mesa.id, idCliente, pagos)),
     ).subscribe({
       next: () => {
-        this.lastTicket = itemsTicket;
+        this.lastTicket = this.itemsTicketPendiente;
         this.ticketOpen = true;
         this.mesaSeleccionada = null;
+        this.mesaPendiente = null;
         this.cobrando = false;
         this.cdr.detectChanges();
       },

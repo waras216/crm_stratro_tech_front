@@ -6,7 +6,7 @@ import { environment } from '../../../environments/environment';
 import {
   Producto, Categoria, Proveedor, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
   ErpOrdenProduccion, ErpEnvio, ErpProyecto, ErpProyectoTarea, ErpProyectoHora, ErpInteraccion, ErpCrmResumen,
-  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpReceta
+  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpReceta, PedidoPago
 } from '../../models/erp.models';
 
 const API = environment.apiUrl;
@@ -272,8 +272,8 @@ export class ErpService {
     );
   }
 
-  cobrarMesa(id: number, idCliente: number): Observable<{ mesa: ErpMesa; pedido: ErpPedido }> {
-    return this.http.post<{ mesa: ErpMesa; pedido: ErpPedido }>(`${API}/erp/mesas/${id}/cobrar`, { id_cliente: idCliente }).pipe(
+  cobrarMesa(id: number, idCliente: number, pagos: PedidoPago[]): Observable<{ mesa: ErpMesa; pedido: ErpPedido }> {
+    return this.http.post<{ mesa: ErpMesa; pedido: ErpPedido }>(`${API}/erp/mesas/${id}/cobrar`, { id_cliente: idCliente, pagos }).pipe(
       tap(res => {
         this.actualizarMesaLocal(res.mesa);
         this._pedidos.next([res.pedido, ...this.pedidos]);
@@ -334,8 +334,8 @@ export class ErpService {
     );
   }
 
-  checkOutHabitacion(id: number, idCliente?: number): Observable<{ habitacion: ErpHabitacion; pedido: ErpPedido | null }> {
-    const body = idCliente ? { id_cliente: idCliente } : {};
+  checkOutHabitacion(id: number, idCliente?: number, pagos?: PedidoPago[]): Observable<{ habitacion: ErpHabitacion; pedido: ErpPedido | null }> {
+    const body = idCliente ? { id_cliente: idCliente, pagos } : {};
     return this.http.post<{ habitacion: ErpHabitacion; pedido: ErpPedido | null }>(`${API}/erp/habitaciones/${id}/check-out`, body).pipe(
       tap(res => {
         this.actualizarHabitacionLocal(res.habitacion);
@@ -365,8 +365,8 @@ export class ErpService {
     );
   }
 
-  dispensarLote(ids: number[], idCliente: number): Observable<ErpPedido> {
-    return this.http.post<ErpPedido>(`${API}/erp/recetas/dispensar-lote`, { ids, id_cliente: idCliente }).pipe(
+  dispensarLote(ids: number[], idCliente: number, pagos: PedidoPago[]): Observable<ErpPedido> {
+    return this.http.post<ErpPedido>(`${API}/erp/recetas/dispensar-lote`, { ids, id_cliente: idCliente, pagos }).pipe(
       tap(pedido => {
         this._recetas.next(this.recetas.map(r => ids.includes(r.id) ? { ...r, pendiente: false } : r));
         this._pedidos.next([pedido, ...this.pedidos]);

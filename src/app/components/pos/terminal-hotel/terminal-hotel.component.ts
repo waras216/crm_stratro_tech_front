@@ -1,9 +1,8 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { Observable, of, switchMap } from 'rxjs';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
-import { ErpHabitacion, Producto } from '../../../models/erp.models';
+import { ErpHabitacion, Producto, PedidoPago } from '../../../models/erp.models';
 import { ItemCarrito } from '../carrito/carrito.component';
 
 @Component({
@@ -180,6 +179,8 @@ import { ItemCarrito } from '../carrito/carrito.component';
 </div>
 
 <app-pos-ticket [items]="lastTicket" [visible]="ticketOpen" (cerrar)="ticketOpen=false"></app-pos-ticket>
+<app-pos-pago-modal [visible]="pagoModalOpen" [total]="totalPago"
+  (confirmar)="confirmarPago($event)" (cancelado)="pagoModalOpen=false"></app-pos-pago-modal>
   `,
 })
 export class PosTerminalHotelComponent implements OnInit {
@@ -206,6 +207,10 @@ export class PosTerminalHotelComponent implements OnInit {
   checkInSaving = false;
 
   ticketOpen = false;
+  pagoModalOpen = false;
+  totalPago = 0;
+  private habPendiente: ErpHabitacion | null = null;
+  private itemsTicketPendiente: ItemCarrito[] = [];
   lastTicket: ItemCarrito[] = [];
 
   productos: Producto[] = [];
@@ -331,15 +336,31 @@ export class PosTerminalHotelComponent implements OnInit {
       .filter(c => c.producto)
       .map(c => ({ producto: c.producto!, cantidad: c.cantidad }));
 
+    if (hab.consumos.length === 0) {
+      this.ejecutarCheckOut(hab, itemsTicket, undefined, []);
+      return;
+    }
+
+    this.habPendiente = hab;
+    this.itemsTicketPendiente = itemsTicket;
+    this.totalPago = total;
+    this.pagoModalOpen = true;
+  }
+
+  confirmarPago(pagos: PedidoPago[]) {
+    this.pagoModalOpen = false;
+    const hab = this.habPendiente;
+    if (!hab) return;
+
+    this.crmService.obtenerClienteMostrador().subscribe(idCliente => {
+      this.ejecutarCheckOut(hab, this.itemsTicketPendiente, idCliente, pagos);
+    });
+  }
+
+  private ejecutarCheckOut(hab: ErpHabitacion, itemsTicket: ItemCarrito[], idCliente: number | undefined, pagos: PedidoPago[]) {
     this.cobrando = true;
 
-    const idCliente$: Observable<number | undefined> = hab.consumos.length > 0
-      ? this.crmService.obtenerClienteMostrador()
-      : of(undefined);
-
-    idCliente$.pipe(
-      switchMap(idCliente => this.erpService.checkOutHabitacion(hab.id, idCliente)),
-    ).subscribe({
+    this.erpService.checkOutHabitacion(hab.id, idCliente, pagos).subscribe({
       next: () => {
         if (itemsTicket.length > 0) {
           this.lastTicket = itemsTicket;
@@ -348,6 +369,7 @@ export class PosTerminalHotelComponent implements OnInit {
           this.notify.success(`Huésped: ${hab.huesped}`, 'Check-out completado');
         }
         this.habSeleccionada = null;
+        this.habPendiente = null;
         this.cobrando = false;
         this.cdr.detectChanges();
       },

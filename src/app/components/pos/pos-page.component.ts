@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { Observable, Subject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
 import { ProductoPOS } from './catalogo/catalogo.component';
@@ -8,7 +8,7 @@ import { NichoService } from '../../core/services/nicho.service';
 import { ErpService } from '../../core/services/erp-service';
 import { CrmService } from '../../core/services/crm-service';
 import { NotifyService } from '../../core/services/notify.service';
-import { ErpPedido } from '../../models/erp.models';
+import { ErpPedido, PedidoPago } from '../../models/erp.models';
 import { Cliente } from '../../models/crm.models';
 
 @Component({
@@ -92,6 +92,8 @@ import { Cliente } from '../../models/crm.models';
     </div>
 
     <app-pos-ticket [items]="lastTicket" [visible]="ticketOpen" (cerrar)="ticketOpen=false"></app-pos-ticket>
+    <app-pos-pago-modal [visible]="pagoModalOpen" [total]="totalCarrito"
+      (confirmar)="confirmarPago($event)" (cancelado)="pagoModalOpen=false"></app-pos-pago-modal>
   `,
   styles: [':host { display: block; height: 100%; }'],
 })
@@ -100,6 +102,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
   carrito: ItemCarrito[] = [];
   ticketOpen = false;
   lastTicket: ItemCarrito[] = [];
+  pagoModalOpen = false;
   historial: ErpPedido[] = [];
   cargandoHistorial = false;
   cobrando = false;
@@ -118,6 +121,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
     private erpService: ErpService,
     private crmService: CrmService,
     private notify: NotifyService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -137,8 +141,8 @@ export class PosPageComponent implements OnInit, OnDestroy {
         return this.crmService.cargarClientes(1, search, '', 10);
       }),
     ).subscribe({
-      next: pagina => { this.distribuidores = pagina.data; this.cargandoDistribuidores = false; },
-      error: () => this.cargandoDistribuidores = false,
+      next: pagina => { this.distribuidores = pagina.data; this.cargandoDistribuidores = false; this.cdr.detectChanges(); },
+      error: () => { this.cargandoDistribuidores = false; this.cdr.detectChanges(); },
     });
   }
 
@@ -157,8 +161,8 @@ export class PosPageComponent implements OnInit, OnDestroy {
   cargarHistorial() {
     this.cargandoHistorial = true;
     this.erpService.cargarPedidos().subscribe({
-      next: pedidos => { this.historial = pedidos; this.cargandoHistorial = false; },
-      error: () => { this.cargandoHistorial = false; },
+      next: pedidos => { this.historial = pedidos; this.cargandoHistorial = false; this.cdr.detectChanges(); },
+      error: () => { this.cargandoHistorial = false; this.cdr.detectChanges(); },
     });
   }
 
@@ -180,6 +184,10 @@ export class PosPageComponent implements OnInit, OnDestroy {
   quitarItem(id: number)  { this.carrito = this.carrito.filter(i => i.producto.id_productos !== id); }
   limpiarCarrito()         { this.carrito = []; }
 
+  get totalCarrito(): number {
+    return this.carrito.reduce((s, i) => s + i.producto.precio * i.cantidad, 0);
+  }
+
   cobrar() {
     if (this.cobrando || !this.carrito.length) return;
 
@@ -188,6 +196,11 @@ export class PosPageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.pagoModalOpen = true;
+  }
+
+  confirmarPago(pagos: PedidoPago[]) {
+    this.pagoModalOpen = false;
     this.cobrando = true;
 
     const idCliente$: Observable<number> = this.nicho.nicho === 'almacen' && this.distribuidorSeleccionado
@@ -197,6 +210,8 @@ export class PosPageComponent implements OnInit, OnDestroy {
     idCliente$.pipe(
       switchMap(idCliente => this.erpService.addPedido({
         id_cliente: idCliente,
+        estado: 'facturado',
+        pagos,
         items: this.carrito.map(i => ({
           id_producto: i.producto.id_productos,
           cantidad: i.cantidad,
@@ -211,10 +226,12 @@ export class PosPageComponent implements OnInit, OnDestroy {
         this.carrito = [];
         this.distribuidorSeleccionado = null;
         this.cobrando = false;
+        this.cdr.detectChanges();
       },
       error: err => {
         this.notify.error(err?.error?.message || 'No se pudo procesar la venta');
         this.cobrando = false;
+        this.cdr.detectChanges();
       },
     });
   }

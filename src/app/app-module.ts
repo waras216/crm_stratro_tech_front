@@ -45,6 +45,7 @@ import { PosTicketComponent }            from './components/pos/ticket/ticket.co
 import { PosTerminalFarmaciaComponent }  from './components/pos/terminal-farmacia/terminal-farmacia.component';
 import { PosTerminalHotelComponent }     from './components/pos/terminal-hotel/terminal-hotel.component';
 import { PosTerminalRestauranteComponent }from './components/pos/terminal-restaurante/terminal-restaurante.component';
+import { PagoModalComponent }            from './components/pos/pago-modal/pago-modal.component';
 
 // ERP
 import { ErpPageComponent }      from './components/erp/erp-page.component';
@@ -108,6 +109,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     PosTerminalFarmaciaComponent,
     PosTerminalHotelComponent,
     PosTerminalRestauranteComponent,
+    PagoModalComponent,
     // ERP
     ErpPageComponent,
     ErpDashboardComponent,

@@ -86,6 +86,11 @@ export interface ErpPedidoItem {
   subtotal?: number;
 }
 
+export interface PedidoPago {
+  metodo_pago: 'efectivo' | 'tarjeta_debito' | 'tarjeta_credito';
+  monto: number;
+}
+
 export interface ErpPedido {
   id: number;
   id_tenant?: number;
@@ -94,6 +99,7 @@ export interface ErpPedido {
   total: number;
   estado: 'pendiente' | 'enviado' | 'facturado' | 'cancelada';
   items: ErpPedidoItem[];
+  pagos?: PedidoPago[];
   fecha: string;
 }
 

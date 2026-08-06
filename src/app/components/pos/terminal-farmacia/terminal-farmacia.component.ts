@@ -5,7 +5,7 @@ import { NotifyService } from '../../../core/services/notify.service';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
 import { Cliente } from '../../../models/crm.models';
-import { ErpReceta, Producto } from '../../../models/erp.models';
+import { ErpReceta, Producto, PedidoPago } from '../../../models/erp.models';
 import { ItemCarrito } from '../carrito/carrito.component';
 
 @Component({
@@ -153,6 +153,8 @@ import { ItemCarrito } from '../carrito/carrito.component';
 </div>
 
 <app-pos-ticket [items]="lastTicket" [visible]="ticketOpen" (cerrar)="ticketOpen=false"></app-pos-ticket>
+<app-pos-pago-modal [visible]="pagoModalOpen" [total]="totalPago"
+  (confirmar)="confirmarPago($event)" (cancelado)="pagoModalOpen=false"></app-pos-pago-modal>
   `,
 })
 export class PosTerminalFarmaciaComponent implements OnInit {
@@ -180,6 +182,11 @@ export class PosTerminalFarmaciaComponent implements OnInit {
   recetaSaving = false;
 
   ticketOpen = false;
+  pagoModalOpen = false;
+  totalPago = 0;
+  private idsPendientes: number[] = [];
+  private pacientePendiente: Cliente | null = null;
+  private itemsTicketPendiente: ItemCarrito[] = [];
   lastTicket: ItemCarrito[] = [];
 
   ngOnInit() {
@@ -279,15 +286,29 @@ export class PosTerminalFarmaciaComponent implements OnInit {
       .filter(r => r.producto)
       .map(r => ({ producto: r.producto!, cantidad: r.cantidad }));
 
+    this.idsPendientes = this.carrito.map(r => r.id);
+    this.pacientePendiente = paciente;
+    this.itemsTicketPendiente = itemsTicket;
+    this.totalPago = total;
+    this.pagoModalOpen = true;
+  }
+
+  confirmarPago(pagos: PedidoPago[]) {
+    this.pagoModalOpen = false;
+    const paciente = this.pacientePendiente;
+    if (!paciente) return;
+
+    const ids = this.idsPendientes;
     this.cobrando = true;
 
-    this.erpService.dispensarLote(this.carrito.map(r => r.id), paciente.id_cliente).subscribe({
+    this.erpService.dispensarLote(ids, paciente.id_cliente, pagos).subscribe({
       next: () => {
-        this.lastTicket = itemsTicket;
+        this.lastTicket = this.itemsTicketPendiente;
         this.ticketOpen = true;
-        this.recetas = this.recetas.map(r => this.carrito.some(c => c.id === r.id) ? { ...r, pendiente: false } : r);
+        this.recetas = this.recetas.map(r => ids.includes(r.id) ? { ...r, pendiente: false } : r);
         this.carrito = [];
         this.pacienteSeleccionado = null;
+        this.pacientePendiente = null;
         this.cobrando = false;
         this.cdr.detectChanges();
       },
