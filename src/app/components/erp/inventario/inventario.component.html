@@ -42,7 +42,19 @@
       <tbody>
         <tr *ngFor="let p of filtrado" class="border-b border-slate-100 hover:bg-slate-50">
           <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ p.sku }}</td>
-          <td class="px-4 py-3 font-medium">{{ p.nombre }}</td>
+          <td class="px-4 py-3 font-medium">
+            <div class="flex items-center gap-2">
+              <div class="relative w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer group" (click)="fotoRowInput.click()">
+                <img *ngIf="p.imagen_url" [src]="p.imagen_url" class="w-full h-full object-cover" />
+                <span *ngIf="!p.imagen_url" class="text-sm">📦</span>
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <svg width="12" height="12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </div>
+              </div>
+              <input #fotoRowInput type="file" accept="image/*" capture="environment" class="hidden" (change)="cambiarFotoProducto(p, $event)" />
+              <span>{{ p.nombre }}</span>
+            </div>
+          </td>
           <td class="px-4 py-3 text-slate-500">{{ p.categoria?.nombre }}</td>
           <td class="px-4 py-3 text-right">
             <span [ngClass]="p.stock <= p.stock_minimo ? 'text-red-600 font-bold' : 'text-slate-700'">{{ p.stock }}</span>
@@ -74,6 +86,19 @@
 <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
   <h3 class="m-0 mb-4 text-lg font-semibold">Nuevo Producto</h3>
   <div class="flex flex-col gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+        <img *ngIf="fotoPreview" [src]="fotoPreview" class="w-full h-full object-cover" />
+        <span *ngIf="!fotoPreview" class="text-2xl">📦</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <button type="button" (click)="fotoInput.click()" class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg border-0 cursor-pointer text-xs font-semibold hover:bg-slate-200 text-left">
+          {{ fotoPreview ? 'Cambiar foto' : '+ Agregar foto' }}
+        </button>
+        <p class="text-[10px] text-slate-400 m-0">Subí una imagen o tomá una foto (máx. 2MB)</p>
+      </div>
+      <input #fotoInput type="file" accept="image/*" capture="environment" class="hidden" (change)="onFotoSeleccionada($event)" />
+    </div>
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.nombre" placeholder="Nombre" />
     <div class="grid grid-cols-2 gap-3">
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.sku" placeholder="SKU (opcional)" />

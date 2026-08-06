@@ -15,6 +15,9 @@ export class ErpInventarioComponent implements OnInit {
   saving = false;
   error = '';
   form = { nombre: '', sku: '', id_categorias: '', stock: '', stockMinimo: '', precioCompra: '', precio: '' };
+  fotoSeleccionada: File | null = null;
+  fotoPreview: string | null = null;
+  subiendoFoto = false;
 
   ajusteDialogOpen = false;
   ajusteTarget: Producto | null = null;
@@ -51,8 +54,21 @@ export class ErpInventarioComponent implements OnInit {
 
   openNew() {
     this.form = { nombre: '', sku: '', id_categorias: '', stock: '', stockMinimo: '', precioCompra: '', precio: '' };
+    this.fotoSeleccionada = null;
+    this.fotoPreview = null;
     this.error = '';
     this.dialogOpen = true;
+  }
+
+  onFotoSeleccionada(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { this.error = 'El archivo debe ser una imagen.'; return; }
+    if (file.size > 2 * 1024 * 1024) { this.error = 'La imagen no puede pesar más de 2MB.'; return; }
+
+    this.error = '';
+    this.fotoSeleccionada = file;
+    this.fotoPreview = URL.createObjectURL(file);
   }
 
   submit() {
@@ -70,8 +86,32 @@ export class ErpInventarioComponent implements OnInit {
       precio_compra: Number(this.form.precioCompra) || 0,
       precio: Number(this.form.precio) || 0,
     }).subscribe({
-      next: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
+      next: (nuevo) => {
+        if (!this.fotoSeleccionada) {
+          this.saving = false;
+          this.dialogOpen = false;
+          this.cdr.detectChanges();
+          return;
+        }
+        this.erpService.subirFotoProducto(nuevo.id_productos, this.fotoSeleccionada).subscribe({
+          next: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
+          error: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
+        });
+      },
       error: (err) => { this.saving = false; this.error = 'No se pudo guardar el producto. Intenta de nuevo.'; this.cdr.detectChanges(); console.error(err); },
+    });
+  }
+
+  cambiarFotoProducto(producto: Producto, event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { this.notify.error('El archivo debe ser una imagen.'); return; }
+    if (file.size > 2 * 1024 * 1024) { this.notify.error('La imagen no puede pesar más de 2MB.'); return; }
+
+    this.subiendoFoto = true;
+    this.erpService.subirFotoProducto(producto.id_productos, file).subscribe({
+      next: () => { this.subiendoFoto = false; this.cdr.detectChanges(); },
+      error: () => { this.notify.error('No se pudo subir la foto'); this.subiendoFoto = false; this.cdr.detectChanges(); },
     });
   }
 

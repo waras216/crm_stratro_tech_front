@@ -47,6 +47,20 @@ export class ErpService {
     );
   }
 
+  subirFotoProducto(id: number, file: File): Observable<Producto> {
+    const form = new FormData();
+    form.append('imagen', file);
+    return this.http.post<Producto>(`${API}/erp/inventario/${id}/foto`, form).pipe(
+      tap(actualizado => this._inventario.next(this.inventario.map(i => i.id_productos === id ? actualizado : i)))
+    );
+  }
+
+  eliminarFotoProducto(id: number): Observable<Producto> {
+    return this.http.delete<Producto>(`${API}/erp/inventario/${id}/foto`).pipe(
+      tap(actualizado => this._inventario.next(this.inventario.map(i => i.id_productos === id ? actualizado : i)))
+    );
+  }
+
   ajustarStockInventario(id: number, cantidad: number, motivo: string): Observable<Producto> {
     return this.http.post<Producto>(`${API}/erp/inventario/${id}/ajuste`, { cantidad, motivo }).pipe(
       tap(actualizado => this._inventario.next(this.inventario.map(i => i.id_productos === id ? actualizado : i)))

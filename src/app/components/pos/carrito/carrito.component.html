@@ -18,7 +18,8 @@
       <p class="text-xs mt-2">Carrito vacío</p>
     </div>
     <div *ngFor="let item of items" class="flex items-center gap-2 py-2 border-b border-slate-50">
-      <span class="text-lg flex-shrink-0">📦</span>
+      <img *ngIf="item.producto.imagen_url" [src]="item.producto.imagen_url" class="w-7 h-7 rounded-md object-cover flex-shrink-0" />
+      <span *ngIf="!item.producto.imagen_url" class="text-lg flex-shrink-0">📦</span>
       <div class="flex-1 min-w-0">
         <p class="text-xs font-medium text-slate-700 m-0 truncate">{{ item.producto.nombre }}</p>
         <p class="text-xs text-emerald-600 font-semibold m-0">${{ (item.producto.precio * item.cantidad).toLocaleString() }}</p>

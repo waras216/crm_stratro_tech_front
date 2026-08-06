@@ -15,6 +15,8 @@ export interface Producto {
   categoria?: Categoria;
   nombre: string;
   descripcion?: string;
+  imagen?: string | null;
+  imagen_url?: string | null;
   sku?: string;
   precio: number;
   precio_compra: number;

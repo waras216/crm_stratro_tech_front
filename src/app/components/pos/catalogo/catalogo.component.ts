@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { Producto } from '../../../models/erp.models';
 
@@ -19,7 +19,7 @@ export class PosCatalogoComponent implements OnInit {
   cargando = false;
   productos: ProductoPOS[] = [];
 
-  constructor(private erpService: ErpService) {}
+  constructor(private erpService: ErpService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.cargando = true;
@@ -27,8 +27,9 @@ export class PosCatalogoComponent implements OnInit {
       next: productos => {
         this.productos = productos.filter(p => p.activo !== false);
         this.cargando = false;
+        this.cdr.detectChanges();
       },
-      error: () => { this.cargando = false; },
+      error: () => { this.cargando = false; this.cdr.detectChanges(); },
     });
   }
 
