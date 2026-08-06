@@ -61,6 +61,18 @@ export class ErpService {
     return this.http.get<Categoria[]>(`${API}/categorias`);
   }
 
+  addCategoria(data: { nombre: string; descripcion?: string }): Observable<Categoria> {
+    return this.http.post<Categoria>(`${API}/categorias`, data);
+  }
+
+  updateCategoria(id: number, data: { nombre?: string; descripcion?: string; activo?: boolean }): Observable<Categoria> {
+    return this.http.put<Categoria>(`${API}/categorias/${id}`, data);
+  }
+
+  deleteCategoria(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/categorias/${id}`);
+  }
+
   cargarProductos(): Observable<Producto[]> {
     return this.http.get<Producto[]>(`${API}/productos`);
   }

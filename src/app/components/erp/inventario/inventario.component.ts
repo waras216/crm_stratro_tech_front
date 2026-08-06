@@ -25,6 +25,12 @@ export class ErpInventarioComponent implements OnInit {
   movimientosTarget: Producto | null = null;
   movimientos: ErpMovimientoStock[] = [];
 
+  categoriasDialogOpen = false;
+  categoriaForm = { nombre: '', descripcion: '' };
+  categoriaEditando: Categoria | null = null;
+  categoriaError = '';
+  categoriaSaving = false;
+
   inventario: Producto[] = [];
   categorias: Categoria[] = [];
 
@@ -121,6 +127,67 @@ export class ErpInventarioComponent implements OnInit {
     this.erpService.cargarMovimientosStock(producto.id_productos).subscribe(data => {
       this.movimientos = data;
       this.cdr.detectChanges();
+    });
+  }
+
+  abrirCategorias() {
+    this.categoriaForm = { nombre: '', descripcion: '' };
+    this.categoriaEditando = null;
+    this.categoriaError = '';
+    this.categoriasDialogOpen = true;
+  }
+
+  editarCategoria(c: Categoria) {
+    this.categoriaEditando = c;
+    this.categoriaForm = { nombre: c.nombre, descripcion: c.descripcion ?? '' };
+    this.categoriaError = '';
+  }
+
+  cancelarEdicionCategoria() {
+    this.categoriaEditando = null;
+    this.categoriaForm = { nombre: '', descripcion: '' };
+    this.categoriaError = '';
+  }
+
+  private recargarCategorias() {
+    this.erpService.cargarCategorias().subscribe(data => { this.categorias = data; this.cdr.detectChanges(); });
+  }
+
+  guardarCategoria() {
+    if (this.categoriaSaving) return;
+    if (!this.categoriaForm.nombre) { this.categoriaError = 'El nombre es obligatorio.'; return; }
+
+    this.categoriaSaving = true;
+    this.categoriaError = '';
+
+    const data = { nombre: this.categoriaForm.nombre, descripcion: this.categoriaForm.descripcion || undefined };
+    const peticion = this.categoriaEditando
+      ? this.erpService.updateCategoria(this.categoriaEditando.id_categoria, data)
+      : this.erpService.addCategoria(data);
+
+    peticion.subscribe({
+      next: () => {
+        this.categoriaSaving = false;
+        this.categoriaEditando = null;
+        this.categoriaForm = { nombre: '', descripcion: '' };
+        this.recargarCategorias();
+      },
+      error: (err) => {
+        this.categoriaSaving = false;
+        this.categoriaError = 'No se pudo guardar la categoría. Intenta de nuevo.';
+        this.cdr.detectChanges();
+        console.error(err);
+      },
+    });
+  }
+
+  async eliminarCategoria(c: Categoria) {
+    const ok = await this.notify.confirm(`¿Eliminar la categoría "${c.nombre}"?`, { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+
+    this.erpService.deleteCategoria(c.id_categoria).subscribe({
+      next: () => { this.notify.success('Categoría eliminada'); this.recargarCategorias(); },
+      error: (err) => { this.notify.error('No se pudo eliminar la categoría'); console.error(err); },
     });
   }
 }
