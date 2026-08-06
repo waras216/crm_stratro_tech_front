@@ -38,9 +38,7 @@
 
   <!-- Totals -->
   <div class="border-t border-slate-100 px-4 py-3 flex flex-col gap-1.5 flex-shrink-0">
-    <div class="flex justify-between text-xs text-slate-500"><span>Subtotal</span><span>${{ subtotal.toLocaleString() }}</span></div>
-    <div class="flex justify-between text-xs text-slate-500"><span>IVA (16%)</span><span>${{ iva.toLocaleString() }}</span></div>
-    <div class="flex justify-between text-sm font-bold text-slate-800 pt-1 border-t border-slate-100"><span>Total</span><span class="text-emerald-600">${{ total.toLocaleString() }}</span></div>
+    <div class="flex justify-between text-sm font-bold text-slate-800 pt-1"><span>Total</span><span class="text-emerald-600">${{ total.toLocaleString() }}</span></div>
     <button (click)="cobrar.emit()" [disabled]="items.length===0"
       class="w-full mt-2 px-4 py-3 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all"
       [ngClass]="items.length > 0 ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-300 cursor-not-allowed'">

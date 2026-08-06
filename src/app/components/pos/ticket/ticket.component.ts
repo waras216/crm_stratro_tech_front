@@ -21,7 +21,7 @@ export class PosTicketComponent {
   @Input() visible = false;
   @Output() cerrar = new EventEmitter<void>();
 
-  get total() { return (this.items.reduce((s, i) => s + i.producto.precio * i.cantidad, 0) * 1.16).toFixed(2); }
+  get total() { return this.items.reduce((s, i) => s + i.producto.precio * i.cantidad, 0).toFixed(2); }
 
   imprimir() {
     const empresa = this.auth.session?.empresa || '';
@@ -67,7 +67,7 @@ export class PosTicketComponent {
   <div class="linea"></div>
   ${filas}
   <div class="linea"></div>
-  <div class="total"><span>TOTAL (IVA incl.)</span><span>$${this.total}</span></div>
+  <div class="total"><span>TOTAL</span><span>$${this.total}</span></div>
   <p class="footer">¡Gracias por su compra!</p>
 </body>
 </html>`;

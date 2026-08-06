@@ -1,5 +1,5 @@
-<div *ngIf="visible" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100] flex items-center justify-center" (click)="cerrar.emit()">
-  <div class="bg-white rounded-2xl w-80 p-6 shadow-2xl modal-in" (click)="$event.stopPropagation()">
+<div *ngIf="visible" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="cerrar.emit()"></div>
+<div *ngIf="visible" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-80 p-6 shadow-2xl z-[101] modal-in" (click)="$event.stopPropagation()">
     <div class="text-center mb-4">
       <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
         <svg width="28" height="28" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
@@ -13,7 +13,7 @@
         <span class="font-medium">${{ (item.producto.precio * item.cantidad).toLocaleString() }}</span>
       </div>
       <div class="border-t border-dashed border-slate-200 mt-2 pt-2 flex justify-between font-bold text-sm text-slate-800">
-        <span>Total (IVA incl.)</span>
+        <span>Total</span>
         <span class="text-emerald-600">${{ total }}</span>
       </div>
     </div>
@@ -21,5 +21,4 @@
       <button (click)="imprimir()" class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl border-0 cursor-pointer text-sm font-semibold hover:bg-slate-200">Imprimir</button>
       <button (click)="cerrar.emit()" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl border-0 cursor-pointer text-sm font-semibold hover:bg-emerald-700">Cerrar</button>
     </div>
-  </div>
 </div>
