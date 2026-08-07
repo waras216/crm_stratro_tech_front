@@ -183,6 +183,22 @@
               style="background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)" />
             <p class="text-[11px] m-0" style="color:#a5b4fc">Vamos a crear estas habitaciones automáticamente en tu ERP.</p>
           </div>
+          <div class="flex flex-col gap-1.5 slide-in stagger-4">
+            <label class="text-xs font-medium" style="color:#c7d2fe">Tipos de habitación</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button *ngFor="let t of hotelTiposHabitacionOpciones" (click)="toggleLista(hotelTiposHabitacion, t)"
+                class="flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-medium border cursor-pointer transition-all scale-in text-left"
+                [ngClass]="enLista(hotelTiposHabitacion, t) ? 'text-white' : 'text-indigo-300'"
+                [style]="enLista(hotelTiposHabitacion, t) ? 'background:'+nichoAccent+';border-color:'+nichoColor : 'background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)'">
+                <div class="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border"
+                  [style]="enLista(hotelTiposHabitacion, t) ? 'background:'+nichoColor+';border-color:'+nichoColor : 'border-color:rgba(129,140,248,.3)'">
+                  <svg *ngIf="enLista(hotelTiposHabitacion, t)" width="10" height="10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                {{ t }}
+              </button>
+            </div>
+            <p class="text-[11px] m-0" style="color:#a5b4fc">Podrás elegir entre estos tipos al agregar habitaciones en tu ERP y POS.</p>
+          </div>
         </ng-container>
 
         <!-- RESTAURANTE: tipo + mesas -->

@@ -9,7 +9,7 @@ export interface NichoData {
   nicho: string;
   moneda: string;
   modulos: { crm: boolean; pos: boolean; erp: boolean };
-  hotelTipo?: string; hotelHabitaciones?: number | null; hotelAmenidades?: string[];
+  hotelTipo?: string; hotelHabitaciones?: number | null; hotelAmenidades?: string[]; hotelTiposHabitacion?: string[];
   restTipo?: string; restMesas?: number | null; restCanales?: string[];
   almacenTipo?: string; almacenSkus?: string; almacenOps?: string[];
   farmTipo?: string; farmAtencion?: string[]; farmEspecialidades?: string[];

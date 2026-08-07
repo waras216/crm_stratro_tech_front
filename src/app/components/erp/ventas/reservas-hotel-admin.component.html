@@ -1,0 +1,103 @@
+<div class="flex flex-col gap-4">
+  <div class="flex items-center justify-between">
+    <div>
+      <h3 class="m-0 text-sm font-bold text-slate-700">Gestión de Habitaciones</h3>
+      <p class="text-xs text-slate-400 m-0 mt-0.5">Vista administrativa — el check-in, check-out y room service se hacen desde el POS</p>
+    </div>
+    <button (click)="abrirNuevaHabitacion()"
+      class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 flex-shrink-0"
+      style="background:#f59e0b">+ Hab.</button>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3">
+    <div class="rounded-xl bg-emerald-50 p-3 text-center">
+      <p class="text-lg font-extrabold text-emerald-600 m-0">{{ contarEstado('libre') }}</p>
+      <p class="text-[10px] font-semibold text-emerald-600 m-0 mt-0.5">Libres</p>
+    </div>
+    <div class="rounded-xl bg-amber-50 p-3 text-center">
+      <p class="text-lg font-extrabold text-amber-600 m-0">{{ contarEstado('ocupada') }}</p>
+      <p class="text-[10px] font-semibold text-amber-600 m-0 mt-0.5">Ocupadas</p>
+    </div>
+    <div class="rounded-xl bg-blue-50 p-3 text-center">
+      <p class="text-lg font-extrabold text-blue-600 m-0">{{ contarEstado('checkout') }}</p>
+      <p class="text-[10px] font-semibold text-blue-600 m-0 mt-0.5">Checkout hoy</p>
+    </div>
+    <div class="rounded-xl bg-slate-100 p-3 text-center">
+      <p class="text-lg font-extrabold text-slate-500 m-0">{{ contarEstado('mantenimiento') }}</p>
+      <p class="text-[10px] font-semibold text-slate-500 m-0 mt-0.5">Mantenimiento</p>
+    </div>
+    <div class="rounded-xl bg-slate-50 p-3 text-center">
+      <p class="text-lg font-extrabold m-0" style="color:#f59e0b">{{ ocupacionPct() }}%</p>
+      <p class="text-[10px] font-semibold text-slate-500 m-0 mt-0.5">Ocupación</p>
+    </div>
+  </div>
+
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Hab.</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Tipo</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Piso</th>
+        <th class="text-center px-4 py-3 font-medium text-slate-500">Estado</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Huésped</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Check-in</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Check-out</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Consumos</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngIf="!cargando && habitaciones.length === 0">
+          <td colspan="9" class="text-center py-8 text-slate-400 text-xs">Sin habitaciones — agrega la primera con "+ Hab."</td>
+        </tr>
+        <tr *ngFor="let h of habitaciones" class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-3 font-bold">{{ h.numero }}</td>
+          <td class="px-4 py-3">{{ h.tipo }}</td>
+          <td class="px-4 py-3">{{ h.piso }}</td>
+          <td class="px-4 py-3 text-center">
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+              [class.bg-emerald-100]="h.estado==='libre'" [class.text-emerald-600]="h.estado==='libre'"
+              [class.bg-amber-100]="h.estado==='ocupada'" [class.text-amber-600]="h.estado==='ocupada'"
+              [class.bg-blue-100]="h.estado==='checkout'" [class.text-blue-600]="h.estado==='checkout'"
+              [class.bg-slate-100]="h.estado==='mantenimiento'" [class.text-slate-500]="h.estado==='mantenimiento'">
+              {{ h.estado | titlecase }}
+            </span>
+          </td>
+          <td class="px-4 py-3">{{ h.huesped || '—' }}</td>
+          <td class="px-4 py-3">{{ h.check_in || '—' }}</td>
+          <td class="px-4 py-3">{{ h.check_out || '—' }}</td>
+          <td class="px-4 py-3 text-right font-medium">${{ totalConsumos(h) }}</td>
+          <td class="px-4 py-3 text-right">
+            <button *ngIf="h.estado==='libre' || h.estado==='mantenimiento'" (click)="toggleMantenimiento(h)"
+              class="text-xs font-medium bg-transparent border-0 cursor-pointer hover:underline"
+              [class.text-slate-500]="h.estado==='libre'" [class.text-amber-600]="h.estado==='mantenimiento'">
+              {{ h.estado==='mantenimiento' ? 'Reactivar' : 'Mantenimiento' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center justify-between rounded-xl bg-slate-50 p-4">
+    <p class="text-xs text-slate-500 m-0">Por cobrar (consumos pendientes en habitaciones ocupadas)</p>
+    <p class="text-sm font-extrabold m-0" style="color:#f59e0b">${{ totalConsumosPendientes() }}</p>
+  </div>
+</div>
+
+<div *ngIf="habDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="habDialogOpen=false"></div>
+<div *ngIf="habDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Habitación</h3>
+  <div class="flex flex-col gap-3">
+    <div class="grid grid-cols-3 gap-3">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.numero" placeholder="Número" />
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="habForm.tipo">
+        <option *ngFor="let t of nicho.hotelTiposHabitacion" [value]="t">{{ t }}</option>
+      </select>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.piso" placeholder="Piso" />
+    </div>
+    <p *ngIf="habError" class="text-xs text-red-600 m-0">{{ habError }}</p>
+    <button (click)="crearHabitacion()" [disabled]="habSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#f59e0b">{{ habSaving ? 'Guardando...' : 'Crear Habitación' }}</button>
+  </div>
+</div>

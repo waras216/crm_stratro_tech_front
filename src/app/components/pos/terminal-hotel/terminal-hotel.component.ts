@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
+import { NichoService } from '../../../core/services/nicho.service';
 import { ErpHabitacion, Producto, PedidoPago } from '../../../models/erp.models';
 import { ItemCarrito } from '../carrito/carrito.component';
 
@@ -20,7 +21,7 @@ import { ItemCarrito } from '../carrito/carrito.component';
           <span class="w-2.5 h-2.5 rounded-full inline-block" [ngClass]="e.dot"></span>{{ e.label }}
         </span>
       </div>
-      <button (click)="habDialogOpen=true"
+      <button (click)="abrirNuevaHabitacion()"
         class="text-[10px] font-bold px-2 py-1 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 flex-shrink-0"
         style="background:#f59e0b">+ Hab.</button>
     </div>
@@ -151,9 +152,7 @@ import { ItemCarrito } from '../carrito/carrito.component';
     <div class="grid grid-cols-3 gap-3">
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.numero" placeholder="Número" />
       <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="habForm.tipo">
-        <option value="Sgl">Sgl</option>
-        <option value="Dbl">Dbl</option>
-        <option value="Ste">Ste</option>
+        <option *ngFor="let t of nicho.hotelTiposHabitacion" [value]="t">{{ t }}</option>
       </select>
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.piso" placeholder="Piso" />
     </div>
@@ -188,6 +187,7 @@ export class PosTerminalHotelComponent implements OnInit {
   private erpService = inject(ErpService);
   private crmService = inject(CrmService);
   private cdr = inject(ChangeDetectorRef);
+  nicho = inject(NichoService);
 
   habitaciones: ErpHabitacion[] = [];
   habSeleccionada: ErpHabitacion | null = null;
@@ -197,7 +197,7 @@ export class PosTerminalHotelComponent implements OnInit {
   cobrando = false;
 
   habDialogOpen = false;
-  habForm = { numero: null as number | null, tipo: 'Sgl', piso: 1 };
+  habForm = { numero: null as number | null, tipo: '', piso: 1 };
   habError = '';
   habSaving = false;
 
@@ -271,6 +271,12 @@ export class PosTerminalHotelComponent implements OnInit {
     this.mostrarRoomService = false;
   }
 
+  abrirNuevaHabitacion() {
+    this.habForm = { numero: null, tipo: this.nicho.hotelTiposHabitacion[0], piso: 1 };
+    this.habError = '';
+    this.habDialogOpen = true;
+  }
+
   crearHabitacion() {
     if (this.habSaving || !this.habForm.numero) { this.habError = 'El número de habitación es obligatorio.'; return; }
     this.habSaving = true;
@@ -279,7 +285,7 @@ export class PosTerminalHotelComponent implements OnInit {
       next: () => {
         this.habSaving = false;
         this.habDialogOpen = false;
-        this.habForm = { numero: null, tipo: 'Sgl', piso: 1 };
+        this.habForm = { numero: null, tipo: this.nicho.hotelTiposHabitacion[0], piso: 1 };
         this.cdr.detectChanges();
       },
       error: err => {

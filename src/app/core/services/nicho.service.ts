@@ -108,4 +108,9 @@ export class NichoService {
 
   get nicho(): string { return this.config.nicho; }
   get modulos() { return this.auth.session?.nichoData?.modulos || { crm: true, pos: false, erp: false }; }
+
+  get hotelTiposHabitacion(): string[] {
+    const configurados = this.auth.session?.nichoData?.hotelTiposHabitacion;
+    return configurados && configurados.length > 0 ? configurados : ['Individual', 'Doble', 'Suite'];
+  }
 }

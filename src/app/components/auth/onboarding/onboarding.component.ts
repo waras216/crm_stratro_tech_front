@@ -39,7 +39,9 @@ export class AuthOnboardingComponent {
   hotelTipo = '';
   hotelHabitaciones: number | null = null;
   hotelAmenidades: string[] = [];
+  hotelTiposHabitacion: string[] = ['Individual', 'Doble', 'Suite'];
   hotelTipos = ['Boutique', 'Resort', 'Business / Corporativo', 'Hostal / Hostel'];
+  hotelTiposHabitacionOpciones = ['Individual', 'Doble', 'Suite', 'Familiar', 'Deluxe', 'Presidencial'];
   hotelAmenidadesOpciones = [
     { id: 'restaurante', label: 'Restaurante propio', icon: '🍽️' },
     { id: 'bar', label: 'Bar / Lounge', icon: '🍸' },
@@ -214,6 +216,7 @@ export class AuthOnboardingComponent {
       moneda: this.moneda,
       modulos: { ...this.modulos },
       hotelTipo: this.hotelTipo, hotelHabitaciones: this.hotelHabitaciones, hotelAmenidades: [...this.hotelAmenidades],
+      hotelTiposHabitacion: [...this.hotelTiposHabitacion],
       restTipo: this.restTipo, restMesas: this.restMesas, restCanales: [...this.restCanales],
       almacenTipo: this.almacenTipo, almacenSkus: this.almacenSkus, almacenOps: [...this.almacenOps],
       farmTipo: this.farmTipo, farmAtencion: [...this.farmAtencion], farmEspecialidades: [...this.farmEspecialidades],

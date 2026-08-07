@@ -181,16 +181,23 @@ const ERP_SIDEBAR: SidebarSection[] = [
 
 // Tabs del ERP que no aplican por nicho — mismo criterio que el filtro de
 // módulos en Erp/DashboardController::resumen (backend), mantener sincronizados.
-// "Fabricación": ninguno de estos nichos produce/manufactura.
-// "SCM" (envíos y logística a distribuidores/clientes): no aplica a servicios
-// en sitio como hotel/restaurante/farmacia — sí a almacen y tienda (e-commerce).
+// "Fabricación": ninguno de estos nichos produce/manufactura (ni siquiera
+// almacen, que distribuye pero no fabrica).
+// "SCM" (envíos y logística a distribuidores/clientes): solo aplica a negocios
+// cuya operación central es la logística — almacen. Tienda vende en sitio/
+// mostrador, no gestiona una cadena de suministro propia.
+// "Proyectos" (planificación y horas facturables por cliente): ningún nicho
+// físico/retail actual es un negocio de servicios por proyecto — se deja
+// visible para tenants sin nicho asignado (ERP genérico) y para "startup",
+// que sí factura por horas/proyecto.
 // "startup" es un negocio de software/servicio: no tiene inventario físico,
 // no compra mercancía a proveedores, no fabrica ni despacha envíos.
 const ERP_TABS_OCULTOS_POR_NICHO: Partial<Record<string, ErpTab[]>> = {
-  restaurante: ['fabricacion', 'scm'],
-  hotel: ['fabricacion', 'scm'],
-  farmacia: ['fabricacion', 'scm'],
-  tienda: ['fabricacion'],
+  restaurante: ['fabricacion', 'scm', 'proyectos'],
+  hotel: ['fabricacion', 'scm', 'proyectos'],
+  farmacia: ['fabricacion', 'scm', 'proyectos'],
+  tienda: ['fabricacion', 'scm', 'proyectos'],
+  almacen: ['fabricacion', 'proyectos'],
   startup: ['inventario', 'compras', 'fabricacion', 'scm'],
 };
 

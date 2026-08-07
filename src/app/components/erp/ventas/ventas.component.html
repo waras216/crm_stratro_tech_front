@@ -3,8 +3,8 @@
   <div *ngIf="nicho.nicho==='restaurante'" class="h-[560px]">
     <app-pos-terminal-restaurante></app-pos-terminal-restaurante>
   </div>
-  <div *ngIf="nicho.nicho==='hotel'" class="h-[560px]">
-    <app-pos-terminal-hotel></app-pos-terminal-hotel>
+  <div *ngIf="nicho.nicho==='hotel'">
+    <app-erp-reservas-hotel-admin></app-erp-reservas-hotel-admin>
   </div>
   <div *ngIf="nicho.nicho==='farmacia'" class="h-[560px]">
     <app-pos-terminal-farmacia></app-pos-terminal-farmacia>
