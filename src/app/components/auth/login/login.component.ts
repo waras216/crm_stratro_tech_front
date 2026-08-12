@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/authservices';
 import { environment } from '../../../../environments/environment';
@@ -10,39 +10,42 @@ export class AuthLoginComponent {
   error    = '';
   loading  = false;
 
-  modo: 'email' | 'pin' = 'email';
-  pin = '';
-  usuariosPin: { id_usuario: number; nombre: string }[] = [];
+  modo: 'email' | 'dosfa' = 'email';
+  codigo = '';
+  usuariosDosFa: { id_usuario: number; nombre: string }[] = [];
   usuarioSeleccionado: { id_usuario: number; nombre: string } | null = null;
-  cargandoUsuariosPin = false;
+  cargandoUsuariosDosFa = false;
 
-  get puedeUsarPin(): boolean { return !!this.auth.terminalTenantId; }
+  @ViewChild('codigoInput') codigoInputRef?: ElementRef<HTMLInputElement>;
+
+  get puedeUsarDosFa(): boolean { return !!this.auth.terminalTenantId; }
 
   constructor(public auth: AuthService, private router: Router, private cdr: ChangeDetectorRef) {
     if (this.auth.isLoggedIn && this.auth.isOnboarded) this.router.navigate(['/crm']);
   }
 
-  entrarModoPin() {
-    this.modo = 'pin';
+  entrarModoDosFa() {
+    this.modo = 'dosfa';
     this.error = '';
     this.usuarioSeleccionado = null;
-    this.pin = '';
-    this.cargandoUsuariosPin = true;
-    this.auth.cargarUsuariosPin().subscribe({
-      next: usuarios => { this.usuariosPin = usuarios; this.cargandoUsuariosPin = false; this.cdr.detectChanges(); },
-      error: () => { this.cargandoUsuariosPin = false; this.cdr.detectChanges(); },
+    this.codigo = '';
+    this.cargandoUsuariosDosFa = true;
+    this.auth.cargarUsuariosDosFa().subscribe({
+      next: usuarios => { this.usuariosDosFa = usuarios; this.cargandoUsuariosDosFa = false; this.cdr.detectChanges(); },
+      error: () => { this.cargandoUsuariosDosFa = false; this.cdr.detectChanges(); },
     });
   }
 
-  elegirUsuarioPin(u: { id_usuario: number; nombre: string }) {
+  elegirUsuarioDosFa(u: { id_usuario: number; nombre: string }) {
     this.usuarioSeleccionado = u;
-    this.pin = '';
+    this.codigo = '';
     this.error = '';
+    setTimeout(() => this.codigoInputRef?.nativeElement.focus());
   }
 
-  volverAListaPin() {
+  volverAListaDosFa() {
     this.usuarioSeleccionado = null;
-    this.pin = '';
+    this.codigo = '';
     this.error = '';
   }
 
@@ -61,27 +64,24 @@ export class AuthLoginComponent {
     });
   }
 
-  digitoPin(d: string) {
-    if (!this.usuarioSeleccionado || this.pin.length >= 8) return;
-    this.pin += d;
+  onCodigoChange(value: string) {
+    this.codigo = value.replace(/\D/g, '').slice(0, 6);
     this.error = '';
-    if (this.pin.length >= 4) this.submitPin();
+    if (this.codigo.length === 6) this.submitDosFa();
   }
 
-  borrarDigitoPin() { this.pin = this.pin.slice(0, -1); }
-
-  submitPin() {
+  submitDosFa() {
     if (!this.usuarioSeleccionado) return;
     this.error = '';
     this.loading = true;
-    this.auth.pinLogin(this.usuarioSeleccionado.id_usuario, this.pin).subscribe({
+    this.auth.loginDosFa(this.usuarioSeleccionado.id_usuario, this.codigo).subscribe({
       next: ok => {
         this.loading = false;
-        this.pin = '';
-        if (!ok) { this.error = 'PIN incorrecto'; this.cdr.detectChanges(); return; }
+        this.codigo = '';
+        if (!ok) { this.error = 'Código incorrecto'; this.cdr.detectChanges(); return; }
         this.router.navigate([this.auth.session?.soloPos ? '/pos' : '/crm']);
       },
-      error: () => { this.loading = false; this.pin = ''; this.error = 'Error de conexión con el servidor'; this.cdr.detectChanges(); },
+      error: () => { this.loading = false; this.codigo = ''; this.error = 'Error de conexión con el servidor'; this.cdr.detectChanges(); },
     });
   }
 

@@ -142,6 +142,7 @@ export interface Usuario {
   created_at?: string;
   cuenta_existente?: boolean;
   roles?: string[];
+  tiene_2fa?: boolean;
 }
 
 export interface Plan {

@@ -420,6 +420,10 @@
                   [style]="u.estado === 'ocupado' ? 'background:#fffbeb;color:#b45309' : u.estado === 'suspendido' ? 'background:#fef2f2;color:#dc2626' : 'background:#f0fdf4;color:#16a34a'">
                   {{ u.estado ?? 'activo' }}
                 </span>
+                <span *ngIf="!u.email" class="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-1"
+                  [style]="u.tiene_2fa ? 'background:#f0fdf4;color:#16a34a' : 'background:#fffbeb;color:#b45309'">
+                  {{ u.tiene_2fa ? '2FA activo' : 'Sin 2FA configurar' }}
+                </span>
               </p>
               <p class="text-[11px] text-slate-400 m-0 mt-0.5">{{ u.email }}</p>
             </div>
@@ -450,6 +454,11 @@
                 style="background:#f8fafc;color:#64748b">
                 Editar
               </button>
+              <button *ngIf="!u.email" (click)="u.tiene_2fa ? restablecerDosFa(u) : iniciarConfiguracion2fa(u)"
+                class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
+                style="background:#f8fafc;color:#64748b">
+                {{ u.tiene_2fa ? 'Restablecer 2FA' : 'Configurar 2FA' }}
+              </button>
               <button (click)="toggleAdmin(u)"
                 class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
                 style="background:#f8fafc;color:#64748b">
@@ -468,7 +477,7 @@
         <div class="pt-4" style="border-top:1px solid #eef2ff">
           <h3 class="text-xs font-bold m-0" style="color:#1e1b4b">Esta terminal</h3>
           <p class="text-[11px] text-slate-400 m-0 mt-1 mb-3">
-            El login rápido por PIN de cajero solo aparece en dispositivos que vincules explícitamente a tu negocio. No lo actives en una computadora compartida con otras empresas.
+            El login rápido por 2FA de cajero solo aparece en dispositivos que vincules explícitamente a tu negocio. No lo actives en una computadora compartida con otras empresas.
           </p>
 
           <div *ngIf="terminalVinculadaAOtroTenant" class="text-xs font-medium px-4 py-2.5 rounded-xl mb-3" style="background:#fffbeb;color:#b45309">
@@ -508,7 +517,7 @@
             <button type="button" (click)="modoInvitar='cajero'; erroresNuevoUsuario={}"
               class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer"
               [style]="modoInvitar==='cajero' ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff' : 'background:#f8fafc;color:#64748b'">
-              Cajero (sin correo, solo PIN)
+              Cajero (sin correo, con verificación en dos pasos)
             </button>
           </div>
 
@@ -531,14 +540,9 @@
               </div>
             </ng-container>
           </div>
-          <div class="mt-3">
-            <label class="text-[11px] font-semibold m-0 mb-1 block" style="color:#64748b">
-              {{ modoInvitar==='cajero' ? 'PIN de acceso (con esto entra, no necesita correo)' : 'PIN de acceso rápido (opcional, para cajeros)' }}
-            </label>
-            <input [(ngModel)]="nuevoUsuario.pin" placeholder="4 a 8 dígitos" inputmode="numeric" pattern="[0-9]*" [disabled]="limiteAlcanzado"
-              class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none w-full" style="background:#f8fafc" />
-            <span *ngIf="erroresNuevoUsuario.pin" class="text-[11px] font-medium block mt-1" style="color:#dc2626">{{ erroresNuevoUsuario.pin }}</span>
-          </div>
+          <p *ngIf="modoInvitar==='cajero'" class="text-[11px] text-slate-400 m-0 mt-3">
+            Al crearlo te vamos a mostrar un código QR para escanear con Google Authenticator (u otra app compatible) y activar su acceso.
+          </p>
           <div class="mt-3">
             <label class="text-[11px] font-semibold m-0 mb-1 block" style="color:#64748b">Acceso / módulos</label>
             <select [(ngModel)]="nuevoUsuario.id_rol" [disabled]="limiteAlcanzado"
@@ -547,7 +551,7 @@
               <option *ngFor="let r of rolesAsignables" [ngValue]="r.id_rol">{{ r.nombre }}</option>
             </select>
             <p *ngIf="modoInvitar==='cajero'" class="text-[11px] text-slate-400 m-0 mt-1">
-              Un cajero (sin correo, solo PIN) solo ve el módulo POS automáticamente. El rol de acá afina qué puede hacer dentro de POS, no en qué módulo entra.
+              Un cajero (sin correo, con 2FA) solo ve el módulo POS automáticamente. El rol de acá afina qué puede hacer dentro de POS, no en qué módulo entra.
             </p>
             <p *ngIf="modoInvitar==='con_correo' && rolesAsignables.length === 0" class="text-[11px] text-slate-400 m-0 mt-1">
               Crea un rol personalizado en la sección de Roles para afinar sus permisos.
@@ -574,12 +578,16 @@
         <div class="flex flex-col gap-3">
           <input [(ngModel)]="formUsuario.nombre" placeholder="Nombre"
             class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
-          <input [(ngModel)]="formUsuario.email" placeholder="Email"
+          <input *ngIf="editandoUsuario?.email" [(ngModel)]="formUsuario.email" placeholder="Email"
             class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
           <input [(ngModel)]="formUsuario.password" placeholder="Nueva contraseña (opcional)" type="password"
             class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
-          <input [(ngModel)]="formUsuario.pin" placeholder="Nuevo PIN de acceso rápido (opcional)" inputmode="numeric" pattern="[0-9]*"
-            class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none" style="background:#f8fafc" />
+          <button *ngIf="editandoUsuario && !editandoUsuario.email" type="button"
+            (click)="editandoUsuario.tiene_2fa ? restablecerDosFa(editandoUsuario) : iniciarConfiguracion2fa(editandoUsuario)"
+            class="text-xs font-semibold px-4 py-2.5 rounded-xl border-0 cursor-pointer text-left"
+            style="background:#f8fafc;color:#64748b">
+            {{ editandoUsuario.tiene_2fa ? '✅ 2FA activo — restablecer' : 'Configurar verificación en dos pasos' }}
+          </button>
         </div>
 
         <div class="flex justify-end gap-2 mt-5">
@@ -591,6 +599,47 @@
             class="text-xs font-semibold px-4 py-2.5 rounded-xl border-0 cursor-pointer text-white"
             style="background:linear-gradient(135deg,#6366f1,#8b5cf6)" [style.opacity]="guardandoUsuario ? 0.6 : 1">
             {{ guardandoUsuario ? 'Guardando…' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Configurar/restablecer 2FA (cajero) -->
+      <div *ngIf="dialogDosFaOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="cerrarDialogDosFa()"></div>
+      <div *ngIf="dialogDosFaOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-md z-[101] shadow-2xl p-6">
+        <h3 class="text-sm font-bold m-0 mb-1" style="color:#1e1b4b">Configurar verificación en dos pasos</h3>
+        <p class="text-[11px] text-slate-400 m-0 mb-4">para {{ dosFaUsuario?.nombre }}</p>
+
+        <div *ngIf="errorDosFa" class="text-xs font-medium px-4 py-2.5 rounded-xl mb-3" style="background:#fef2f2;color:#dc2626">
+          {{ errorDosFa }}
+        </div>
+
+        <p *ngIf="cargandoDosFa" class="text-center text-xs m-0" style="color:#64748b">Generando código…</p>
+
+        <ng-container *ngIf="!cargandoDosFa && dosFaQr">
+          <p class="text-center text-xs m-0 mb-3" style="color:#64748b">
+            Escanea este código con Google Authenticator (u otra app compatible) desde el teléfono de {{ dosFaUsuario?.nombre }}.
+          </p>
+          <div class="flex justify-center mb-3">
+            <img [src]="dosFaQr" alt="Código QR de verificación en dos pasos" width="180" height="180" />
+          </div>
+          <p class="text-center text-[11px] m-0 mb-4" style="color:#94a3b8">
+            ¿No puedes escanear? Ingresa esta clave manualmente: <span class="font-mono font-semibold">{{ dosFaSecret }}</span>
+          </p>
+
+          <label class="text-[11px] font-semibold m-0 mb-1 block" style="color:#64748b">Código de 6 dígitos</label>
+          <input [(ngModel)]="dosFaCodigo" placeholder="000000" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+            class="px-3 py-2.5 rounded-xl text-sm border-0 outline-none w-full" style="background:#f8fafc" />
+        </ng-container>
+
+        <div class="flex justify-end gap-2 mt-5">
+          <button (click)="cerrarDialogDosFa()"
+            class="text-xs font-semibold px-4 py-2.5 rounded-xl border-0 cursor-pointer" style="background:#f8fafc;color:#64748b">
+            {{ dosFaUsuario?.tiene_2fa === false ? 'Configurar más tarde' : 'Cancelar' }}
+          </button>
+          <button *ngIf="dosFaQr" (click)="confirmarConfiguracion2fa()" [disabled]="confirmandoDosFa || dosFaCodigo.length !== 6"
+            class="text-xs font-semibold px-4 py-2.5 rounded-xl border-0 cursor-pointer text-white"
+            style="background:linear-gradient(135deg,#6366f1,#8b5cf6)" [style.opacity]="(confirmandoDosFa || dosFaCodigo.length !== 6) ? 0.6 : 1">
+            {{ confirmandoDosFa ? 'Confirmando…' : 'Confirmar' }}
           </button>
         </div>
       </div>

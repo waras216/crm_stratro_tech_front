@@ -61,7 +61,7 @@ export class DashboardComponent implements OnInit {
     const cfg = this.nicho.config;
     const pending = this.actividades.filter(a => a.estado !== 'completada').length;
     const pipeline = this.oportunidades.reduce((s,o) => s+Number(o.valor??0), 0);
-    const ganadas  = this.oportunidades.filter(o => o.etapa==='cierre').length;
+    const ganadas  = this.oportunidades.filter(o => o.estado==='ganada').length;
     const tasa     = this.oportunidades.length ? Math.round(ganadas/this.oportunidades.length*100) : 0;
 
     this.kpis = [

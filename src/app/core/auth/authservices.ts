@@ -46,7 +46,7 @@ export interface UserSession {
   id_tenant?: number;
   es_admin?: boolean;
   es_superadmin?: boolean;
-  /** Cajero (sin correo, entra solo por PIN): solo debe ver el módulo POS. */
+  /** Cajero (sin correo, entra solo por 2FA): solo debe ver el módulo POS. */
   soloPos?: boolean;
   plan?: PlanInfo | null;
   membresias?: MembresiaInfo[];
@@ -61,8 +61,8 @@ export class AuthService {
   private readonly TOKEN_KEY   = 'api_token';
   // A diferencia de STORAGE_KEY/TOKEN_KEY, esto NO se borra en logout() a
   // propósito: es "qué tenant es este dispositivo/terminal", para que un
-  // cajero pueda entrar solo con su PIN sin volver a pedir correo (ver
-  // pinLogin()). A diferencia de antes, YA NO se graba automáticamente en
+  // cajero pueda entrar solo con su código 2FA sin volver a pedir correo
+  // (ver loginDosFa()). A diferencia de antes, YA NO se graba automáticamente en
   // cada login normal (un mismo navegador puede recibir logins de varios
   // tenants distintos — dispositivo compartido, pruebas, etc. — y quedaba
   // pegado al primero que entrara). Solo se graba vía vincularTerminal(),
@@ -82,7 +82,7 @@ export class AuthService {
   }
 
   /** Vincula explícitamente este dispositivo/navegador al tenant de la
-   * sesión activa, para habilitar el login rápido por PIN de cajero en él.
+   * sesión activa, para habilitar el login rápido por 2FA de cajero en él.
    * Debe llamarse solo desde una acción deliberada de un admin (ver
    * configuracion.component), nunca automáticamente en un login normal. */
   vincularTerminal() {
@@ -90,7 +90,7 @@ export class AuthService {
     if (idTenant) localStorage.setItem(this.TERMINAL_TENANT_KEY, String(idTenant));
   }
 
-  /** Desvincula este dispositivo: ya no ofrecerá login por PIN hasta que
+  /** Desvincula este dispositivo: ya no ofrecerá login por 2FA hasta que
    * alguien lo vincule de nuevo explícitamente. */
   desvincularTerminal() {
     localStorage.removeItem(this.TERMINAL_TENANT_KEY);
@@ -175,21 +175,21 @@ export class AuthService {
     );
   }
 
-  /** Cajeros (con PIN) del tenant recordado en este dispositivo, para elegir
-   * "quién eres" antes de teclear el PIN. */
-  cargarUsuariosPin(): Observable<{ id_usuario: number; nombre: string }[]> {
+  /** Cajeros (con 2FA configurado) del tenant recordado en este dispositivo,
+   * para elegir "quién eres" antes de teclear el código. */
+  cargarUsuariosDosFa(): Observable<{ id_usuario: number; nombre: string }[]> {
     const idTenant = this.terminalTenantId;
     if (!idTenant) return of([]);
-    return this.http.get<{ id_usuario: number; nombre: string }[]>(`${environment.apiUrl}/pin-login/usuarios`, { params: { id_tenant: idTenant } })
+    return this.http.get<{ id_usuario: number; nombre: string }[]>(`${environment.apiUrl}/2fa-login/usuarios`, { params: { id_tenant: idTenant } })
       .pipe(catchError(() => of([])));
   }
 
-  /** Login rápido por PIN en este dispositivo (ver TERMINAL_TENANT_KEY). */
-  pinLogin(idUsuario: number, pin: string): Observable<boolean> {
+  /** Login rápido por código 2FA en este dispositivo (ver TERMINAL_TENANT_KEY). */
+  loginDosFa(idUsuario: number, codigo: string): Observable<boolean> {
     const idTenant = this.terminalTenantId;
     if (!idTenant) return of(false);
 
-    return this.http.post<{ user: any; token: string }>(`${environment.apiUrl}/pin-login`, { id_tenant: idTenant, id_usuario: idUsuario, pin }).pipe(
+    return this.http.post<{ user: any; token: string }>(`${environment.apiUrl}/2fa-login`, { id_tenant: idTenant, id_usuario: idUsuario, codigo }).pipe(
       tap(res => {
         localStorage.setItem(this.TOKEN_KEY, res.token);
         this.guardarSesion(this.mapSesion(res.user));

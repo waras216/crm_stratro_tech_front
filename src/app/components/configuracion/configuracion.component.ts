@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Location } from '@angular/common';
 import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
@@ -94,30 +94,39 @@ export class ConfiguracionComponent implements OnInit {
   errorEquipo = '';
   invitando = false;
   modoInvitar: 'con_correo' | 'cajero' = 'con_correo';
-  nuevoUsuario: { nombre: string; email: string; password: string; es_admin: boolean; id_rol: number | null; pin: string } =
-    { nombre: '', email: '', password: '', es_admin: false, id_rol: null, pin: '' };
-  erroresNuevoUsuario: { nombre?: string; email?: string; password?: string; pin?: string } = {};
+  nuevoUsuario: { nombre: string; email: string; password: string; es_admin: boolean; id_rol: number | null } =
+    { nombre: '', email: '', password: '', es_admin: false, id_rol: null };
+  erroresNuevoUsuario: { nombre?: string; email?: string; password?: string } = {};
   roles: Rol[] = [];
   avisoEquipo = '';
 
   private readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  private readonly PIN_REGEX = /^\d{4,8}$/;
 
   get rolesAsignables(): Rol[] { return this.roles.filter(r => !r.es_sistema); }
 
   // Editar usuario existente
   dialogUsuarioOpen = false;
   editandoUsuario: Usuario | null = null;
-  formUsuario = { nombre: '', email: '', password: '', pin: '' };
+  formUsuario = { nombre: '', email: '', password: '' };
   errorDialogUsuario = '';
   guardandoUsuario = false;
+
+  // Configurar/restablecer 2FA (login rápido de cajero)
+  dialogDosFaOpen = false;
+  dosFaUsuario: Usuario | null = null;
+  dosFaQr: string | null = null;
+  dosFaSecret = '';
+  dosFaCodigo = '';
+  errorDosFa = '';
+  cargandoDosFa = false;
+  confirmandoDosFa = false;
 
   get esAdmin(): boolean { return !!this.auth.session?.es_admin; }
   get maxUsuarios(): number | null { return this.auth.session?.plan?.max_usuarios ?? null; }
   get limiteAlcanzado(): boolean { return this.maxUsuarios !== null && this.usuarios.length >= this.maxUsuarios; }
   get miIdUsuario(): number | undefined { return this.auth.session?.id_usuario; }
 
-  // Terminal POS (vínculo dispositivo↔tenant para login rápido por PIN)
+  // Terminal POS (vínculo dispositivo↔tenant para login rápido por 2FA)
   get terminalVinculada(): boolean { return this.auth.terminalVinculadaAMiTenant; }
   get terminalVinculadaAOtroTenant(): boolean {
     const idTerminal = this.auth.terminalTenantId;
@@ -126,12 +135,12 @@ export class ConfiguracionComponent implements OnInit {
 
   vincularTerminal() {
     this.auth.vincularTerminal();
-    this.avisoEquipo = 'Esta terminal quedó configurada para tu negocio: ya puede usarse el login rápido por PIN.';
+    this.avisoEquipo = 'Esta terminal quedó configurada para tu negocio: ya puede usarse el login rápido por 2FA.';
   }
 
   desvincularTerminal() {
     this.auth.desvincularTerminal();
-    this.avisoEquipo = 'Esta terminal ya no ofrecerá login por PIN hasta que la vuelvas a configurar.';
+    this.avisoEquipo = 'Esta terminal ya no ofrecerá login por 2FA hasta que la vuelvas a configurar.';
   }
 
   constructor(
@@ -140,6 +149,7 @@ export class ConfiguracionComponent implements OnInit {
     private location: Location,
     private usuarioService: UsuarioService,
     private rolService: RolService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   goBack() { this.location.back(); }
@@ -192,8 +202,8 @@ export class ConfiguracionComponent implements OnInit {
   cargarUsuarios() {
     this.cargandoUsuarios = true;
     this.usuarioService.cargarUsuarios().subscribe({
-      next: usuarios => { this.usuarios = usuarios; this.cargandoUsuarios = false; },
-      error: () => { this.cargandoUsuarios = false; },
+      next: usuarios => { this.usuarios = usuarios; this.cargandoUsuarios = false; this.cdr.detectChanges(); },
+      error: () => { this.cargandoUsuarios = false; this.cdr.detectChanges(); },
     });
   }
 
@@ -204,17 +214,12 @@ export class ConfiguracionComponent implements OnInit {
     if (!u.nombre.trim()) errores.nombre = 'El nombre es obligatorio.';
     else if (u.nombre.trim().length < 2) errores.nombre = 'El nombre es muy corto.';
 
-    if (this.modoInvitar === 'cajero') {
-      if (!u.pin) errores.pin = 'El PIN es obligatorio para un cajero (así entra, sin correo).';
-      else if (!this.PIN_REGEX.test(u.pin)) errores.pin = 'El PIN debe ser solo números, de 4 a 8 dígitos.';
-    } else {
+    if (this.modoInvitar === 'con_correo') {
       if (!u.email.trim()) errores.email = 'El correo es obligatorio.';
       else if (!this.EMAIL_REGEX.test(u.email.trim())) errores.email = 'Ese correo no es válido.';
 
       if (!u.password) errores.password = 'La contraseña es obligatoria.';
       else if (u.password.length < 6) errores.password = 'Mínimo 6 caracteres.';
-
-      if (u.pin && !this.PIN_REGEX.test(u.pin)) errores.pin = 'El PIN debe ser solo números, de 4 a 8 dígitos.';
     }
 
     this.erroresNuevoUsuario = errores;
@@ -237,20 +242,73 @@ export class ConfiguracionComponent implements OnInit {
         if (nuevo.cuenta_existente) {
           this.avisoEquipo = `${nuevo.email} ya tenía una cuenta en STRATO — se agregó a tu equipo con su contraseña existente. La contraseña que escribiste aquí no se usó.`;
         }
-        this.nuevoUsuario = { nombre: '', email: '', password: '', es_admin: false, id_rol: null, pin: '' };
+        this.nuevoUsuario = { nombre: '', email: '', password: '', es_admin: false, id_rol: null };
         this.erroresNuevoUsuario = {};
         this.cargarUsuarios();
+        // Un cajero (sin correo) solo puede entrar configurando su 2FA, y
+        // eso requiere escanear un QR -- no puede pasarse en el alta misma.
+        // Se lo ofrecemos al toque para no obligar a un segundo viaje a
+        // "Editar" después.
+        if (nuevo.id_usuario) this.iniciarConfiguracion2fa(nuevo);
+        this.cdr.detectChanges();
       },
       error: err => {
         this.invitando = false;
         this.errorEquipo = err?.error?.message || 'No se pudo invitar al usuario';
+        this.cdr.detectChanges();
       },
     });
   }
 
+  /** Abre el diálogo de enrolamiento 2FA para este usuario: genera un
+   * secreto nuevo y muestra el QR para escanear con una app tipo Google
+   * Authenticator. El secreto viaja solo en memoria del componente hasta
+   * confirmarConfiguracion2fa() -- nunca se persiste sin confirmar. */
+  iniciarConfiguracion2fa(usuario: Usuario) {
+    this.dosFaUsuario = usuario;
+    this.dosFaQr = null;
+    this.dosFaSecret = '';
+    this.dosFaCodigo = '';
+    this.errorDosFa = '';
+    this.dialogDosFaOpen = true;
+    this.cargandoDosFa = true;
+    this.usuarioService.iniciarDosFa(usuario.id_usuario).subscribe({
+      next: res => { this.dosFaQr = res.qr; this.dosFaSecret = res.secret; this.cargandoDosFa = false; this.cdr.detectChanges(); },
+      error: err => { this.cargandoDosFa = false; this.errorDosFa = err?.error?.message || 'No se pudo generar el código 2FA'; this.cdr.detectChanges(); },
+    });
+  }
+
+  confirmarConfiguracion2fa() {
+    if (!this.dosFaUsuario || this.dosFaCodigo.length !== 6) return;
+    this.errorDosFa = '';
+    this.confirmandoDosFa = true;
+    this.usuarioService.confirmarDosFa(this.dosFaUsuario.id_usuario, this.dosFaSecret, this.dosFaCodigo).subscribe({
+      next: () => { this.confirmandoDosFa = false; this.cerrarDialogDosFa(); this.cargarUsuarios(); },
+      error: err => { this.confirmandoDosFa = false; this.errorDosFa = err?.error?.message || 'Código incorrecto'; this.cdr.detectChanges(); },
+    });
+  }
+
+  restablecerDosFa(usuario: Usuario) {
+    if (!confirm(`¿Restablecer la verificación en dos pasos de ${usuario.nombre}? Va a necesitar configurarla de nuevo para poder entrar.`)) return;
+    this.errorEquipo = '';
+    this.usuarioService.restablecerDosFa(usuario.id_usuario).subscribe({
+      next: () => { this.cargarUsuarios(); },
+      error: err => { this.errorEquipo = err?.error?.message || 'No se pudo restablecer el 2FA'; this.cdr.detectChanges(); },
+    });
+  }
+
+  cerrarDialogDosFa() {
+    this.dialogDosFaOpen = false;
+    this.dosFaUsuario = null;
+    this.dosFaQr = null;
+    this.dosFaSecret = '';
+    this.dosFaCodigo = '';
+    this.errorDosFa = '';
+  }
+
   abrirEditarUsuario(u: Usuario) {
     this.editandoUsuario = u;
-    this.formUsuario = { nombre: u.nombre, email: u.email, password: '', pin: '' };
+    this.formUsuario = { nombre: u.nombre, email: u.email ?? '', password: '' };
     this.errorDialogUsuario = '';
     this.dialogUsuarioOpen = true;
   }
@@ -262,17 +320,19 @@ export class ConfiguracionComponent implements OnInit {
 
   guardarUsuario() {
     if (!this.editandoUsuario) return;
-    if (!this.formUsuario.nombre || !this.formUsuario.email) {
+    // Un cajero (sin correo) no tiene correo que editar -- solo un usuario
+    // "con correo" lo requiere obligatoriamente.
+    const esCajero = !this.editandoUsuario.email;
+    if (!this.formUsuario.nombre || (!esCajero && !this.formUsuario.email)) {
       this.errorDialogUsuario = 'Nombre y correo son obligatorios.';
       return;
     }
 
-    const payload: Partial<Usuario> & { password?: string; pin?: string } = {
+    const payload: Partial<Usuario> & { password?: string } = {
       nombre: this.formUsuario.nombre,
-      email: this.formUsuario.email,
     };
+    if (!esCajero) payload.email = this.formUsuario.email;
     if (this.formUsuario.password) payload.password = this.formUsuario.password;
-    if (this.formUsuario.pin) payload.pin = this.formUsuario.pin;
 
     this.errorDialogUsuario = '';
     this.guardandoUsuario = true;

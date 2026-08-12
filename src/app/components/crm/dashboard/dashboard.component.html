@@ -8,7 +8,7 @@
       <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
         [style.background]="nicho.config.color + '20'">{{ saludoIcon }}</div>
       <div>
-        <h1 class="text-lg font-extrabold m-0 leading-tight" style="color:#1e1b4b">
+        <h1 class="text-lg font-extrabold m-0 leading-tight" style="color:var(--text-primary)">
           {{ saludo }}, {{ nombre }}
         </h1>
         <p class="text-xs text-slate-500 m-0 mt-0.5">
@@ -31,14 +31,15 @@
     <div *ngFor="let k of kpis; let i = index"
       class="relative overflow-hidden rounded-2xl p-4 hover-lift cursor-default card-enter"
       [style.animation-delay]="(i * 0.06) + 's'"
-      style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+      [style.background]="'var(--bg-card)'"
+      [style.box-shadow]="'var(--shadow-card)'">
       <div class="absolute -right-3 -top-3 w-16 h-16 rounded-full opacity-10" [ngClass]="k.color"></div>
       <div class="flex justify-between items-start mb-3">
         <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" [ngClass]="k.color">
           <span [innerHTML]="k.svg"></span>
         </div>
       </div>
-      <p class="text-2xl font-extrabold leading-none m-0" style="color:#1e1b4b">{{ k.value }}</p>
+      <p class="text-2xl font-extrabold leading-none m-0" style="color:var(--text-primary)">{{ k.value }}</p>
       <p class="text-[11px] text-slate-400 mt-1 mb-0 truncate">{{ k.title }}</p>
     </div>
   </div>

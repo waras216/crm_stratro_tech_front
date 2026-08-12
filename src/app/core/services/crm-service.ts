@@ -4,7 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, tap, map, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
-  Lead, Oportunidad, Cliente, Actividad, Pipeline,
+  Lead, Oportunidad, Cliente, Actividad, Pipeline, Contacto,
   MarketingCampana, Automatizacion, Integracion, Notificacion
 } from '../../models/crm.models';
 
@@ -136,6 +136,21 @@ export class CrmService {
         );
       }),
     );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // CONTACTOS
+  // ════════════════════════════════════════════════════════════════════
+  addContacto(contacto: Partial<Contacto> & { id_cliente: number }): Observable<Contacto> {
+    return this.http.post<Contacto>(`${API}/contactos`, contacto);
+  }
+
+  updateContacto(id: number, contacto: Partial<Contacto>): Observable<Contacto> {
+    return this.http.put<Contacto>(`${API}/contactos/${id}`, contacto);
+  }
+
+  deleteContacto(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/contactos/${id}`);
   }
 
   // ════════════════════════════════════════════════════════════════════

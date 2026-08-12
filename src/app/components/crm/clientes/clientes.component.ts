@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
-import { Cliente } from '../../../models/crm.models';
+import { Cliente, Contacto } from '../../../models/crm.models';
 
 @Component({ selector: 'app-clientes', standalone: false, templateUrl: './clientes.component.html', styleUrls: ['./clientes.component.scss'] })
 export class ClientesComponent implements OnInit {
@@ -69,4 +69,43 @@ export class ClientesComponent implements OnInit {
   }
 
   cerrarDetalle() { this.detalleOpen = false; this.clienteDetalle = null; }
+
+  private refrescarDetalle() {
+    if (!this.clienteDetalle) return;
+    this.crm.verCliente(this.clienteDetalle.id_cliente).subscribe({
+      next: res => { this.clienteDetalle = res; this.cdr.detectChanges(); },
+    });
+  }
+
+  // Contactos (dentro del detalle de cliente)
+  contactoDialogOpen = false;
+  editingContacto: Contacto | null = null;
+  contactoForm = { nombre: '', apellido_p: '', email: '', telefono: '', cargo: '', principal: false };
+
+  resetContactoForm() {
+    this.contactoForm = { nombre: '', apellido_p: '', email: '', telefono: '', cargo: '', principal: false };
+    this.editingContacto = null;
+  }
+
+  openNewContacto() { this.resetContactoForm(); this.contactoDialogOpen = true; }
+
+  handleEditContacto(ct: Contacto) {
+    this.editingContacto = ct;
+    this.contactoForm = {
+      nombre: ct.nombre, apellido_p: ct.apellido_p ?? '', email: ct.email ?? '',
+      telefono: ct.telefono ?? '', cargo: ct.cargo ?? '', principal: !!ct.principal,
+    };
+    this.contactoDialogOpen = true;
+  }
+
+  handleSubmitContacto() {
+    if (!this.contactoForm.nombre || !this.clienteDetalle) return;
+    const obs = this.editingContacto
+      ? this.crm.updateContacto(this.editingContacto.id_contacto, this.contactoForm)
+      : this.crm.addContacto({ ...this.contactoForm, id_cliente: this.clienteDetalle.id_cliente });
+    obs.subscribe({ next: () => { this.contactoDialogOpen = false; this.resetContactoForm(); this.refrescarDetalle(); } });
+  }
+
+  deleteContacto(id: number) { this.crm.deleteContacto(id).subscribe(() => this.refrescarDetalle()); }
+  closeContactoDialog() { this.contactoDialogOpen = false; this.resetContactoForm(); }
 }
