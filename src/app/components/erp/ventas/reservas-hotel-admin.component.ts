@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { NichoService } from '../../../core/services/nicho.service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { ErpHabitacion } from '../../../models/erp.models';
 
 @Component({
@@ -14,11 +15,15 @@ export class ErpReservasHotelAdminComponent implements OnInit {
   cargando = false;
 
   habDialogOpen = false;
-  habForm = { numero: null as number | null, tipo: '', piso: 1 };
+  habEditando: ErpHabitacion | null = null;
+  habForm = { numero: null as number | null, tipo: '', precio: null as number | null, piso: 1 };
   habError = '';
   habSaving = false;
 
-  constructor(private erpService: ErpService, public nicho: NichoService, private cdr: ChangeDetectorRef) {}
+  papeleraOpen = false;
+  papelera: ErpHabitacion[] = [];
+
+  constructor(private erpService: ErpService, public nicho: NichoService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.cargando = true;
@@ -52,16 +57,32 @@ export class ErpReservasHotelAdminComponent implements OnInit {
   }
 
   abrirNuevaHabitacion() {
-    this.habForm = { numero: null, tipo: this.nicho.hotelTiposHabitacion[0], piso: 1 };
+    this.habEditando = null;
+    this.habForm = { numero: null, tipo: this.nicho.hotelTiposHabitacion[0], precio: null, piso: 1 };
     this.habError = '';
     this.habDialogOpen = true;
   }
 
-  crearHabitacion() {
+  abrirEditarHabitacion(h: ErpHabitacion) {
+    this.habEditando = h;
+    this.habForm = { numero: h.numero, tipo: h.tipo, precio: h.precio, piso: h.piso };
+    this.habError = '';
+    this.habDialogOpen = true;
+  }
+
+  guardarHabitacion() {
     if (this.habSaving || !this.habForm.numero) { this.habError = 'El número de habitación es obligatorio.'; return; }
+    if (this.habForm.precio === null || this.habForm.precio < 0) { this.habError = 'Indica el precio por noche.'; return; }
+
     this.habSaving = true;
     this.habError = '';
-    this.erpService.crearHabitacion({ numero: this.habForm.numero, tipo: this.habForm.tipo, piso: this.habForm.piso || 1 }).subscribe({
+
+    const payload = { numero: this.habForm.numero, tipo: this.habForm.tipo, precio: this.habForm.precio, piso: this.habForm.piso || 1 };
+    const peticion = this.habEditando
+      ? this.erpService.actualizarHabitacion(this.habEditando.id, payload)
+      : this.erpService.crearHabitacion(payload);
+
+    peticion.subscribe({
       next: () => {
         this.habSaving = false;
         this.habDialogOpen = false;
@@ -69,9 +90,31 @@ export class ErpReservasHotelAdminComponent implements OnInit {
       },
       error: err => {
         this.habSaving = false;
-        this.habError = err?.error?.message || 'No se pudo crear la habitación';
+        this.habError = err?.error?.message || 'No se pudo guardar la habitación';
         this.cdr.detectChanges();
       },
+    });
+  }
+
+  async eliminarHabitacion(h: ErpHabitacion) {
+    const ok = await this.notify.confirm(`¿Eliminar la Habitación ${h.numero}? Podrás restaurarla desde la papelera.`, { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+
+    this.erpService.eliminarHabitacion(h.id).subscribe({
+      next: () => { this.notify.success('Habitación eliminada'); this.cdr.detectChanges(); },
+      error: err => { this.notify.error(err?.error?.message || 'No se pudo eliminar la habitación'); },
+    });
+  }
+
+  abrirPapelera() {
+    this.papeleraOpen = true;
+    this.erpService.cargarPapeleraHabitaciones().subscribe(data => { this.papelera = data; this.cdr.detectChanges(); });
+  }
+
+  restaurar(id: number) {
+    this.erpService.restaurarHabitacion(id).subscribe({
+      next: () => { this.papelera = this.papelera.filter(h => h.id !== id); this.notify.success('Habitación restaurada'); this.cdr.detectChanges(); },
+      error: err => { this.notify.error(err?.error?.message || 'No se pudo restaurar la habitación'); },
     });
   }
 }

@@ -9,6 +9,15 @@ import {
 
 interface LineaForm { id_cuenta: string; debe: string; haber: string; descripcion: string; }
 
+const TIPOS_CUENTA: { tipo: ErpCuentaContable['tipo']; label: string }[] = [
+  { tipo: 'activo', label: 'Activo (lo que tienes)' },
+  { tipo: 'pasivo', label: 'Pasivo (lo que debes)' },
+  { tipo: 'capital', label: 'Capital' },
+  { tipo: 'ingreso', label: 'Ingreso' },
+  { tipo: 'costo', label: 'Costo' },
+  { tipo: 'gasto', label: 'Gasto' },
+];
+
 @Component({
   selector: 'app-erp-finanzas',
   standalone: false,
@@ -27,6 +36,7 @@ export class ErpFinanzasComponent implements OnInit {
   filtroHasta = '';
   filtroOrigen = '';
 
+  cargandoAsientos = true;
   dialogAsientoOpen = false;
   asientoSaving = false;
   asientoError = '';
@@ -75,25 +85,91 @@ export class ErpFinanzasComponent implements OnInit {
     if (v === 'estados') this.cargarEstadoActivo();
   }
 
+  tiposCuenta = TIPOS_CUENTA;
+
   get cuentaCaja(): ErpCuentaContable | undefined {
     return this.cuentas.find(c => c.codigo === '1100');
   }
 
   get cuentasContrapartida(): ErpCuentaContable[] {
-    return this.cuentas.filter(c => c.es_movible && c.id !== this.cuentaCaja?.id);
+    return this.cuentas.filter(c => c.es_movible && c.activo && c.id !== this.cuentaCaja?.id);
+  }
+
+  cuentasDeTipo(tipo: ErpCuentaContable['tipo']): ErpCuentaContable[] {
+    return this.cuentas.filter(c => c.tipo === tipo && c.es_movible && c.activo);
+  }
+
+  // Modo simple: solo se ofrecen las cuentas del tipo que de verdad aplica
+  // (Ingreso para dinero que entra, Costo/Gasto para dinero que sale) en vez
+  // de las 6 categorías completas del plan de cuentas — si necesitan otra
+  // cuenta (Pasivo, Capital, etc.) está el modo avanzado para eso.
+  get cuentasSimpleFiltradas(): ErpCuentaContable[] {
+    const tipos: ErpCuentaContable['tipo'][] = this.asientoForm.tipoSimple === 'ingreso' ? ['ingreso'] : ['gasto', 'costo'];
+    return this.cuentasContrapartida.filter(c => tipos.includes(c.tipo));
+  }
+
+  onTipoSimpleChange() {
+    this.asientoForm.idCuentaContrapartida = '';
+  }
+
+  naturalezaAmigable(naturaleza: ErpCuentaContable['naturaleza']): string {
+    return naturaleza === 'deudora' ? 'Aumenta con Debe' : 'Aumenta con Haber';
   }
 
   // ── Asientos ──
   cargarAsientos() {
+    this.cargandoAsientos = true;
     this.contabilidad.cargarAsientos({
       desde: this.filtroDesde || undefined,
       hasta: this.filtroHasta || undefined,
       origen: this.filtroOrigen || undefined,
-    }).subscribe(data => { this.asientos = data; this.cdr.detectChanges(); });
+    }).subscribe(data => { this.asientos = data; this.cargandoAsientos = false; this.cdr.detectChanges(); });
+  }
+
+  origenBadgeClass(origen: string): string {
+    const clases: Record<string, string> = {
+      manual: 'badge-slate',
+      venta: 'badge-blue',
+      compra: 'bg-orange-100 text-orange-600',
+      nomina: 'badge-purple',
+      migracion: 'badge-slate',
+      ajuste: 'badge-red',
+    };
+    return clases[origen] ?? 'badge-slate';
   }
 
   toggleExpandido(id: number) {
     this.asientoExpandido = this.asientoExpandido === id ? null : id;
+  }
+
+  filtroPreset(preset: 'mes' | 'mesAnterior' | 'anio' | 'todo') {
+    const hoy = new Date();
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+    if (preset === 'todo') {
+      this.filtroDesde = '';
+      this.filtroHasta = '';
+    } else if (preset === 'mes') {
+      this.filtroDesde = iso(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+      this.filtroHasta = iso(hoy);
+    } else if (preset === 'mesAnterior') {
+      this.filtroDesde = iso(new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1));
+      this.filtroHasta = iso(new Date(hoy.getFullYear(), hoy.getMonth(), 0));
+    } else if (preset === 'anio') {
+      this.filtroDesde = iso(new Date(hoy.getFullYear(), 0, 1));
+      this.filtroHasta = iso(hoy);
+    }
+    this.cargarAsientos();
+  }
+
+  get presetActivo(): 'mes' | 'mesAnterior' | 'anio' | 'todo' | null {
+    if (!this.filtroDesde && !this.filtroHasta) return 'todo';
+    const hoy = new Date();
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+    if (this.filtroDesde === iso(new Date(hoy.getFullYear(), hoy.getMonth(), 1)) && this.filtroHasta === iso(hoy)) return 'mes';
+    if (this.filtroDesde === iso(new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1)) && this.filtroHasta === iso(new Date(hoy.getFullYear(), hoy.getMonth(), 0))) return 'mesAnterior';
+    if (this.filtroDesde === iso(new Date(hoy.getFullYear(), 0, 1)) && this.filtroHasta === iso(hoy)) return 'anio';
+    return null;
   }
 
   openNewAsiento() {
@@ -112,6 +188,8 @@ export class ErpFinanzasComponent implements OnInit {
 
   get totalDebeAvanzado() { return this.lineas.reduce((s, l) => s + (Number(l.debe) || 0), 0); }
   get totalHaberAvanzado() { return this.lineas.reduce((s, l) => s + (Number(l.haber) || 0), 0); }
+  get diferenciaAvanzado() { return Math.round((this.totalDebeAvanzado - this.totalHaberAvanzado) * 100) / 100; }
+  get avanzadoBalanceado() { return this.diferenciaAvanzado === 0 && (this.totalDebeAvanzado > 0 || this.totalHaberAvanzado > 0); }
 
   submitAsiento() {
     if (this.asientoSaving) return;
@@ -166,8 +244,12 @@ export class ErpFinanzasComponent implements OnInit {
     if (!ok) return;
 
     this.contabilidad.reversarAsiento(asiento.id).subscribe({
-      next: () => { this.notify.success('Asiento reversado'); this.cdr.detectChanges(); },
-      error: err => { this.notify.error('No se pudo reversar el asiento'); console.error(err); },
+      next: () => { this.notify.success('Asiento reversado'); this.cargarAsientos(); },
+      error: err => {
+        this.notify.error(err?.error?.errors?.asiento?.[0] || 'No se pudo reversar el asiento');
+        this.cargarAsientos();
+        console.error(err);
+      },
     });
   }
 
@@ -199,6 +281,13 @@ export class ErpFinanzasComponent implements OnInit {
         this.cuentaError = err?.error?.errors?.codigo?.[0] || 'No se pudo guardar la cuenta.';
         this.cdr.detectChanges();
       },
+    });
+  }
+
+  toggleActivo(cuenta: ErpCuentaContable) {
+    this.contabilidad.updateCuenta(cuenta.id, { activo: !cuenta.activo }).subscribe({
+      next: actualizada => { this.notify.success(actualizada.activo ? 'Cuenta reactivada' : 'Cuenta desactivada'); this.cdr.detectChanges(); },
+      error: err => { this.notify.error(err?.error?.message || 'No se pudo actualizar la cuenta'); },
     });
   }
 
@@ -237,6 +326,63 @@ export class ErpFinanzasComponent implements OnInit {
       },
       error: () => { this.efCargando = false; this.cdr.detectChanges(); },
     });
+  }
+
+  private buildBalanceComprobacionExportData(): ReportExportData | null {
+    const bc = this.balanceComprobacion;
+    if (!bc) return null;
+
+    return {
+      title: 'Balance de Comprobación',
+      kpis: [
+        { label: 'Total Debe', value: bc.total_debe },
+        { label: 'Total Haber', value: bc.total_haber },
+        { label: 'Cuadra', value: bc.total_debe === bc.total_haber ? 'Sí' : 'No' },
+      ],
+      sections: [
+        { heading: 'Cuentas', rows: bc.cuentas.map(c => ({ label: `${c.codigo} — ${c.nombre}`, value: c.saldo })) },
+      ],
+    };
+  }
+
+  exportarBalanceComprobacionPdf() {
+    const data = this.buildBalanceComprobacionExportData();
+    if (data) this.exportSvc.exportPdf(data);
+  }
+
+  exportarBalanceComprobacionExcel() {
+    const data = this.buildBalanceComprobacionExportData();
+    if (data) this.exportSvc.exportExcel(data);
+  }
+
+  private buildEstadoResultadosExportData(): ReportExportData | null {
+    const er = this.estadoResultados;
+    if (!er) return null;
+
+    return {
+      title: 'Estado de Resultados',
+      kpis: [
+        { label: 'Total Ingresos', value: er.total_ingresos },
+        { label: 'Total Costos', value: er.total_costos },
+        { label: 'Total Gastos', value: er.total_gastos },
+        { label: 'Utilidad Neta', value: er.utilidad_neta },
+      ],
+      sections: [
+        { heading: 'Ingresos', rows: er.ingresos.map(f => ({ label: f.nombre, value: f.monto })) },
+        { heading: 'Costos', rows: er.costos.map(f => ({ label: f.nombre, value: f.monto })) },
+        { heading: 'Gastos', rows: er.gastos.map(f => ({ label: f.nombre, value: f.monto })) },
+      ],
+    };
+  }
+
+  exportarEstadoResultadosPdf() {
+    const data = this.buildEstadoResultadosExportData();
+    if (data) this.exportSvc.exportPdf(data);
+  }
+
+  exportarEstadoResultadosExcel() {
+    const data = this.buildEstadoResultadosExportData();
+    if (data) this.exportSvc.exportExcel(data);
   }
 
   private buildBalanceGeneralExportData(): ReportExportData | null {

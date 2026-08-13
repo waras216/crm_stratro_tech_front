@@ -11,6 +11,7 @@ import { ErpEnvio } from '../../../models/erp.models';
 })
 export class ErpScmComponent implements OnInit {
   envios: ErpEnvio[] = [];
+  cargando = true;
 
   dialogOpen = false;
   saving = false;
@@ -21,7 +22,7 @@ export class ErpScmComponent implements OnInit {
 
   ngOnInit() {
     this.erpService.cargarEnvios().subscribe();
-    this.erpService.envios$.subscribe(data => { this.envios = data; this.cdr.detectChanges(); });
+    this.erpService.envios$.subscribe(data => { this.envios = data; this.cargando = false; this.cdr.detectChanges(); });
   }
 
   get enTransito() { return this.envios.filter(e => e.estado === 'en_transito'); }

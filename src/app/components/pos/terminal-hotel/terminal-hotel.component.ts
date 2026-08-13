@@ -3,8 +3,7 @@ import { NotifyService } from '../../../core/services/notify.service';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
 import { NichoService } from '../../../core/services/nicho.service';
-import { ErpHabitacion, Producto, PedidoPago } from '../../../models/erp.models';
-import { ItemCarrito } from '../carrito/carrito.component';
+import { ErpHabitacion, ErpPedido, Producto, PedidoPago } from '../../../models/erp.models';
 
 @Component({
   selector: 'app-pos-terminal-hotel',
@@ -64,7 +63,10 @@ import { ItemCarrito } from '../carrito/carrito.component';
             </div>
             <div>
               <p class="text-sm font-bold text-slate-800 m-0">Habitación {{ hab.numero }} — {{ hab.tipo }}</p>
-              <p class="text-xs text-slate-400 m-0">Piso {{ hab.piso }}</p>
+              <p class="text-xs text-slate-400 m-0">Piso {{ hab.piso }}
+                <ng-container *ngIf="hab.precio !== null">· \${{ hab.precio }}/noche</ng-container>
+                <span *ngIf="hab.precio === null" class="text-amber-600 font-semibold">· Sin precio definido</span>
+              </p>
             </div>
           </div>
           <span class="text-[10px] font-bold px-3 py-1 rounded-full"
@@ -115,9 +117,13 @@ import { ItemCarrito } from '../carrito/carrito.component';
 
       <!-- Consumos -->
       <div class="bg-white rounded-2xl border border-slate-100 flex-1 overflow-y-auto">
+        <div *ngIf="hab.estado==='ocupada' || hab.estado==='checkout'" class="flex items-center justify-between px-5 py-2.5 border-b border-slate-50 bg-amber-50/50">
+          <p class="text-xs text-slate-700 m-0">Hospedaje — {{ hab.noches }} noche(s) × \${{ hab.precio ?? 0 }}</p>
+          <p class="text-xs font-bold text-slate-700 m-0">\${{ totalHospedaje(hab) }}</p>
+        </div>
         <div class="px-5 pt-4 pb-2 flex items-center justify-between">
           <p class="text-xs font-bold text-slate-700 m-0">Consumos Room Service</p>
-          <span class="text-xs font-bold text-amber-600">Total: \${{ totalConsumos(hab) }}</span>
+          <span class="text-xs font-bold text-amber-600">Total a cobrar: \${{ totalConsumos(hab) + totalHospedaje(hab) }}</span>
         </div>
         <div *ngIf="hab.consumos.length === 0" class="text-center py-8 text-slate-400 text-xs">Sin consumos registrados</div>
         <div *ngFor="let c of hab.consumos" class="flex items-center justify-between px-5 py-2.5 border-b border-slate-50 last:border-0">
@@ -156,6 +162,10 @@ import { ItemCarrito } from '../carrito/carrito.component';
       </select>
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.piso" placeholder="Piso" />
     </div>
+    <div class="relative">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+      <input class="w-full pl-6 pr-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="0" step="0.01" [(ngModel)]="habForm.precio" placeholder="Precio por noche" />
+    </div>
     <p *ngIf="habError" class="text-xs text-red-600 m-0">{{ habError }}</p>
     <button (click)="crearHabitacion()" [disabled]="habSaving"
       class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
@@ -170,6 +180,8 @@ import { ItemCarrito } from '../carrito/carrito.component';
   <div class="flex flex-col gap-3">
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="checkInForm.huesped" placeholder="Nombre del huésped" />
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="checkInForm.noches" placeholder="Noches" />
+    <p *ngIf="habSeleccionada?.precio !== null" class="text-xs text-slate-500 m-0">Estimado: <span class="font-semibold text-slate-700">\${{ (habSeleccionada!.precio ?? 0) * (checkInForm.noches || 0) }}</span> ({{ checkInForm.noches || 0 }} noche(s) × \${{ habSeleccionada?.precio }})</p>
+    <p *ngIf="habSeleccionada?.precio === null" class="text-xs text-amber-600 m-0">Esta habitación no tiene precio definido — se cobrará $0 por hospedaje. Edítala desde el panel de ERP.</p>
     <p *ngIf="checkInError" class="text-xs text-red-600 m-0">{{ checkInError }}</p>
     <button (click)="confirmarCheckIn()" [disabled]="checkInSaving"
       class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
@@ -177,7 +189,7 @@ import { ItemCarrito } from '../carrito/carrito.component';
   </div>
 </div>
 
-<app-pos-ticket [items]="lastTicket" [visible]="ticketOpen" (cerrar)="ticketOpen=false"></app-pos-ticket>
+<app-pos-ticket [pedido]="lastPedido" [visible]="ticketOpen" (cerrar)="ticketOpen=false"></app-pos-ticket>
 <app-pos-pago-modal [visible]="pagoModalOpen" [total]="totalPago"
   (confirmar)="confirmarPago($event)" (cancelado)="pagoModalOpen=false"></app-pos-pago-modal>
   `,
@@ -197,7 +209,7 @@ export class PosTerminalHotelComponent implements OnInit {
   cobrando = false;
 
   habDialogOpen = false;
-  habForm = { numero: null as number | null, tipo: '', piso: 1 };
+  habForm = { numero: null as number | null, tipo: '', precio: null as number | null, piso: 1 };
   habError = '';
   habSaving = false;
 
@@ -210,8 +222,7 @@ export class PosTerminalHotelComponent implements OnInit {
   pagoModalOpen = false;
   totalPago = 0;
   private habPendiente: ErpHabitacion | null = null;
-  private itemsTicketPendiente: ItemCarrito[] = [];
-  lastTicket: ItemCarrito[] = [];
+  lastPedido: ErpPedido | null = null;
 
   productos: Producto[] = [];
 
@@ -272,20 +283,21 @@ export class PosTerminalHotelComponent implements OnInit {
   }
 
   abrirNuevaHabitacion() {
-    this.habForm = { numero: null, tipo: this.nicho.hotelTiposHabitacion[0], piso: 1 };
+    this.habForm = { numero: null, tipo: this.nicho.hotelTiposHabitacion[0], precio: null, piso: 1 };
     this.habError = '';
     this.habDialogOpen = true;
   }
 
   crearHabitacion() {
     if (this.habSaving || !this.habForm.numero) { this.habError = 'El número de habitación es obligatorio.'; return; }
+    if (this.habForm.precio === null || this.habForm.precio < 0) { this.habError = 'Indica el precio por noche.'; return; }
     this.habSaving = true;
     this.habError = '';
-    this.erpService.crearHabitacion({ numero: this.habForm.numero, tipo: this.habForm.tipo, piso: this.habForm.piso || 1 }).subscribe({
+    this.erpService.crearHabitacion({ numero: this.habForm.numero, tipo: this.habForm.tipo, precio: this.habForm.precio, piso: this.habForm.piso || 1 }).subscribe({
       next: () => {
         this.habSaving = false;
         this.habDialogOpen = false;
-        this.habForm = { numero: null, tipo: this.nicho.hotelTiposHabitacion[0], piso: 1 };
+        this.habForm = { numero: null, tipo: this.nicho.hotelTiposHabitacion[0], precio: null, piso: 1 };
         this.cdr.detectChanges();
       },
       error: err => {
@@ -330,25 +342,24 @@ export class PosTerminalHotelComponent implements OnInit {
     this.erpService.marcarMantenimiento(h.id, estado).subscribe(actualizada => { this.habSeleccionada = actualizada; this.cdr.detectChanges(); });
   }
 
+  totalHospedaje(h: ErpHabitacion): number {
+    return (h.precio ?? 0) * (h.noches ?? 0);
+  }
+
   async checkOut() {
     if (!this.habSeleccionada || this.cobrando) return;
     const hab = this.habSeleccionada;
-    const total = this.totalConsumos(hab);
+    const total = this.totalConsumos(hab) + this.totalHospedaje(hab);
 
     const ok = await this.notify.confirm(`¿Confirmar check-out de la Habitación ${hab.numero}? Total a cobrar: $${total}`, { confirmText: 'Check-out' });
     if (!ok) return;
 
-    const itemsTicket = hab.consumos
-      .filter(c => c.producto)
-      .map(c => ({ producto: c.producto!, cantidad: c.cantidad }));
-
-    if (hab.consumos.length === 0) {
-      this.ejecutarCheckOut(hab, itemsTicket, undefined, []);
+    if (total === 0) {
+      this.ejecutarCheckOut(hab, undefined, []);
       return;
     }
 
     this.habPendiente = hab;
-    this.itemsTicketPendiente = itemsTicket;
     this.totalPago = total;
     this.pagoModalOpen = true;
   }
@@ -359,17 +370,17 @@ export class PosTerminalHotelComponent implements OnInit {
     if (!hab) return;
 
     this.crmService.obtenerClienteMostrador().subscribe(idCliente => {
-      this.ejecutarCheckOut(hab, this.itemsTicketPendiente, idCliente, pagos);
+      this.ejecutarCheckOut(hab, idCliente, pagos);
     });
   }
 
-  private ejecutarCheckOut(hab: ErpHabitacion, itemsTicket: ItemCarrito[], idCliente: number | undefined, pagos: PedidoPago[]) {
+  private ejecutarCheckOut(hab: ErpHabitacion, idCliente: number | undefined, pagos: PedidoPago[]) {
     this.cobrando = true;
 
     this.erpService.checkOutHabitacion(hab.id, idCliente, pagos).subscribe({
-      next: () => {
-        if (itemsTicket.length > 0) {
-          this.lastTicket = itemsTicket;
+      next: res => {
+        if (res.pedido) {
+          this.lastPedido = res.pedido;
           this.ticketOpen = true;
         } else {
           this.notify.success(`Huésped: ${hab.huesped}`, 'Check-out completado');

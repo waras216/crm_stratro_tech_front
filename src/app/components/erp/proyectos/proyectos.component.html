@@ -9,7 +9,13 @@
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3"><p class="text-xs text-slate-500 m-0">Presupuesto Total</p><p class="text-2xl font-bold text-emerald-600 m-0">${{ presupuestoTotal.toLocaleString() }}</p></div>
   </div>
 
-  <div class="flex flex-col gap-4">
+  <div *ngIf="cargando" class="flex flex-col gap-3">
+    <div *ngFor="let _ of [1,2,3]" class="h-24 rounded-xl skeleton"></div>
+  </div>
+
+  <p *ngIf="!cargando && proyectos.length === 0" class="text-sm text-slate-400 m-0 text-center py-10">Sin proyectos registrados todavía.</p>
+
+  <div *ngIf="!cargando" class="flex flex-col gap-4">
     <div *ngFor="let p of proyectos; let i = index" class="bg-white border border-slate-200 rounded-xl overflow-hidden hover-lift card-enter" [style.animation-delay]="(i*0.06+0.2)+'s'">
       <div class="p-5 cursor-pointer" (click)="toggleDetalle(p)">
         <div class="flex items-center justify-between mb-3">
@@ -132,7 +138,12 @@
 <!-- Modal: nuevo proyecto -->
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
 <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Nuevo Proyecto</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Nuevo Proyecto</h3>
+    <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="flex flex-col gap-3">
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.nombre" placeholder="Nombre del proyecto" />
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.cliente" placeholder="Cliente" />
@@ -146,7 +157,12 @@
 <!-- Modal: nueva tarea -->
 <div *ngIf="tareaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="tareaDialogOpen=false"></div>
 <div *ngIf="tareaDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Tarea — {{ estadoLabels[tareaForm.estado] }}</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Nueva Tarea — {{ estadoLabels[tareaForm.estado] }}</h3>
+    <button (click)="tareaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="flex flex-col gap-3">
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="tareaForm.titulo" placeholder="Título de la tarea" />
     <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm" rows="2" [(ngModel)]="tareaForm.descripcion" placeholder="Descripción (opcional)"></textarea>
@@ -163,7 +179,12 @@
 <!-- Modal: registrar horas -->
 <div *ngIf="horaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="horaDialogOpen=false"></div>
 <div *ngIf="horaDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Registrar Horas</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Registrar Horas</h3>
+    <button (click)="horaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="flex flex-col gap-3">
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="horaForm.colaborador" placeholder="Colaborador" />
     <div class="grid grid-cols-2 gap-3">

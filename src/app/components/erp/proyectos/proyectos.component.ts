@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { ErpProyecto, ErpProyectoTarea, ErpProyectoHora } from '../../../models/erp.models';
 
 @Component({
@@ -14,6 +15,7 @@ export class ErpProyectosComponent implements OnInit {
   error = '';
   form = { nombre: '', cliente: '', responsable: '', presupuesto: '' };
   proyectos: ErpProyecto[] = [];
+  cargando = true;
 
   // Detalle expandido (kanban + horas) de un proyecto a la vez
   expandidoId: number | null = null;
@@ -36,11 +38,11 @@ export class ErpProyectosComponent implements OnInit {
   horaError = '';
   horaSaving = false;
 
-  constructor(private erpService: ErpService, private cdr: ChangeDetectorRef) {}
+  constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.erpService.cargarProyectos().subscribe();
-    this.erpService.proyectos$.subscribe(data => { this.proyectos = data; this.cdr.detectChanges(); });
+    this.erpService.proyectos$.subscribe(data => { this.proyectos = data; this.cargando = false; this.cdr.detectChanges(); });
   }
 
   get activos() { return this.proyectos.filter(p => p.estado === 'activo').length; }
@@ -177,8 +179,11 @@ export class ErpProyectosComponent implements OnInit {
     });
   }
 
-  eliminarTarea(t: ErpProyectoTarea) {
-    if (this.expandidoId === null || !confirm(`¿Eliminar la tarea "${t.titulo}"?`)) return;
+  async eliminarTarea(t: ErpProyectoTarea) {
+    if (this.expandidoId === null) return;
+    const ok = await this.notify.confirm(`¿Eliminar la tarea "${t.titulo}"?`, { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+
     this.erpService.eliminarTareaProyecto(this.expandidoId, t.id).subscribe({
       next: () => { this.tareas = this.tareas.filter(x => x.id !== t.id); this.cdr.detectChanges(); },
     });
@@ -219,8 +224,11 @@ export class ErpProyectosComponent implements OnInit {
     });
   }
 
-  eliminarHora(h: ErpProyectoHora) {
-    if (this.expandidoId === null || !confirm('¿Eliminar este registro de horas?')) return;
+  async eliminarHora(h: ErpProyectoHora) {
+    if (this.expandidoId === null) return;
+    const ok = await this.notify.confirm('¿Eliminar este registro de horas?', { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+
     const idProyecto = this.expandidoId;
     this.erpService.eliminarHoraProyecto(idProyecto, h.id).subscribe({
       next: () => {

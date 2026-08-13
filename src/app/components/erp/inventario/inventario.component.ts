@@ -36,12 +36,13 @@ export class ErpInventarioComponent implements OnInit {
 
   inventario: Producto[] = [];
   categorias: Categoria[] = [];
+  cargando = true;
 
   constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.erpService.cargarInventario().subscribe();
-    this.erpService.inventario$.subscribe(data => { this.inventario = data; this.cdr.detectChanges(); });
+    this.erpService.inventario$.subscribe(data => { this.inventario = data; this.cargando = false; this.cdr.detectChanges(); });
     this.erpService.cargarCategorias().subscribe(data => { this.categorias = data; this.cdr.detectChanges(); });
   }
 

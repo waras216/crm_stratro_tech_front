@@ -25,7 +25,11 @@ import { ErpOrdenProduccion } from '../../../models/erp.models';
           <p class="text-xs text-slate-500 m-0">Total Órdenes</p><p class="text-2xl font-bold text-blue-600 m-0">{{ ordenes.length }}</p>
         </div>
       </div>
-      <div class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-4">
+      <div *ngIf="cargando" class="flex flex-col gap-2">
+        <div *ngFor="let _ of [1,2,3]" class="h-12 rounded-lg skeleton"></div>
+      </div>
+
+      <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-4">
         <table class="w-full text-sm border-collapse">
           <thead><tr class="bg-slate-50">
             <th class="text-left px-4 py-3 font-medium text-slate-500">OF</th>
@@ -42,6 +46,9 @@ import { ErpOrdenProduccion } from '../../../models/erp.models';
               <td class="px-4 py-3"><div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-amber-500 rounded-full" [style.width]="o.progreso+'%'"></div></div></td>
               <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="o.estado==='completada'?'badge-green':'badge-amber'">{{ o.estado }}</span></td>
             </tr>
+            <tr *ngIf="ordenes.length === 0">
+              <td colspan="5" class="text-center py-10 text-slate-400 text-xs">Sin órdenes de producción todavía.</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -49,7 +56,12 @@ import { ErpOrdenProduccion } from '../../../models/erp.models';
 
     <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
     <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
-      <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Orden de Producción</h3>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="m-0 text-lg font-semibold">Nueva Orden de Producción</h3>
+        <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <div class="flex flex-col gap-3">
         <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.producto" placeholder="Producto" />
         <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.cantidad" placeholder="Cantidad" />
@@ -65,12 +77,13 @@ export class ErpFabricacionComponent implements OnInit {
   error = '';
   form = { producto: '', cantidad: '' };
   ordenes: ErpOrdenProduccion[] = [];
+  cargando = true;
 
   constructor(private erpService: ErpService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.erpService.cargarOrdenesProduccion().subscribe();
-    this.erpService.ordenesProduccion$.subscribe(data => { this.ordenes = data; this.cdr.detectChanges(); });
+    this.erpService.ordenesProduccion$.subscribe(data => { this.ordenes = data; this.cargando = false; this.cdr.detectChanges(); });
   }
 
   get enProceso() { return this.ordenes.filter(o => o.estado === 'en proceso').length; }

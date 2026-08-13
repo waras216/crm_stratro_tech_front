@@ -22,7 +22,11 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2"><p class="text-xs text-slate-500 m-0">Nómina Mensual</p><p class="text-2xl font-bold text-emerald-600 m-0">\${{ nominaMensual.toLocaleString() }}</p></div>
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3"><p class="text-xs text-slate-500 m-0">Activos</p><p class="text-2xl font-bold text-blue-600 m-0">{{ activos }}</p></div>
       </div>
-      <div class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-4">
+      <div *ngIf="cargando" class="flex flex-col gap-2">
+        <div *ngFor="let _ of [1,2,3]" class="h-12 rounded-lg skeleton"></div>
+      </div>
+
+      <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-4">
         <table class="w-full text-sm border-collapse">
           <thead><tr class="bg-slate-50">
             <th class="text-left px-4 py-3 font-medium text-slate-500">Nombre</th>
@@ -37,6 +41,7 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
               <td class="px-4 py-3 text-slate-500">{{ e.puesto }}</td>
               <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="e.estado==='activo'?'badge-green':'badge-amber'">{{ e.estado }}</span></td>
             </tr>
+            <tr *ngIf="empleados.length===0"><td colspan="4" class="text-center py-8 text-slate-400 text-xs">Sin empleados registrados todavía.</td></tr>
           </tbody>
         </table>
       </div>
@@ -63,7 +68,12 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
 
     <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
     <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
-      <h3 class="m-0 mb-4 text-lg font-semibold">Nuevo Empleado</h3>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="m-0 text-lg font-semibold">Nuevo Empleado</h3>
+        <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <div class="flex flex-col gap-3">
         <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.nombre" placeholder="Nombre" />
         <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.departamento" placeholder="Departamento" />
@@ -76,7 +86,12 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
 
     <div *ngIf="nominaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="nominaDialogOpen=false"></div>
     <div *ngIf="nominaDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
-      <h3 class="m-0 mb-4 text-lg font-semibold">Procesar Nómina</h3>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="m-0 text-lg font-semibold">Procesar Nómina</h3>
+        <button (click)="nominaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <div class="flex flex-col gap-3">
         <input type="date" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="nominaFecha" />
         <p class="text-xs text-slate-500 m-0">Empleados activos a pagar:</p>
@@ -104,6 +119,7 @@ export class ErpRrhhComponent implements OnInit {
   error = '';
   form = { nombre: '', departamento: '', puesto: '', salario: '' };
   empleados: ErpEmpleado[] = [];
+  cargando = true;
 
   historialNomina: ErpNominaPago[] = [];
 
@@ -122,7 +138,7 @@ export class ErpRrhhComponent implements OnInit {
 
   ngOnInit() {
     this.erpService.cargarEmpleados().subscribe();
-    this.erpService.empleados$.subscribe(data => { this.empleados = data; this.cdr.detectChanges(); });
+    this.erpService.empleados$.subscribe(data => { this.empleados = data; this.cargando = false; this.cdr.detectChanges(); });
     this.contabilidad.cargarHistorialNomina().subscribe(data => { this.historialNomina = data; this.cdr.detectChanges(); });
     this.contabilidad.nomina$.subscribe(data => { this.historialNomina = data; this.cdr.detectChanges(); });
   }

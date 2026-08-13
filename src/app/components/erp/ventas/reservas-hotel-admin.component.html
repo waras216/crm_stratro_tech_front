@@ -4,9 +4,12 @@
       <h3 class="m-0 text-sm font-bold text-slate-700">Gestión de Habitaciones</h3>
       <p class="text-xs text-slate-400 m-0 mt-0.5">Vista administrativa — el check-in, check-out y room service se hacen desde el POS</p>
     </div>
-    <button (click)="abrirNuevaHabitacion()"
-      class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 flex-shrink-0"
-      style="background:#f59e0b">+ Hab.</button>
+    <div class="flex gap-2 flex-shrink-0">
+      <button (click)="abrirPapelera()" class="text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-600 hover:bg-slate-50">Papelera</button>
+      <button (click)="abrirNuevaHabitacion()"
+        class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90"
+        style="background:#f59e0b">+ Hab.</button>
+    </div>
   </div>
 
   <div class="grid grid-cols-5 gap-3">
@@ -32,11 +35,16 @@
     </div>
   </div>
 
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+  <div *ngIf="cargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-11 rounded-lg skeleton"></div>
+  </div>
+
+  <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
     <table class="w-full text-sm border-collapse">
       <thead><tr class="bg-slate-50">
         <th class="text-left px-4 py-3 font-medium text-slate-500">Hab.</th>
         <th class="text-left px-4 py-3 font-medium text-slate-500">Tipo</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Precio/noche</th>
         <th class="text-left px-4 py-3 font-medium text-slate-500">Piso</th>
         <th class="text-center px-4 py-3 font-medium text-slate-500">Estado</th>
         <th class="text-left px-4 py-3 font-medium text-slate-500">Huésped</th>
@@ -46,12 +54,16 @@
         <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
       </tr></thead>
       <tbody>
-        <tr *ngIf="!cargando && habitaciones.length === 0">
-          <td colspan="9" class="text-center py-8 text-slate-400 text-xs">Sin habitaciones — agrega la primera con "+ Hab."</td>
+        <tr *ngIf="habitaciones.length === 0">
+          <td colspan="10" class="text-center py-8 text-slate-400 text-xs">Sin habitaciones — agrega la primera con "+ Hab."</td>
         </tr>
         <tr *ngFor="let h of habitaciones" class="border-b border-slate-100 hover:bg-slate-50">
           <td class="px-4 py-3 font-bold">{{ h.numero }}</td>
           <td class="px-4 py-3">{{ h.tipo }}</td>
+          <td class="px-4 py-3 text-right">
+            <span *ngIf="h.precio !== null" class="font-medium text-slate-700">${{ h.precio | number:'1.0-2' }}</span>
+            <span *ngIf="h.precio === null" class="text-amber-600 text-xs font-semibold">Sin definir</span>
+          </td>
           <td class="px-4 py-3">{{ h.piso }}</td>
           <td class="px-4 py-3 text-center">
             <span class="px-2 py-0.5 rounded-full text-xs font-medium"
@@ -67,11 +79,15 @@
           <td class="px-4 py-3">{{ h.check_out || '—' }}</td>
           <td class="px-4 py-3 text-right font-medium">${{ totalConsumos(h) }}</td>
           <td class="px-4 py-3 text-right">
-            <button *ngIf="h.estado==='libre' || h.estado==='mantenimiento'" (click)="toggleMantenimiento(h)"
-              class="text-xs font-medium bg-transparent border-0 cursor-pointer hover:underline"
-              [class.text-slate-500]="h.estado==='libre'" [class.text-amber-600]="h.estado==='mantenimiento'">
-              {{ h.estado==='mantenimiento' ? 'Reactivar' : 'Mantenimiento' }}
-            </button>
+            <div class="flex items-center justify-end gap-2">
+              <button (click)="abrirEditarHabitacion(h)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar</button>
+              <button *ngIf="h.estado==='libre' || h.estado==='mantenimiento'" (click)="toggleMantenimiento(h)"
+                class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer transition-colors"
+                [ngClass]="h.estado==='mantenimiento' ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'">
+                {{ h.estado==='mantenimiento' ? 'Reactivar' : 'Mantenimiento' }}
+              </button>
+              <button *ngIf="h.estado==='libre'" (click)="eliminarHabitacion(h)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -86,7 +102,12 @@
 
 <div *ngIf="habDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="habDialogOpen=false"></div>
 <div *ngIf="habDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Habitación</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">{{ habEditando ? 'Editar Habitación ' + habEditando.numero : 'Nueva Habitación' }}</h3>
+    <button (click)="habDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="flex flex-col gap-3">
     <div class="grid grid-cols-3 gap-3">
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.numero" placeholder="Número" />
@@ -95,9 +116,34 @@
       </select>
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.piso" placeholder="Piso" />
     </div>
+    <div class="relative">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+      <input class="w-full pl-6 pr-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="0" step="0.01" [(ngModel)]="habForm.precio" placeholder="Precio por noche" />
+    </div>
     <p *ngIf="habError" class="text-xs text-red-600 m-0">{{ habError }}</p>
-    <button (click)="crearHabitacion()" [disabled]="habSaving"
+    <button (click)="guardarHabitacion()" [disabled]="habSaving"
       class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
-      style="background:#f59e0b">{{ habSaving ? 'Guardando...' : 'Crear Habitación' }}</button>
+      style="background:#f59e0b">{{ habSaving ? 'Guardando...' : (habEditando ? 'Guardar Cambios' : 'Crear Habitación') }}</button>
+  </div>
+</div>
+
+<!-- Modal: papelera -->
+<div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
+<div *ngIf="papeleraOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Papelera de Habitaciones</h3>
+    <button (click)="papeleraOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-2">
+    <p *ngIf="papelera.length === 0" class="text-sm text-slate-400 m-0">No hay habitaciones eliminadas.</p>
+    <div *ngFor="let h of papelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+      <div>
+        <p class="m-0 font-medium">Habitación {{ h.numero }} — {{ h.tipo }}</p>
+        <p class="m-0 text-xs text-slate-500">{{ h.precio !== null ? ('$' + h.precio + '/noche') : 'Sin precio definido' }}</p>
+      </div>
+      <button (click)="restaurar(h.id)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Restaurar</button>
+    </div>
   </div>
 </div>

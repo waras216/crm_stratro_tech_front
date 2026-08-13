@@ -23,6 +23,7 @@ export class ErpVentasComponent implements OnInit {
   clientesResultados: Cliente[] = [];
   clienteSeleccionado: Cliente | null = null;
 
+  cargando = true;
   pedidos: ErpPedido[] = [];
   productos: Producto[] = [];
 
@@ -35,7 +36,7 @@ export class ErpVentasComponent implements OnInit {
 
   ngOnInit() {
     this.erpService.cargarPedidos().subscribe();
-    this.erpService.pedidos$.subscribe(data => { this.pedidos = data; this.cdr.detectChanges(); });
+    this.erpService.pedidos$.subscribe(data => { this.pedidos = data; this.cargando = false; this.cdr.detectChanges(); });
 
     this.erpService.cargarProductos().subscribe(data => { this.productos = data; this.cdr.detectChanges(); });
   }

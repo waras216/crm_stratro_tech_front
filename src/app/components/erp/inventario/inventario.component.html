@@ -26,7 +26,11 @@
   </div>
 
   <!-- Table -->
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+  <div *ngIf="cargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3,4,5]" class="h-12 rounded-lg skeleton"></div>
+  </div>
+
+  <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
     <table class="w-full text-sm border-collapse">
       <thead>
         <tr class="bg-slate-50">
@@ -76,6 +80,9 @@
             </div>
           </td>
         </tr>
+        <tr *ngIf="filtrado.length === 0">
+          <td colspan="7" class="text-center py-10 text-slate-400 text-xs">{{ search ? 'Sin productos que coincidan con "' + search + '".' : 'Sin productos en el inventario todavía.' }}</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -84,7 +91,12 @@
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
 <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Nuevo Producto</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Nuevo Producto</h3>
+    <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="flex flex-col gap-3">
     <div class="flex items-center gap-3">
       <div class="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -123,7 +135,12 @@
 <!-- Modal: ajustar stock -->
 <div *ngIf="ajusteDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="ajusteDialogOpen=false"></div>
 <div *ngIf="ajusteDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Ajustar stock: {{ ajusteTarget?.nombre }}</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Ajustar stock: {{ ajusteTarget?.nombre }}</h3>
+    <button (click)="ajusteDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <p class="text-xs text-slate-500 mb-3">Stock actual: {{ ajusteTarget?.stock }}. Usa un número negativo para dar de baja (merma, daño, etc).</p>
   <div class="flex flex-col gap-3">
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="ajusteForm.cantidad" placeholder="Cantidad (+/-)" />
@@ -136,7 +153,12 @@
 <!-- Modal: movimientos -->
 <div *ngIf="movimientosDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="movimientosDialogOpen=false"></div>
 <div *ngIf="movimientosDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Movimientos: {{ movimientosTarget?.nombre }}</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Movimientos: {{ movimientosTarget?.nombre }}</h3>
+    <button (click)="movimientosDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="flex flex-col gap-2">
     <p *ngIf="movimientos.length === 0" class="text-sm text-slate-400 m-0">Sin movimientos registrados.</p>
     <div *ngFor="let m of movimientos" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
@@ -152,7 +174,12 @@
 <!-- Modal: papelera -->
 <div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
 <div *ngIf="papeleraOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Papelera de Inventario</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Papelera de Inventario</h3>
+    <button (click)="papeleraOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="flex flex-col gap-2">
     <p *ngIf="papelera.length === 0" class="text-sm text-slate-400 m-0">No hay productos eliminados.</p>
     <div *ngFor="let p of papelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
@@ -168,7 +195,12 @@
 <!-- Modal: categorías -->
 <div *ngIf="categoriasDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="categoriasDialogOpen=false"></div>
 <div *ngIf="categoriasDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Categorías</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Categorías</h3>
+    <button (click)="categoriasDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
 
   <div class="flex flex-col gap-2 mb-4">
     <p *ngIf="categorias.length === 0" class="text-sm text-slate-400 m-0">Sin categorías todavía.</p>

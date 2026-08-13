@@ -5,12 +5,17 @@
         <svg width="28" height="28" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <h3 class="m-0 text-lg font-bold text-slate-800">¡Venta Exitosa!</h3>
-      <p class="text-xs text-slate-400 mt-1">Ticket generado</p>
+      <p class="text-xs text-slate-400 mt-1">{{ pedido ? ('Venta #' + pedido.id + ' · ' + fechaHora) : 'Ticket generado' }}</p>
+    </div>
+    <div *ngIf="pedido" class="flex flex-col gap-0.5 text-xs text-slate-500 mb-3">
+      <p class="m-0"><span class="text-slate-400">Cliente:</span> <span class="font-medium text-slate-700">{{ clienteNombre }}</span></p>
+      <p *ngIf="cajeroNombre" class="m-0"><span class="text-slate-400">Atendió:</span> <span class="font-medium text-slate-700">{{ cajeroNombre }}</span></p>
+      <p *ngIf="metodosPagoTexto()" class="m-0"><span class="text-slate-400">Pago:</span> <span class="font-medium text-slate-700">{{ metodosPagoTexto() }}</span></p>
     </div>
     <div class="border border-dashed border-slate-200 rounded-lg p-3 mb-4">
-      <div *ngFor="let item of items" class="flex justify-between text-xs py-1 text-slate-600">
-        <span>{{ item.producto.nombre }} x{{ item.cantidad }}</span>
-        <span class="font-medium">${{ (item.producto.precio * item.cantidad).toLocaleString() }}</span>
+      <div *ngFor="let item of filasTicket" class="flex justify-between text-xs py-1 text-slate-600">
+        <span>{{ item.nombre }} x{{ item.cantidad }}</span>
+        <span class="font-medium">${{ item.subtotal.toLocaleString() }}</span>
       </div>
       <div class="border-t border-dashed border-slate-200 mt-2 pt-2 flex justify-between font-bold text-sm text-slate-800">
         <span>Total</span>

@@ -10,7 +10,11 @@
     </div>
   </div>
 
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-2">
+  <div *ngIf="cargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3,4]" class="h-12 rounded-lg skeleton"></div>
+  </div>
+
+  <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-2">
     <table class="w-full text-sm border-collapse">
       <thead>
         <tr class="bg-slate-50">
@@ -24,24 +28,85 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let o of ordenes" class="border-b border-slate-100 hover:bg-slate-50">
-          <td class="px-4 py-3 font-mono text-xs">#{{ o.id }}</td>
-          <td class="px-4 py-3 font-medium">{{ o.proveedor?.nombre }}</td>
-          <td class="px-4 py-3 text-slate-500">{{ o.fecha }}</td>
-          <td class="px-4 py-3 text-right">{{ o.items.length }}</td>
-          <td class="px-4 py-3 text-right font-medium">${{ o.total.toLocaleString() }}</td>
-          <td class="px-4 py-3 text-center">
-            <span class="px-2 py-0.5 rounded-full text-xs font-medium"
-              [ngClass]="{'badge-amber': o.estado==='pendiente', 'badge-green': o.estado==='recibida', 'badge-red': o.estado==='cancelada'}">
-              {{ o.estado }}
-            </span>
-          </td>
-          <td class="px-4 py-3 text-right">
-            <ng-container *ngIf="o.estado==='pendiente'">
-              <button *appPuede="'erp_compras.editar'" (click)="recibir(o.id)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline mr-2">Recibir</button>
-              <button *appPuede="'erp_compras.editar'" (click)="cancelar(o.id)" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Cancelar</button>
-            </ng-container>
-          </td>
+        <ng-container *ngFor="let o of ordenes">
+          <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" (click)="toggleExpandida(o.id)">
+            <td class="px-4 py-3 font-mono text-xs">
+              <div class="flex items-center gap-1.5">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" class="text-slate-400 transition-transform flex-shrink-0" [style.transform]="ordenExpandida===o.id ? 'rotate(90deg)' : 'none'"><polyline points="9 18 15 12 9 6"/></svg>
+                #{{ o.id }}
+              </div>
+            </td>
+            <td class="px-4 py-3 font-medium">{{ o.proveedor?.nombre }}</td>
+            <td class="px-4 py-3 text-slate-500">{{ o.fecha }}</td>
+            <td class="px-4 py-3 text-right">{{ o.items.length }}</td>
+            <td class="px-4 py-3 text-right font-medium">${{ o.total.toLocaleString() }}</td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+                [ngClass]="{'badge-amber': o.estado==='pendiente', 'badge-green': o.estado==='recibida', 'badge-red': o.estado==='cancelada'}">
+                {{ o.estado }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <ng-container *ngIf="o.estado==='pendiente'">
+                <button *appPuede="'erp_compras.editar'" (click)="recibir(o.id); $event.stopPropagation()" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline mr-2">Recibir</button>
+                <button *appPuede="'erp_compras.editar'" (click)="cancelar(o.id); $event.stopPropagation()" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Cancelar</button>
+              </ng-container>
+            </td>
+          </tr>
+          <tr *ngIf="ordenExpandida===o.id" class="bg-slate-50">
+            <td colspan="7" class="px-6 py-3">
+              <div class="grid grid-cols-3 gap-4 mb-3 pb-3 border-b border-slate-200">
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 m-0 mb-1">Proveedor</p>
+                  <p class="text-xs font-semibold text-slate-700 m-0">{{ o.proveedor?.nombre }}</p>
+                  <p *ngIf="o.proveedor?.contacto" class="text-[11px] text-slate-500 m-0 mt-0.5">{{ o.proveedor?.contacto }}</p>
+                  <p *ngIf="o.proveedor?.telefono || o.proveedor?.email" class="text-[11px] text-slate-500 m-0 mt-0.5">
+                    {{ o.proveedor?.telefono }}<span *ngIf="o.proveedor?.telefono && o.proveedor?.email"> · </span>{{ o.proveedor?.email }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 m-0 mb-1">Registrada</p>
+                  <p class="text-xs font-semibold text-slate-700 m-0">{{ (o.created_at ?? o.fecha) | date:'dd/MM/yy, HH:mm' }}</p>
+                  <p class="text-[11px] text-slate-500 m-0 mt-0.5">{{ o.comprador?.nombre ?? 'Sin registrar' }}</p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 m-0 mb-1">Estado</p>
+                  <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+                    [ngClass]="{'badge-amber': o.estado==='pendiente', 'badge-green': o.estado==='recibida', 'badge-red': o.estado==='cancelada'}">
+                    {{ o.estado }}
+                  </span>
+                </div>
+              </div>
+              <table class="w-full text-xs border-collapse">
+                <thead>
+                  <tr class="text-slate-400">
+                    <th class="text-left py-1 font-medium">Producto</th>
+                    <th class="text-right py-1 font-medium">Cantidad</th>
+                    <th class="text-right py-1 font-medium">P. Unitario</th>
+                    <th class="text-right py-1 font-medium">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let i of o.items">
+                    <td class="py-1">{{ i.producto?.nombre ?? ('Producto #' + i.id_producto) }}</td>
+                    <td class="py-1 text-right">{{ i.cantidad }}</td>
+                    <td class="py-1 text-right">${{ i.precio_unitario.toLocaleString() }}</td>
+                    <td class="py-1 text-right font-medium text-slate-700">${{ (i.subtotal ?? i.cantidad * i.precio_unitario).toLocaleString() }}</td>
+                  </tr>
+                  <tr *ngIf="!o.items.length"><td colspan="4" class="text-center py-2 text-slate-400">Sin líneas registradas.</td></tr>
+                </tbody>
+                <tfoot *ngIf="o.items.length">
+                  <tr class="border-t border-slate-200 font-bold text-slate-700">
+                    <td colspan="3" class="py-1.5 text-right">Total</td>
+                    <td class="py-1.5 text-right">${{ o.total.toLocaleString() }}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </td>
+          </tr>
+        </ng-container>
+        <tr *ngIf="ordenes.length === 0">
+          <td colspan="7" class="text-center py-10 text-slate-400 text-xs">Sin órdenes de compra registradas todavía.</td>
         </tr>
       </tbody>
     </table>
@@ -51,7 +116,12 @@
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
 <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Orden de Compra</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Nueva Orden de Compra</h3>
+    <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="flex flex-col gap-3">
     <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.id_proveedor">
       <option value="">Proveedor...</option>
@@ -82,7 +152,12 @@
 <div *ngIf="proveedoresPanelOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">Proveedores</h3>
-    <button *appPuede="'erp_proveedores.eliminar'" (click)="abrirProveedoresPapelera()" class="text-xs text-slate-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Papelera</button>
+    <div class="flex items-center gap-3">
+      <button *appPuede="'erp_proveedores.eliminar'" (click)="abrirProveedoresPapelera()" class="text-xs text-slate-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Papelera</button>
+      <button (click)="toggleProveedoresPanel()" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
   </div>
 
   <div class="flex flex-col gap-2 mb-4">
@@ -114,7 +189,12 @@
 <!-- Modal: papelera de proveedores -->
 <div *ngIf="proveedoresPapeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="proveedoresPapeleraOpen=false"></div>
 <div *ngIf="proveedoresPapeleraOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
-  <h3 class="m-0 mb-4 text-lg font-semibold">Papelera de Proveedores</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Papelera de Proveedores</h3>
+    <button (click)="proveedoresPapeleraOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="flex flex-col gap-2">
     <p *ngIf="proveedoresPapelera.length === 0" class="text-sm text-slate-400 m-0">No hay proveedores eliminados.</p>
     <div *ngFor="let p of proveedoresPapelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">

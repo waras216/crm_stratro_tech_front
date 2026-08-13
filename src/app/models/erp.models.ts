@@ -63,7 +63,10 @@ export interface ErpOrdenCompra {
   id_tenant?: number;
   id_proveedor: number;
   proveedor?: Proveedor;
+  id_usuario?: number | null;
+  comprador?: { id_usuario: number; nombre: string } | null;
   fecha: string;
+  created_at?: string;
   estado: 'pendiente' | 'recibida' | 'cancelada';
   items: ErpOrdenCompraItem[];
   total: number;
@@ -81,8 +84,9 @@ export interface ErpMovimiento {
 
 export interface ErpPedidoItem {
   id?: number;
-  id_producto: number;
+  id_producto: number | null;
   producto?: Producto;
+  descripcion?: string | null;
   cantidad: number;
   precio_unitario: number;
   subtotal?: number;
@@ -98,11 +102,14 @@ export interface ErpPedido {
   id_tenant?: number;
   id_cliente: number;
   cliente?: Cliente;
+  id_usuario?: number | null;
+  cajero?: { id_usuario: number; nombre: string } | null;
   total: number;
   estado: 'pendiente' | 'enviado' | 'facturado' | 'cancelada';
   items: ErpPedidoItem[];
   pagos?: PedidoPago[];
   fecha: string;
+  created_at?: string;
 }
 
 export interface ErpComandaItem {
@@ -146,6 +153,7 @@ export interface ErpHabitacion {
   id_tenant?: number;
   numero: number;
   tipo: string;
+  precio: number | null;
   piso: number;
   estado: 'libre' | 'ocupada' | 'checkout' | 'mantenimiento';
   huesped: string | null;
@@ -249,6 +257,7 @@ export interface ErpDashboardKpi {
   bg: string;
   color: string;
   icon: string;
+  delta?: number | null;
 }
 
 export interface ErpDashboardModulo {
@@ -259,6 +268,7 @@ export interface ErpDashboardModulo {
   stat: string;
   statColor: string;
   extra: string;
+  icono?: string;
 }
 
 export interface ErpDashboardActividad {
@@ -267,10 +277,17 @@ export interface ErpDashboardActividad {
   tiempo: string;
 }
 
+export interface ErpDashboardTendencia {
+  mes: string;
+  ingresos: number;
+  egresos: number;
+}
+
 export interface ErpDashboardResumen {
   kpis: ErpDashboardKpi[];
   modulos: ErpDashboardModulo[];
   actividad: ErpDashboardActividad[];
+  tendencia: ErpDashboardTendencia[];
 }
 
 export interface ErpReportesResumen {
@@ -285,7 +302,18 @@ export interface ErpReportesResumen {
   inventarioPorCategoria: Record<string, number>;
   comprasPorEstado: Record<string, number>;
   comprasPorProveedor: Record<string, number>;
+  comprasDetalle: ErpReporteCompraDetalle[];
   ventasPorEstado: Record<string, number>;
   movimientosPorCategoria: Record<string, number>;
   movimientosPorMes: { mes: string; ingresos: number; egresos: number }[];
+}
+
+export interface ErpReporteCompraDetalle {
+  id: number;
+  fecha: string;
+  proveedor: string;
+  comprador: string | null;
+  estado: 'pendiente' | 'recibida' | 'cancelada';
+  items: number;
+  total: number;
 }

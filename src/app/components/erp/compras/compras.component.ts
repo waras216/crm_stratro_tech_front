@@ -17,6 +17,8 @@ export class ErpComprasComponent implements OnInit {
   error = '';
   form: { id_proveedor: string; items: ItemRow[] } = { id_proveedor: '', items: [] };
 
+  cargando = true;
+  ordenExpandida: number | null = null;
   ordenes: ErpOrdenCompra[] = [];
   proveedores: Proveedor[] = [];
   productos: Producto[] = [];
@@ -30,7 +32,7 @@ export class ErpComprasComponent implements OnInit {
 
   ngOnInit() {
     this.erpService.cargarOrdenesCompra().subscribe();
-    this.erpService.ordenesCompra$.subscribe(data => { this.ordenes = data; this.cdr.detectChanges(); });
+    this.erpService.ordenesCompra$.subscribe(data => { this.ordenes = data; this.cargando = false; this.cdr.detectChanges(); });
 
     this.erpService.cargarProveedores().subscribe();
     this.erpService.proveedores$.subscribe(data => { this.proveedores = data; this.cdr.detectChanges(); });
@@ -39,6 +41,10 @@ export class ErpComprasComponent implements OnInit {
   }
 
   get totalPendiente() { return this.ordenes.filter(o => o.estado === 'pendiente').reduce((s, o) => s + Number(o.total), 0); }
+
+  toggleExpandida(id: number) {
+    this.ordenExpandida = this.ordenExpandida === id ? null : id;
+  }
 
   get totalFormulario() {
     return this.form.items.reduce((s, i) => s + (Number(i.cantidad) || 0) * (Number(i.precio_unitario) || 0), 0);

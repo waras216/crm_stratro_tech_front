@@ -36,6 +36,7 @@ export interface ErpAsiento {
   total_haber: number;
   detalles: ErpAsientoDetalle[];
   created_at?: string;
+  reversado?: boolean;
 }
 
 export interface ErpBalanceComprobacionFila {

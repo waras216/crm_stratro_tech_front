@@ -324,15 +324,31 @@ export class ErpService {
     );
   }
 
-  crearHabitacion(habitacion: { numero: number; tipo?: string; piso?: number }): Observable<ErpHabitacion> {
+  crearHabitacion(habitacion: { numero: number; tipo?: string; precio: number; piso?: number }): Observable<ErpHabitacion> {
     return this.http.post<ErpHabitacion>(`${API}/erp/habitaciones`, habitacion).pipe(
       tap(nueva => this._habitaciones.next([...this.habitaciones, nueva]))
+    );
+  }
+
+  actualizarHabitacion(id: number, cambios: { numero?: number; tipo?: string; precio?: number; piso?: number }): Observable<ErpHabitacion> {
+    return this.http.patch<ErpHabitacion>(`${API}/erp/habitaciones/${id}`, cambios).pipe(
+      tap(actualizada => this.actualizarHabitacionLocal(actualizada))
     );
   }
 
   eliminarHabitacion(id: number): Observable<void> {
     return this.http.delete<void>(`${API}/erp/habitaciones/${id}`).pipe(
       tap(() => this._habitaciones.next(this.habitaciones.filter(h => h.id !== id)))
+    );
+  }
+
+  cargarPapeleraHabitaciones(): Observable<ErpHabitacion[]> {
+    return this.http.get<ErpHabitacion[]>(`${API}/erp/habitaciones/papelera`);
+  }
+
+  restaurarHabitacion(id: number): Observable<ErpHabitacion> {
+    return this.http.patch<ErpHabitacion>(`${API}/erp/habitaciones/${id}/restaurar`, {}).pipe(
+      tap(item => this._habitaciones.next([...this.habitaciones, item]))
     );
   }
 

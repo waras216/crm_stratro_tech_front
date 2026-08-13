@@ -3,6 +3,16 @@ import { ErpService } from '../../../core/services/erp-service';
 import { ReportExportService } from '../../../core/services/report-export.service';
 import { ErpReportesResumen } from '../../../models/erp.models';
 
+export type SeccionReporte = 'todo' | 'inventario' | 'compras' | 'ventas' | 'finanzas';
+
+const SECCION_LABEL: Record<SeccionReporte, string> = {
+  todo: 'Reporte Completo',
+  inventario: 'Reporte de Inventario',
+  compras: 'Reporte de Compras',
+  ventas: 'Reporte de Ventas',
+  finanzas: 'Reporte de Finanzas',
+};
+
 @Component({
   selector: 'app-erp-reportes',
   standalone: false,
@@ -11,6 +21,16 @@ import { ErpReportesResumen } from '../../../models/erp.models';
 })
 export class ErpReportesComponent implements OnInit {
   resumen: ErpReportesResumen | null = null;
+  cargando = true;
+
+  seccion: SeccionReporte = 'todo';
+  secciones: { id: SeccionReporte; label: string }[] = [
+    { id: 'todo', label: 'Todo' },
+    { id: 'inventario', label: 'Inventario' },
+    { id: 'compras', label: 'Compras' },
+    { id: 'ventas', label: 'Ventas' },
+    { id: 'finanzas', label: 'Finanzas' },
+  ];
 
   desde = '';
   hasta = '';
@@ -25,6 +45,10 @@ export class ErpReportesComponent implements OnInit {
 
   ngOnInit() {
     this.cargar();
+  }
+
+  cambiarSeccion(s: SeccionReporte) {
+    this.seccion = s;
   }
 
   aplicarFiltro() {
@@ -45,11 +69,16 @@ export class ErpReportesComponent implements OnInit {
       this.comprasPorProveedor = this.toArr(res.comprasPorProveedor);
       this.ventasPorEstado = this.toArr(res.ventasPorEstado);
       this.movimientosPorCategoria = this.toArr(res.movimientosPorCategoria);
+      this.cargando = false;
       this.cdr.detectChanges();
     });
   }
 
   toArr(obj: Record<string, number>) { return Object.entries(obj).map(([k, v]) => ({ key: k, val: v })).sort((a, b) => b.val - a.val); }
+
+  estadoBadgeClass(estado: string): string {
+    return { pendiente: 'badge-amber', recibida: 'badge-green', cancelada: 'badge-red' }[estado] ?? 'badge-slate';
+  }
   maxVal(arr: { val: number }[]) { return arr.length ? Math.max(...arr.map(i => i.val)) : 1; }
   barWidth(val: number, arr: { val: number }[]) { const m = this.maxVal(arr); return m > 0 ? (val / m * 100) + '%' : '0%'; }
 
@@ -75,24 +104,46 @@ export class ErpReportesComponent implements OnInit {
       { label: `${this.mesLabel(m.mes)} — Ingresos`, value: m.ingresos },
       { label: `${this.mesLabel(m.mes)} — Egresos`, value: m.egresos },
     ]);
+
+    const incluye = (s: SeccionReporte) => this.seccion === 'todo' || this.seccion === s;
+    const kpiRows: { label: string; value: number }[] = [];
+    const sections: { heading: string; rows: { label: string; value: string | number }[] }[] = [];
+
+    if (kpis && incluye('inventario')) kpiRows.push({ label: 'Valor Inventario', value: kpis.valorInventario });
+    if (kpis && incluye('finanzas')) kpiRows.push(
+      { label: 'Ingresos', value: kpis.ingresosTotal },
+      { label: 'Egresos', value: kpis.egresosTotal },
+      { label: 'Balance', value: kpis.balance },
+    );
+    if (kpis && incluye('compras')) kpiRows.push({ label: 'Compras Pendientes', value: kpis.comprasPendientes });
+    if (kpis && incluye('ventas')) kpiRows.push({ label: 'Ventas por Cobrar', value: kpis.ventasPorCobrar });
+
+    if (incluye('inventario')) {
+      sections.push({ heading: 'Inventario por Categoría', rows: toRows(this.inventarioPorCategoria) });
+    }
+    if (incluye('compras')) {
+      sections.push({ heading: 'Compras por Estado', rows: toRows(this.comprasPorEstado) });
+      sections.push({ heading: 'Compras por Proveedor', rows: toRows(this.comprasPorProveedor) });
+      sections.push({
+        heading: 'Detalle de Órdenes de Compra',
+        rows: (this.resumen?.comprasDetalle ?? []).map(c => ({
+          label: `#${c.id} — ${c.fecha} — ${c.proveedor} — ${c.comprador ?? 'Sin registrar'} — ${c.items} item(s) — ${c.estado}`,
+          value: c.total,
+        })),
+      });
+    }
+    if (incluye('ventas')) {
+      sections.push({ heading: 'Ventas por Estado', rows: toRows(this.ventasPorEstado) });
+    }
+    if (incluye('finanzas')) {
+      sections.push({ heading: 'Movimientos por Categoría', rows: toRows(this.movimientosPorCategoria) });
+      sections.push({ heading: 'Tendencia Mensual', rows: tendenciaRows });
+    }
+
     return {
-      title: 'Reportes ERP',
-      kpis: kpis ? [
-        { label: 'Valor Inventario', value: kpis.valorInventario },
-        { label: 'Ingresos', value: kpis.ingresosTotal },
-        { label: 'Egresos', value: kpis.egresosTotal },
-        { label: 'Balance', value: kpis.balance },
-        { label: 'Compras Pendientes', value: kpis.comprasPendientes },
-        { label: 'Ventas por Cobrar', value: kpis.ventasPorCobrar },
-      ] : [],
-      sections: [
-        { heading: 'Inventario por Categoría', rows: toRows(this.inventarioPorCategoria) },
-        { heading: 'Compras por Estado', rows: toRows(this.comprasPorEstado) },
-        { heading: 'Compras por Proveedor', rows: toRows(this.comprasPorProveedor) },
-        { heading: 'Ventas por Estado', rows: toRows(this.ventasPorEstado) },
-        { heading: 'Movimientos por Categoría', rows: toRows(this.movimientosPorCategoria) },
-        { heading: 'Tendencia Mensual', rows: tendenciaRows },
-      ],
+      title: SECCION_LABEL[this.seccion],
+      kpis: kpiRows,
+      sections,
     };
   }
 

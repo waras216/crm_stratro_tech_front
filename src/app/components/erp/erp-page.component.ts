@@ -19,7 +19,13 @@ import { ModuleService, ErpTab } from '../../core/services/module.service';
     <app-erp-proyectos   *ngIf="tab==='proyectos'"></app-erp-proyectos>
     <app-erp-reportes    *ngIf="tab==='reportes'"></app-erp-reportes>
   `,
-  styles: [':host { display: block; height: 100%; }'],
+  // min-height (no height fija): el host nunca debe quedar más bajo que el
+  // área visible, pero sí debe poder crecer más si el contenido de la
+  // página es más alto — con height:100% fijo, contenido que exceda esa
+  // altura queda atrapado sin que el contenedor scrolleable (.content en
+  // el shell) note el overflow real, y la última fila de una tarjeta
+  // termina tapada por el FAB de cambio de módulo.
+  styles: [':host { display: block; min-height: 100%; }'],
 })
 export class ErpPageComponent implements OnInit, OnDestroy {
   tab: ErpTab = 'dashboard';

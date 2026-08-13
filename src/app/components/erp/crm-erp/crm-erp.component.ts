@@ -8,10 +8,13 @@ import { ErpInteraccion } from '../../../models/erp.models';
   template: `
     <div class="flex flex-col gap-5 page-enter">
       <h2 class="m-0 text-lg font-bold text-slate-800">CRM - Relaciones con Clientes</h2>
-      <div class="grid grid-cols-3 gap-4">
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1"><p class="text-xs text-slate-500 m-0">Contactos</p><p class="text-2xl font-bold text-indigo-600 m-0">{{ resumen.contactos }}</p></div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2"><p class="text-xs text-slate-500 m-0">Oportunidades</p><p class="text-2xl font-bold text-amber-600 m-0">{{ resumen.oportunidades }}</p></div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3"><p class="text-xs text-slate-500 m-0">Tickets Abiertos</p><p class="text-2xl font-bold text-red-500 m-0">{{ resumen.ticketsAbiertos }}</p></div>
+      <div *ngIf="cargando" class="grid grid-cols-3 gap-4">
+        <div *ngFor="let _ of [1,2,3]" class="h-[68px] rounded-xl skeleton"></div>
+      </div>
+      <div *ngIf="!cargando" class="grid grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1 hover-lift"><p class="text-xs text-slate-500 m-0">Contactos</p><p class="text-2xl font-bold text-indigo-600 m-0">{{ resumen.contactos }}</p></div>
+        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2 hover-lift"><p class="text-xs text-slate-500 m-0">Oportunidades</p><p class="text-2xl font-bold text-amber-600 m-0">{{ resumen.oportunidades }}</p></div>
+        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3 hover-lift"><p class="text-xs text-slate-500 m-0">Tickets Abiertos</p><p class="text-2xl font-bold text-red-500 m-0">{{ resumen.ticketsAbiertos }}</p></div>
       </div>
       <div class="bg-white border border-slate-200 rounded-xl p-5 scale-in delay-3">
         <h3 class="text-sm font-bold text-slate-700 m-0 mb-4">Interacciones Recientes</h3>
@@ -21,6 +24,7 @@ import { ErpInteraccion } from '../../../models/erp.models';
             <div class="flex-1"><p class="text-sm font-medium text-slate-700 m-0">{{ i.cliente }}</p><p class="text-[10px] text-slate-400 m-0">{{ i.tipo }} - {{ i.asunto }}</p></div>
             <span class="text-[10px] text-slate-400">{{ i.fecha }}</span>
           </div>
+          <p *ngIf="!cargando && !interacciones.length" class="text-xs text-slate-400 m-0 text-center py-4">Sin interacciones registradas todavía.</p>
         </div>
       </div>
     </div>
@@ -29,11 +33,12 @@ import { ErpInteraccion } from '../../../models/erp.models';
 export class ErpCrmComponent implements OnInit {
   interacciones: ErpInteraccion[] = [];
   resumen = { contactos: 0, oportunidades: 0, ticketsAbiertos: 0 };
+  cargando = true;
 
   constructor(private erpService: ErpService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    this.erpService.cargarCrmResumen().subscribe(r => { this.resumen = r; this.cdr.detectChanges(); });
+    this.erpService.cargarCrmResumen().subscribe(r => { this.resumen = r; this.cargando = false; this.cdr.detectChanges(); });
     this.erpService.cargarCrmInteracciones().subscribe(data => { this.interacciones = data; this.cdr.detectChanges(); });
   }
 }

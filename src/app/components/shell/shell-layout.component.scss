@@ -817,6 +817,12 @@
   flex: 1;
   overflow: auto;
   padding: 20px;
+  // El FAB de cambio de módulo (app-switcher .fab) es position:fixed, 56px,
+  // a 28px del borde inferior — es decir ocupa hasta 84px desde abajo en
+  // coordenadas de viewport. Sin padding de sobra, el contenido que termina
+  // cerca del fondo (ej. la última fila de una tarjeta, alineada a la
+  // derecha) queda tapado por el botón, incluso hasta el final del scroll.
+  padding-bottom: 96px;
   transition: background 0.3s ease;
 }
 
