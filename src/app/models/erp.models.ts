@@ -112,6 +112,33 @@ export interface ErpPedido {
   created_at?: string;
 }
 
+export interface ErpFactura {
+  id: number;
+  id_tenant?: number;
+  id_pedido: number;
+  pedido?: ErpPedido;
+  id_usuario?: number | null;
+  usuario?: { id_usuario: number; nombre: string } | null;
+  tipo: 'interna' | 'timbrada';
+  estado: 'registrada' | 'pendiente_timbrado' | 'timbrada' | 'error' | 'cancelada';
+  serie: string;
+  folio: number;
+  rfc_receptor: string;
+  razon_social_receptor: string;
+  uso_cfdi?: string | null;
+  forma_pago_sat?: string | null;
+  metodo_pago_sat?: string | null;
+  subtotal: number;
+  iva: number;
+  total: number;
+  uuid?: string | null;
+  xml_path?: string | null;
+  pdf_path?: string | null;
+  fecha_timbrado?: string | null;
+  error_mensaje?: string | null;
+  created_at?: string;
+}
+
 export interface ErpComandaItem {
   id: number;
   id_producto: number | null;
@@ -304,6 +331,7 @@ export interface ErpReportesResumen {
   comprasPorProveedor: Record<string, number>;
   comprasDetalle: ErpReporteCompraDetalle[];
   ventasPorEstado: Record<string, number>;
+  ventasDetalle: ErpReporteVentaDetalle[];
   movimientosPorCategoria: Record<string, number>;
   movimientosPorMes: { mes: string; ingresos: number; egresos: number }[];
 }
@@ -314,6 +342,16 @@ export interface ErpReporteCompraDetalle {
   proveedor: string;
   comprador: string | null;
   estado: 'pendiente' | 'recibida' | 'cancelada';
+  items: number;
+  total: number;
+}
+
+export interface ErpReporteVentaDetalle {
+  id: number;
+  fecha: string;
+  cliente: string;
+  cajero: string | null;
+  estado: 'pendiente' | 'enviado' | 'facturado' | 'cancelada';
   items: number;
   total: number;
 }

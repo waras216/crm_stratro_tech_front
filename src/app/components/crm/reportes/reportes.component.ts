@@ -67,6 +67,29 @@ export class ReportesComponent implements OnInit {
         { heading: 'Clientes por Sector', rows: toRows(this.clientsBySector) },
         { heading: 'Actividades por Tipo', rows: toRows(this.activitiesByType) },
       ],
+      tables: [
+        {
+          heading: 'Detalle de Leads',
+          columns: ['Nombre', 'Fuente', 'Estado', 'Email', 'Teléfono', 'Valor Estimado'],
+          rows: this.leads.map(l => [
+            l.nombre || l.titulo, l.fuente, l.estado, l.email ?? '—', l.telefono ?? '—', Number(l.valor_estimado ?? 0),
+          ]),
+        },
+        {
+          heading: 'Detalle de Oportunidades',
+          columns: ['Título', 'Cliente', 'Pipeline', 'Etapa', 'Estado', 'Valor'],
+          rows: this.oportunidades.map(o => [
+            o.titulo, o.cliente?.nombre ?? 'Sin cliente', o.pipeline?.nombre ?? 'Sin pipeline', o.etapa, o.estado ?? 'abierta', Number(o.valor ?? 0),
+          ]),
+        },
+        {
+          heading: 'Detalle de Clientes',
+          columns: ['Nombre', 'Tipo', 'Sector', 'Teléfono', 'Email'],
+          rows: this.clientes.map(c => [
+            c.nombre, c.tipo, c.sector_empresarial ?? '—', c.telefono ?? '—', c.email ?? '—',
+          ]),
+        },
+      ],
     };
   }
 

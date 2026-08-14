@@ -1,3 +1,5 @@
+import { ErpPedido } from './erp.models';
+
 export interface Lead {
   id: number;
   id_lead: number;
@@ -85,6 +87,7 @@ export interface Cliente {
   leads?: Lead[];
   oportunidades?: Oportunidad[];
   actividades?: Actividad[];
+  pedidos?: ErpPedido[];
 }
 
 export interface Actividad {
@@ -112,12 +115,16 @@ export interface MarketingCampana {
   fecha_inicio?: string;
 }
 
+export type AutomatizacionEvento = 'lead_creado' | 'oportunidad_ganada' | 'oportunidad_perdida' | 'oportunidad_etapa_cambiada' | 'actividad_vencida';
+export type AutomatizacionAccion = 'enviar_email' | 'crear_actividad' | 'cambiar_estado' | 'notificar_usuario' | 'enviar_whatsapp';
+
 export interface Automatizacion {
   id: number;
   nombre_automatizacion: string;
-  regla: string;
-  evento: string;
-  accion: string;
+  regla?: string | null;
+  evento: AutomatizacionEvento;
+  accion: AutomatizacionAccion;
+  parametros?: Record<string, any> | null;
   activa: boolean;
   fecha_creacion?: string;
 }
@@ -151,6 +158,7 @@ export interface Plan {
   precio: number;
   stripe_price_id?: string | null;
   max_usuarios: number | null;
+  incluye_facturacion_real?: boolean;
   fecha_inicio: string;
   fecha_fin: string;
   tenants_count?: number;

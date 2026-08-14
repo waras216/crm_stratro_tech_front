@@ -17,9 +17,17 @@ export interface NichoData {
   tiendaTipo?: string; tiendaCanales?: string[];
 }
 
+export interface FiscalData {
+  rfc?: string | null;
+  razonSocial?: string | null;
+  regimenFiscal?: string | null;
+  codigoPostal?: string | null;
+}
+
 export interface PlanInfo {
   nombre_plan: string;
   max_usuarios: number | null;
+  incluye_facturacion_real?: boolean;
   usuarios_actuales: number;
   estado_suscripcion?: string;
   fecha_fin_periodo_actual?: string | null;
@@ -40,6 +48,7 @@ export interface UserSession {
   sector?: string;
   idioma?: string;
   zonaHoraria?: string;
+  fiscal?: FiscalData;
   onboardingCompleto: boolean;
   nichoData?: NichoData;
   id_usuario?: number;
@@ -129,6 +138,7 @@ export class AuthService {
       sector:             user.sector,
       idioma:             user.idioma,
       zonaHoraria:        user.zonaHoraria,
+      fiscal:             user.fiscal,
       onboardingCompleto: !!user.onboardingCompleto,
       nichoData:          user.nichoData,
       id_usuario:         user.id_usuario,
@@ -210,11 +220,11 @@ export class AuthService {
     );
   }
 
-  completarOnboarding(data: { empresa: string; nichoData: NichoData }): Observable<boolean> {
+  completarOnboarding(data: { empresa: string; nichoData: NichoData; fiscal?: FiscalData }): Observable<boolean> {
     const { nicho, moneda, modulos, ...datosNicho } = data.nichoData;
-    const payload = { empresa: data.empresa, nicho, moneda, modulos, datos_nicho: datosNicho };
+    const payload = { empresa: data.empresa, nicho, moneda, modulos, datos_nicho: datosNicho, fiscal: data.fiscal };
 
-    return this.http.post<{ empresa: string; onboardingCompleto: boolean; nichoData: NichoData; logo?: string | null }>(
+    return this.http.post<{ empresa: string; onboardingCompleto: boolean; nichoData: NichoData; fiscal?: FiscalData; logo?: string | null }>(
       `${environment.apiUrl}/tenant/onboarding`, payload
     ).pipe(
       tap(res => {
@@ -222,6 +232,7 @@ export class AuthService {
         if (!session) return;
         session.empresa = res.empresa;
         session.nichoData = res.nichoData;
+        session.fiscal = res.fiscal;
         session.onboardingCompleto = res.onboardingCompleto;
         if (res.logo !== undefined) session.logo = res.logo;
         this.guardarSesion(session);
@@ -316,6 +327,7 @@ export class AuthService {
   actualizarTenant(data: {
     sector?: string; idioma?: string; zonaHoraria?: string; moneda?: string;
     empresa?: string; nicho?: string; modulos?: { crm: boolean; pos: boolean; erp: boolean };
+    fiscal?: FiscalData;
   }): Observable<any> {
     return this.http.put<any>(`${environment.apiUrl}/tenant`, data).pipe(
       tap(res => {
@@ -325,6 +337,7 @@ export class AuthService {
         session.idioma = res.idioma;
         session.zonaHoraria = res.zonaHoraria;
         session.empresa = res.empresa;
+        if (res.fiscal) session.fiscal = res.fiscal;
         if (res.nichoData) session.nichoData = res.nichoData;
         this.guardarSesion(session);
       }),

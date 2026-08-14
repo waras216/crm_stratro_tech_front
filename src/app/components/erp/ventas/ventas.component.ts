@@ -26,6 +26,7 @@ export class ErpVentasComponent implements OnInit {
   cargando = true;
   pedidos: ErpPedido[] = [];
   productos: Producto[] = [];
+  expandidoId: number | null = null;
 
   constructor(
     private erpService: ErpService,
@@ -39,6 +40,10 @@ export class ErpVentasComponent implements OnInit {
     this.erpService.pedidos$.subscribe(data => { this.pedidos = data; this.cargando = false; this.cdr.detectChanges(); });
 
     this.erpService.cargarProductos().subscribe(data => { this.productos = data; this.cdr.detectChanges(); });
+  }
+
+  toggleDetalle(id: number) {
+    this.expandidoId = this.expandidoId === id ? null : id;
   }
 
   get facturado() { return this.pedidos.filter(p => p.estado === 'facturado').reduce((s, p) => s + Number(p.total), 0); }

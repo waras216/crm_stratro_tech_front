@@ -149,6 +149,46 @@
             <option *ngFor="let m of monedas" [value]="m" style="background:#1a1452">{{ m }}</option>
           </select>
         </div>
+
+        <div class="slide-in stagger-3">
+          <button type="button" (click)="mostrarFiscal = !mostrarFiscal"
+            class="text-xs font-semibold bg-transparent border-0 cursor-pointer p-0" style="color:#a5b4fc">
+            {{ mostrarFiscal ? '− Ocultar datos fiscales' : '+ Agregar datos fiscales (opcional)' }}
+          </button>
+          <p class="text-[11px] m-0 mt-1" style="color:#818cf8">Solo hacen falta si más adelante vas a timbrar facturas reales (CFDI). Podés completarlos después en Configuración.</p>
+        </div>
+
+        <div *ngIf="mostrarFiscal" class="flex flex-col gap-3 fade-up">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-medium" style="color:#c7d2fe">RFC</label>
+              <input type="text" [(ngModel)]="fiscalRfc" placeholder="XAXX010101000"
+                class="input-field w-full px-4 py-2.5 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:ring-2"
+                style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-medium" style="color:#c7d2fe">Código postal</label>
+              <input type="text" [(ngModel)]="fiscalCodigoPostal" placeholder="00000" maxlength="10"
+                class="input-field w-full px-4 py-2.5 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:ring-2"
+                style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)" />
+            </div>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium" style="color:#c7d2fe">Razón social</label>
+            <input type="text" [(ngModel)]="fiscalRazonSocial" placeholder="Razón social exacta ante el SAT"
+              class="input-field w-full px-4 py-2.5 rounded-xl border text-sm text-white placeholder-indigo-300/40 focus:outline-none focus:ring-2"
+              style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium" style="color:#c7d2fe">Régimen fiscal</label>
+            <select [(ngModel)]="fiscalRegimen"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm text-white focus:outline-none cursor-pointer"
+              style="background:rgba(255,255,255,.05);border-color:rgba(129,140,248,.2)">
+              <option value="" style="background:#1a1452">Selecciona...</option>
+              <option *ngFor="let r of regimenesFiscales" [value]="r.value" style="background:#1a1452">{{ r.label }}</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- ===== STEP 2: Tipo de negocio (por nicho) ===== -->

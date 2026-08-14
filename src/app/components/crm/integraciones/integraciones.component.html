@@ -27,7 +27,40 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+      <!-- Almacenamiento: refleja config de plataforma (FILESYSTEM_DISK_PUBLIC), no se prende/apaga a mano -->
+      <div *ngIf="esGestionadaPorSistema(integ)" class="border-t border-slate-100 pt-3">
+        <p class="text-[11px] text-slate-400 m-0">Se activa configurando un bucket real en el servidor (ver .env), no con un interruptor.</p>
+      </div>
+
+      <!-- Calendario: flujo OAuth con Google en vez del toggle simple -->
+      <ng-container *ngIf="!esGestionadaPorSistema(integ) && esOAuth(integ)">
+        <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+          <span class="text-xs text-slate-500">{{ integ.estado === 'conectada' ? 'Cuenta conectada' : 'Sin conectar' }}</span>
+          <button *appPuede="'integraciones.editar'" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border-0 cursor-pointer"
+            [class.bg-red-100]="integ.estado === 'conectada'" [class.text-red-700]="integ.estado === 'conectada'"
+            [class.bg-blue-600]="integ.estado !== 'conectada'" [class.text-white]="integ.estado !== 'conectada'"
+            [disabled]="conectandoCalendario"
+            (click)="integ.estado === 'conectada' ? toggle(integ.id) : conectarCalendario()">
+            {{ integ.estado === 'conectada' ? 'Desconectar' : (conectandoCalendario ? 'Conectando...' : 'Conectar con Google') }}
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- WhatsApp: código QR (WhatsApp Web casero vía Baileys) en vez del toggle simple -->
+      <ng-container *ngIf="esQr(integ)">
+        <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+          <span class="text-xs text-slate-500">{{ integ.estado === 'conectada' ? 'Número conectado' : 'Sin conectar' }}</span>
+          <button *appPuede="'integraciones.editar'" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border-0 cursor-pointer"
+            [class.bg-red-100]="integ.estado === 'conectada'" [class.text-red-700]="integ.estado === 'conectada'"
+            [class.bg-blue-600]="integ.estado !== 'conectada'" [class.text-white]="integ.estado !== 'conectada'"
+            (click)="integ.estado === 'conectada' ? desconectarWhatsapp() : abrirWhatsapp()">
+            {{ integ.estado === 'conectada' ? 'Desconectar' : 'Ver código QR' }}
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- Resto (email, otro): toggle simple -->
+      <div *ngIf="!esGestionadaPorSistema(integ) && !esOAuth(integ) && !esQr(integ)" class="flex items-center justify-between border-t border-slate-100 pt-3">
         <label class="flex items-center gap-2 cursor-pointer">
           <div *appPuede="'integraciones.editar'" class="relative w-10 h-5 rounded-full transition-colors cursor-pointer"
             [class.bg-blue-500]="integ.estado === 'conectada'" [class.bg-slate-200]="integ.estado !== 'conectada'"
@@ -81,11 +114,48 @@
       <span class="text-slate-400 capitalize">{{ entry.k }}</span>
       <span class="font-medium">{{ entry.v }}</span>
     </div>
-    <button *appPuede="'integraciones.editar'" class="w-full mt-4 px-4 py-2.5 rounded-lg text-sm font-medium border-0 cursor-pointer"
-      [class.bg-red-100]="selected.estado === 'conectada'" [class.text-red-700]="selected.estado === 'conectada'"
-      [class.bg-blue-600]="selected.estado !== 'conectada'" [class.text-white]="selected.estado !== 'conectada'"
-      (click)="toggle(selected.id); closeConfig()">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg> {{ selected.estado === 'conectada' ? 'Desconectar' : 'Conectar' }}
-    </button>
+    <p *ngIf="esGestionadaPorSistema(selected)" class="text-xs text-slate-400 m-0 mt-4">Se activa configurando un bucket real en el servidor (ver .env: FILESYSTEM_DISK_PUBLIC), no desde acá.</p>
+    <ng-container *ngIf="!esGestionadaPorSistema(selected)">
+      <button *appPuede="'integraciones.editar'" class="w-full mt-4 px-4 py-2.5 rounded-lg text-sm font-medium border-0 cursor-pointer"
+        [class.bg-red-100]="selected.estado === 'conectada'" [class.text-red-700]="selected.estado === 'conectada'"
+        [class.bg-blue-600]="selected.estado !== 'conectada'" [class.text-white]="selected.estado !== 'conectada'"
+        [disabled]="esOAuth(selected) && conectandoCalendario"
+        (click)="manejarClickModal(selected)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+        {{ selected.estado === 'conectada' ? 'Desconectar' : (esOAuth(selected) ? 'Conectar con Google' : (esQr(selected) ? 'Ver código QR' : 'Conectar')) }}
+      </button>
+    </ng-container>
   </div>
+</div>
+
+<!-- Modal: código QR de WhatsApp (Baileys) -->
+<div *ngIf="dialogWhatsappOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="cerrarWhatsapp()"></div>
+<div *ngIf="dialogWhatsappOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-sm z-[101] shadow-2xl p-6">
+  <div class="flex justify-between items-center mb-1">
+    <h3 class="text-sm font-bold m-0">Conectar WhatsApp</h3>
+    <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100" (click)="cerrarWhatsapp()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <p class="text-[11px] text-slate-400 m-0 mb-4">WhatsApp Web casero (no oficial) — el número que escanees queda vinculado a este CRM y podría ser bloqueado por WhatsApp.</p>
+
+  <div *ngIf="cargandoWhatsapp" class="flex justify-center py-8">
+    <span class="text-xs text-slate-400">Generando código...</span>
+  </div>
+
+  <ng-container *ngIf="!cargandoWhatsapp">
+    <div *ngIf="estadoWhatsapp === 'conectado'" class="flex flex-col items-center gap-2 py-6">
+      <span class="text-2xl">✅</span>
+      <p class="text-sm font-medium m-0">¡Conectado!</p>
+    </div>
+
+    <div *ngIf="estadoWhatsapp !== 'conectado' && qrWhatsapp" class="flex flex-col items-center gap-3">
+      <div class="p-2 border border-slate-200 rounded-xl">
+        <img [src]="qrWhatsapp" alt="Código QR de WhatsApp" width="220" height="220" />
+      </div>
+      <p class="text-center text-xs text-slate-500 m-0">Abrí WhatsApp en tu teléfono → Dispositivos vinculados → Vincular un dispositivo, y escaneá este código.</p>
+    </div>
+
+    <div *ngIf="estadoWhatsapp !== 'conectado' && !qrWhatsapp" class="flex justify-center py-8">
+      <span class="text-xs text-slate-400">Esperando el código QR...</span>
+    </div>
+  </ng-container>
 </div>

@@ -186,7 +186,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
     if (tab === 'ventas') return erpVentasLabel(this.nicho.nicho);
     const m: Record<ErpTab, string> = {
       dashboard: 'Dashboard', finanzas: 'Finanzas', compras: 'Compras',
-      ventas: 'Ventas', inventario: 'Inventario', fabricacion: 'Fabricación',
+      ventas: 'Ventas', facturacion: 'Facturación', inventario: 'Inventario', fabricacion: 'Fabricación',
       scm: 'Supply Chain', rrhh: 'Recursos Humanos', crm: 'CRM', proyectos: 'Proyectos',
       reportes: 'Reportes',
     };

@@ -8,10 +8,17 @@ export interface ReportExportSection {
   rows: { label: string; value: string | number }[];
 }
 
+export interface ReportExportTable {
+  heading: string;
+  columns: string[];
+  rows: (string | number)[][];
+}
+
 export interface ReportExportData {
   title: string;
   kpis: { label: string; value: string | number }[];
   sections: ReportExportSection[];
+  tables?: ReportExportTable[];
 }
 
 function slug(title: string): string {
@@ -45,6 +52,20 @@ export class ReportExportService {
       });
     }
 
+    for (const table of data.tables ?? []) {
+      const prevY = (doc as any).lastAutoTable?.finalY ?? 28;
+      doc.setFontSize(11);
+      doc.text(table.heading, 14, prevY + 10);
+      autoTable(doc, {
+        startY: prevY + 14,
+        head: [table.columns],
+        body: table.rows.map(r => r.map(String)),
+        theme: 'grid',
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [71, 85, 105] },
+      });
+    }
+
     doc.save(`${slug(data.title)}.pdf`);
   }
 
@@ -65,7 +86,14 @@ export class ReportExportService {
       section.rows.forEach(r => ws.addRow([r.label, r.value]));
     }
 
-    ws.columns.forEach(col => { col.width = 28; });
+    for (const table of data.tables ?? []) {
+      ws.addRow([]);
+      ws.addRow([table.heading]).font = { bold: true };
+      ws.addRow(table.columns).font = { bold: true };
+      table.rows.forEach(r => ws.addRow(r));
+    }
+
+    ws.columns.forEach(col => { col.width = 22; });
 
     const buffer = await wb.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

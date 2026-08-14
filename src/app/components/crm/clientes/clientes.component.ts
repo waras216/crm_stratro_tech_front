@@ -15,7 +15,7 @@ export class ClientesComponent implements OnInit {
   detalleOpen = false;
   detalleCargando = false;
   clienteDetalle: Cliente | null = null;
-  detalleTab: 'leads' | 'oportunidades' | 'actividades' | 'contactos' = 'leads';
+  detalleTab: 'leads' | 'oportunidades' | 'actividades' | 'contactos' | 'compras' = 'leads';
 
   constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
 

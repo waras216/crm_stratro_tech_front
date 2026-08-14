@@ -47,6 +47,12 @@
       </div>
     </div>
 
+    <label class="flex items-center gap-2 text-sm cursor-pointer w-fit" style="color:#1e1b4b">
+      <input type="checkbox" [(ngModel)]="form.incluye_facturacion_real" />
+      Incluye timbrado real de facturas (CFDI)
+    </label>
+    <p class="text-[11px] text-slate-400 m-0 -mt-2">Cada timbre real le cuesta al PAC cobrarnos — reservá esto para planes pagos altos.</p>
+
     <div class="flex items-center gap-2">
       <button (click)="guardar()" [disabled]="guardando"
         class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
@@ -81,6 +87,7 @@
           <p class="text-[11px] text-slate-400 m-0 mt-0.5">
             ${{ p.precio }} · {{ p.max_usuarios ?? 'ilimitados' }} usuarios · {{ p.tenants_count ?? 0 }} tenants
             <span *ngIf="!p.stripe_price_id" style="color:#d97706">· sin Stripe configurado</span>
+            <span *ngIf="p.incluye_facturacion_real" style="color:#059669">· incluye timbrado CFDI</span>
           </p>
         </div>
         <div class="flex items-center gap-2">

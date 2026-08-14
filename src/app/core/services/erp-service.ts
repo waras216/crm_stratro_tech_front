@@ -6,7 +6,7 @@ import { environment } from '../../../environments/environment';
 import {
   Producto, Categoria, Proveedor, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
   ErpOrdenProduccion, ErpEnvio, ErpProyecto, ErpProyectoTarea, ErpProyectoHora, ErpInteraccion, ErpCrmResumen,
-  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpReceta, PedidoPago
+  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpReceta, PedidoPago, ErpFactura
 } from '../../models/erp.models';
 
 const API = environment.apiUrl;
@@ -234,6 +234,40 @@ export class ErpService {
   }
 
   // ════════════════════════════════════════════════════════════════════
+  // FACTURACIÓN (registro interno o timbrado real vía PAC)
+  // ════════════════════════════════════════════════════════════════════
+  private _facturas = new BehaviorSubject<ErpFactura[]>([]);
+  facturas$ = this._facturas.asObservable();
+  get facturas() { return this._facturas.getValue(); }
+
+  cargarFacturas(): Observable<ErpFactura[]> {
+    return this.http.get<ErpFactura[]>(`${API}/erp/facturas`).pipe(
+      tap(data => this._facturas.next(data))
+    );
+  }
+
+  crearFactura(data: {
+    id_pedido: number; tipo: 'interna' | 'timbrada'; rfc_receptor: string; razon_social_receptor: string;
+    uso_cfdi?: string; forma_pago_sat?: string; metodo_pago_sat?: string; serie?: string;
+  }): Observable<ErpFactura> {
+    return this.http.post<ErpFactura>(`${API}/erp/facturas`, data).pipe(
+      tap(nueva => this._facturas.next([nueva, ...this.facturas]))
+    );
+  }
+
+  timbrarFactura(id: number): Observable<ErpFactura> {
+    return this.http.post<ErpFactura>(`${API}/erp/facturas/${id}/timbrar`, {}).pipe(
+      tap(actualizada => this._facturas.next(this.facturas.map(f => f.id === id ? actualizada : f)))
+    );
+  }
+
+  cancelarFactura(id: number): Observable<ErpFactura> {
+    return this.http.patch<ErpFactura>(`${API}/erp/facturas/${id}/cancelar`, {}).pipe(
+      tap(actualizada => this._facturas.next(this.facturas.map(f => f.id === id ? actualizada : f)))
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
   // MESAS (terminal POS de restaurante)
   // ════════════════════════════════════════════════════════════════════
   private _mesas = new BehaviorSubject<ErpMesa[]>([]);
@@ -432,6 +466,28 @@ export class ErpService {
   addEmpleado(empleado: Partial<ErpEmpleado>): Observable<ErpEmpleado> {
     return this.http.post<ErpEmpleado>(`${API}/erp/rrhh`, empleado).pipe(
       tap(nuevo => this._empleados.next([nuevo, ...this.empleados]))
+    );
+  }
+
+  updateEmpleado(id: number, empleado: Partial<ErpEmpleado>): Observable<ErpEmpleado> {
+    return this.http.put<ErpEmpleado>(`${API}/erp/rrhh/${id}`, empleado).pipe(
+      tap(actualizado => this._empleados.next(this.empleados.map(e => e.id === id ? actualizado : e)))
+    );
+  }
+
+  deleteEmpleado(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/rrhh/${id}`).pipe(
+      tap(() => this._empleados.next(this.empleados.filter(e => e.id !== id)))
+    );
+  }
+
+  cargarPapeleraEmpleados(): Observable<ErpEmpleado[]> {
+    return this.http.get<ErpEmpleado[]>(`${API}/erp/rrhh/papelera`);
+  }
+
+  restaurarEmpleado(id: number): Observable<ErpEmpleado> {
+    return this.http.patch<ErpEmpleado>(`${API}/erp/rrhh/${id}/restaurar`, {}).pipe(
+      tap(restaurado => this._empleados.next([restaurado, ...this.empleados]))
     );
   }
 

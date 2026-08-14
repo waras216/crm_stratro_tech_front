@@ -16,8 +16,10 @@ export class PlanesComponent implements OnInit {
 
   editandoId: number | null = null;
   guardando = false;
-  form: { nombre_plan: string; precio: number | null; stripe_price_id: string; max_usuarios: number | null; fecha_inicio: string; fecha_fin: string } =
-    this.formVacio();
+  form: {
+    nombre_plan: string; precio: number | null; stripe_price_id: string; max_usuarios: number | null;
+    incluye_facturacion_real: boolean; fecha_inicio: string; fecha_fin: string;
+  } = this.formVacio();
 
   constructor(private planService: PlanService, private location: Location) {}
 
@@ -28,7 +30,7 @@ export class PlanesComponent implements OnInit {
   goBack() { this.location.back(); }
 
   private formVacio() {
-    return { nombre_plan: '', precio: null, stripe_price_id: '', max_usuarios: null, fecha_inicio: '', fecha_fin: '' };
+    return { nombre_plan: '', precio: null, stripe_price_id: '', max_usuarios: null, incluye_facturacion_real: false, fecha_inicio: '', fecha_fin: '' };
   }
 
   cargarPlanes() {
@@ -46,6 +48,7 @@ export class PlanesComponent implements OnInit {
       precio: plan.precio,
       stripe_price_id: plan.stripe_price_id ?? '',
       max_usuarios: plan.max_usuarios,
+      incluye_facturacion_real: !!plan.incluye_facturacion_real,
       fecha_inicio: plan.fecha_inicio?.slice(0, 10),
       fecha_fin: plan.fecha_fin?.slice(0, 10),
     };

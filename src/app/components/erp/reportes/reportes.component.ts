@@ -108,6 +108,7 @@ export class ErpReportesComponent implements OnInit {
     const incluye = (s: SeccionReporte) => this.seccion === 'todo' || this.seccion === s;
     const kpiRows: { label: string; value: number }[] = [];
     const sections: { heading: string; rows: { label: string; value: string | number }[] }[] = [];
+    const tables: { heading: string; columns: string[]; rows: (string | number)[][] }[] = [];
 
     if (kpis && incluye('inventario')) kpiRows.push({ label: 'Valor Inventario', value: kpis.valorInventario });
     if (kpis && incluye('finanzas')) kpiRows.push(
@@ -124,16 +125,23 @@ export class ErpReportesComponent implements OnInit {
     if (incluye('compras')) {
       sections.push({ heading: 'Compras por Estado', rows: toRows(this.comprasPorEstado) });
       sections.push({ heading: 'Compras por Proveedor', rows: toRows(this.comprasPorProveedor) });
-      sections.push({
+      tables.push({
         heading: 'Detalle de Órdenes de Compra',
-        rows: (this.resumen?.comprasDetalle ?? []).map(c => ({
-          label: `#${c.id} — ${c.fecha} — ${c.proveedor} — ${c.comprador ?? 'Sin registrar'} — ${c.items} item(s) — ${c.estado}`,
-          value: c.total,
-        })),
+        columns: ['# Orden', 'Fecha', 'Proveedor', 'Registrada por', 'Items', 'Estado', 'Total'],
+        rows: (this.resumen?.comprasDetalle ?? []).map(c => [
+          `#${c.id}`, c.fecha, c.proveedor, c.comprador ?? 'Sin registrar', c.items, c.estado, c.total,
+        ]),
       });
     }
     if (incluye('ventas')) {
       sections.push({ heading: 'Ventas por Estado', rows: toRows(this.ventasPorEstado) });
+      tables.push({
+        heading: 'Detalle de Ventas',
+        columns: ['# Pedido', 'Fecha', 'Cliente', 'Cajero', 'Items', 'Estado', 'Total'],
+        rows: (this.resumen?.ventasDetalle ?? []).map(v => [
+          `#${v.id}`, v.fecha, v.cliente, v.cajero ?? 'Sin registrar', v.items, v.estado, v.total,
+        ]),
+      });
     }
     if (incluye('finanzas')) {
       sections.push({ heading: 'Movimientos por Categoría', rows: toRows(this.movimientosPorCategoria) });
@@ -144,6 +152,7 @@ export class ErpReportesComponent implements OnInit {
       title: SECCION_LABEL[this.seccion],
       kpis: kpiRows,
       sections,
+      tables,
     };
   }
 

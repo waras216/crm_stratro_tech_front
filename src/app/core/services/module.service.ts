@@ -7,7 +7,7 @@ import { NichoService } from './nicho.service';
 import { AuthService } from '../auth/authservices';
 
 export type ModuleId = 'crm' | 'erp' | 'pos';
-export type ErpTab = 'dashboard' | 'finanzas' | 'compras' | 'ventas' | 'inventario' | 'fabricacion' | 'scm' | 'rrhh' | 'crm' | 'proyectos' | 'reportes';
+export type ErpTab = 'dashboard' | 'finanzas' | 'compras' | 'ventas' | 'facturacion' | 'inventario' | 'fabricacion' | 'scm' | 'rrhh' | 'crm' | 'proyectos' | 'reportes';
 export type PosTab = 'terminal' | 'historial';
 
 export interface ModuleConfig {
@@ -153,6 +153,7 @@ const ERP_SIDEBAR: SidebarSection[] = [
       { label: 'Finanzas',     svg: S(`<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>`),                                                                                              erpTab: 'finanzas' },
       { label: 'Compras',      svg: S(`<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>`),                                                             erpTab: 'compras' },
       { label: 'Ventas',       svg: S(`<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>`), erpTab: 'ventas' },
+      { label: 'Facturación',  svg: S(`<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>`), erpTab: 'facturacion' },
       { label: 'Inventario',   svg: S(`<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>`),                                                                           erpTab: 'inventario' },
     ],
   },

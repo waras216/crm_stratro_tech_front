@@ -197,6 +197,40 @@
     </table>
   </div>
 
+  <!-- Detalle de ventas -->
+  <div *ngIf="seccion==='todo' || seccion==='ventas'" class="bg-white border border-slate-200 rounded-xl overflow-hidden hover-lift">
+    <h3 class="text-sm font-semibold text-slate-700 m-0 p-4 pb-0"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="display:inline;vertical-align:-2px;margin-right:4px"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/></svg>Detalle de Ventas</h3>
+    <table class="w-full text-sm border-collapse mt-3">
+      <thead>
+        <tr class="bg-slate-50">
+          <th class="text-left px-4 py-2 font-medium text-slate-500 text-xs"># Pedido</th>
+          <th class="text-left px-4 py-2 font-medium text-slate-500 text-xs">Fecha</th>
+          <th class="text-left px-4 py-2 font-medium text-slate-500 text-xs">Cliente</th>
+          <th class="text-left px-4 py-2 font-medium text-slate-500 text-xs">Cajero</th>
+          <th class="text-right px-4 py-2 font-medium text-slate-500 text-xs">Items</th>
+          <th class="text-center px-4 py-2 font-medium text-slate-500 text-xs">Estado</th>
+          <th class="text-right px-4 py-2 font-medium text-slate-500 text-xs">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of r.ventasDetalle" class="border-b border-slate-50 last:border-0">
+          <td class="px-4 py-2 font-mono text-xs">#{{ v.id }}</td>
+          <td class="px-4 py-2 text-xs text-slate-500">{{ v.fecha }}</td>
+          <td class="px-4 py-2 text-xs font-medium">{{ v.cliente }}</td>
+          <td class="px-4 py-2 text-xs text-slate-500">{{ v.cajero ?? 'Sin registrar' }}</td>
+          <td class="px-4 py-2 text-right text-xs">{{ v.items }}</td>
+          <td class="px-4 py-2 text-center">
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="v.estado==='enviado' || v.estado==='facturado' ? 'badge-green' : v.estado==='pendiente' ? 'badge-amber' : 'badge-red'">{{ v.estado }}</span>
+          </td>
+          <td class="px-4 py-2 text-right text-xs font-semibold">${{ v.total.toLocaleString() }}</td>
+        </tr>
+        <tr *ngIf="!r.ventasDetalle.length">
+          <td colspan="7" class="text-center py-6 text-slate-400 text-xs">Sin ventas en este rango.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <!-- Tendencia mensual -->
   <div *ngIf="seccion==='todo' || seccion==='finanzas'" class="bg-white border border-slate-200 rounded-xl p-4 hover-lift">
     <h3 class="text-sm font-semibold text-slate-700 mb-4"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Tendencia Mensual (Ingresos vs Egresos)</h3>

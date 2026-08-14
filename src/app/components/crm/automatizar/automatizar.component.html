@@ -39,16 +39,12 @@
       </div>
       <div class="flex flex-col gap-2 border-t border-slate-100 pt-3">
         <div class="flex gap-2 text-sm">
-          <span class="text-slate-400 font-medium text-xs w-20 flex-shrink-0">▶ Regla</span>
-          <p class="text-slate-600 text-xs m-0">{{ auto.regla }}</p>
-        </div>
-        <div class="flex gap-2 text-sm">
           <span class="text-slate-400 font-medium text-xs w-20 flex-shrink-0"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Evento</span>
-          <p class="text-slate-600 text-xs m-0">{{ auto.evento }}</p>
+          <p class="text-slate-600 text-xs m-0">{{ eventoLabel(auto.evento) }}</p>
         </div>
         <div class="flex gap-2 text-sm">
           <span class="text-slate-400 font-medium text-xs w-20 flex-shrink-0"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg> Acción</span>
-          <p class="text-slate-600 text-xs m-0">{{ auto.accion }}</p>
+          <p class="text-slate-600 text-xs m-0">{{ accionLabel(auto.accion) }}</p>
         </div>
       </div>
     </div>
@@ -71,17 +67,95 @@
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" [(ngModel)]="form.nombre_automatizacion" placeholder="Ej: Bienvenida Nuevo Lead" />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-xs font-medium text-slate-600">Regla (Condición) *</label>
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" [(ngModel)]="form.regla" placeholder="Ej: Cuando se crea un nuevo lead" />
+      <label class="text-xs font-medium text-slate-600">Cuándo (evento disparador) *</label>
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" [(ngModel)]="form.evento" (ngModelChange)="onEventoChange()">
+        <option *ngFor="let e of eventoOptions" [value]="e.value">{{ e.label }}</option>
+      </select>
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-xs font-medium text-slate-600">Evento Disparador *</label>
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" [(ngModel)]="form.evento" placeholder="Ej: lead_creado" />
+      <label class="text-xs font-medium text-slate-600">Qué hacer (acción) *</label>
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" [(ngModel)]="form.accion">
+        <option *ngFor="let a of accionOptions" [value]="a.value">{{ a.label }}</option>
+      </select>
     </div>
-    <div class="flex flex-col gap-1">
-      <label class="text-xs font-medium text-slate-600">Acción a Ejecutar *</label>
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" [(ngModel)]="form.accion" placeholder="Ej: Enviar email de bienvenida" />
+
+    <!-- Parámetros dinámicos según la acción elegida -->
+    <div *ngIf="form.accion==='enviar_email'" class="flex flex-col gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Destinatario</label>
+        <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" [(ngModel)]="form.p_destinatario">
+          <option value="contacto">El contacto del lead/oportunidad</option>
+          <option value="admins">Los administradores del equipo</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Asunto</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" [(ngModel)]="form.p_asunto" placeholder="Ej: ¡Gracias por tu interés!" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Mensaje</label>
+        <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" rows="3" [(ngModel)]="form.p_mensaje" placeholder="Cuerpo del correo..."></textarea>
+      </div>
     </div>
+
+    <div *ngIf="form.accion==='crear_actividad'" class="flex flex-col gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Título de la actividad</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" [(ngModel)]="form.p_titulo" placeholder="Ej: Llamar de seguimiento" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-slate-600">Tipo</label>
+          <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" [(ngModel)]="form.p_tipo_actividad">
+            <option *ngFor="let t of tipoActividadOptions" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-slate-600">Vence en (días)</label>
+          <input type="number" min="1" class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" [(ngModel)]="form.p_dias_vencimiento" />
+        </div>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Asignar a (opcional, si no al dueño del lead/oportunidad)</label>
+        <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" [(ngModel)]="form.p_id_usuario_asignado">
+          <option [ngValue]="null">Al dueño del lead/oportunidad</option>
+          <option *ngFor="let u of usuarios" [ngValue]="u.id_usuario">{{ u.nombre }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="form.accion==='cambiar_estado'" class="flex flex-col gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Cambiar a</label>
+        <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" [(ngModel)]="form.p_valor">
+          <option value="">Selecciona...</option>
+          <option *ngFor="let v of valoresDestino" [value]="v.value">{{ v.label }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="form.accion==='enviar_whatsapp'" class="flex flex-col gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+      <p class="text-[11px] text-slate-400 m-0">Se manda al teléfono del contacto del lead/oportunidad. Requiere la integración de WhatsApp conectada.</p>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Mensaje</label>
+        <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" rows="3" [(ngModel)]="form.p_mensaje" placeholder="Hola, gracias por tu interés..."></textarea>
+      </div>
+    </div>
+
+    <div *ngIf="form.accion==='notificar_usuario'" class="flex flex-col gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Usuario a notificar</label>
+        <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" [(ngModel)]="form.p_id_usuario">
+          <option [ngValue]="null">Selecciona...</option>
+          <option *ngFor="let u of usuarios" [ngValue]="u.id_usuario">{{ u.nombre }}</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">Mensaje (opcional)</label>
+        <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" rows="2" [(ngModel)]="form.p_mensaje" placeholder="Se disparó la automatización..."></textarea>
+      </div>
+    </div>
+
     <div *ngIf="editingAuto" class="flex items-center gap-2">
       <input type="checkbox" [(ngModel)]="form.activa" class="rounded" id="activa" />
       <label for="activa" class="text-sm text-slate-600 cursor-pointer">Activa</label>

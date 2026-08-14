@@ -56,6 +56,7 @@ import { ErpComprasComponent }   from './components/erp/compras/compras.componen
 import { ErpFinanzasComponent }  from './components/erp/finanzas/finanzas.component';
 import { ErpVentasComponent }    from './components/erp/ventas/ventas.component';
 import { ErpReservasHotelAdminComponent } from './components/erp/ventas/reservas-hotel-admin.component';
+import { ErpFacturacionComponent } from './components/erp/facturacion/facturacion.component';
 import { ErpFabricacionComponent }from './components/erp/fabricacion/fabricacion.component';
 import { ErpScmComponent }       from './components/erp/scm/scm.component';
 import { ErpRrhhComponent }      from './components/erp/rrhh/rrhh.component';
@@ -120,6 +121,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     ErpFinanzasComponent,
     ErpVentasComponent,
     ErpReservasHotelAdminComponent,
+    ErpFacturacionComponent,
     ErpFabricacionComponent,
     ErpScmComponent,
     ErpRrhhComponent,

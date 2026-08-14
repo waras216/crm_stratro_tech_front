@@ -2,6 +2,7 @@ import { Component, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/authservices';
 import { NichoData } from '../../../core/auth/authservices';
+import { REGIMENES_FISCALES_SAT } from '../../../core/constants/sat.constants';
 
 interface Nicho {
   id: string;
@@ -34,6 +35,16 @@ export class AuthOnboardingComponent {
   // Config general
   moneda = 'MXN';
   monedas = ['MXN', 'USD', 'EUR', 'COP', 'ARS'];
+
+  // Datos fiscales del emisor (opcionales en el onboarding — solo hacen
+  // falta si más adelante se usa timbrado real de CFDI en ERP → Facturación;
+  // se pueden completar después en Configuración → Fiscal).
+  mostrarFiscal = false;
+  regimenesFiscales = REGIMENES_FISCALES_SAT;
+  fiscalRfc = '';
+  fiscalRazonSocial = '';
+  fiscalRegimen = '';
+  fiscalCodigoPostal = '';
 
   // --- Hotel ---
   hotelTipo = '';
@@ -223,9 +234,16 @@ export class AuthOnboardingComponent {
       startupEtapa: this.startupEtapa, startupModelo: this.startupModelo, startupMetricas: [...this.startupMetricas],
       tiendaTipo: this.tiendaTipo, tiendaCanales: [...this.tiendaCanales],
     };
+    const fiscal = this.mostrarFiscal ? {
+      rfc: this.fiscalRfc || null,
+      razonSocial: this.fiscalRazonSocial || null,
+      regimenFiscal: this.fiscalRegimen || null,
+      codigoPostal: this.fiscalCodigoPostal || null,
+    } : undefined;
+
     this.guardando = true;
     this.errorGuardado = false;
-    this.auth.completarOnboarding({ empresa: this.empresa, nichoData }).subscribe(ok => {
+    this.auth.completarOnboarding({ empresa: this.empresa, nichoData, fiscal }).subscribe(ok => {
       this.guardando = false;
       if (!ok) { this.errorGuardado = true; this.cdr.detectChanges(); return; }
 

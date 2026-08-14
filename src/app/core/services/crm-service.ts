@@ -351,5 +351,21 @@ export class CrmService {
       tap(updated => this._integraciones.next(this.integraciones.map(i => i.id === id ? updated : i)))
     );
   }
+
+  conectarGoogleCalendar(): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${API}/integraciones/google-calendar/conectar`, {});
+  }
+
+  iniciarWhatsappBaileys(): Observable<{ status: string; qr: string | null }> {
+    return this.http.post<{ status: string; qr: string | null }>(`${API}/integraciones/whatsapp-baileys/iniciar`, {});
+  }
+
+  estadoWhatsappBaileys(): Observable<{ status: string; qr: string | null }> {
+    return this.http.get<{ status: string; qr: string | null }>(`${API}/integraciones/whatsapp-baileys/estado`);
+  }
+
+  desconectarWhatsappBaileys(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${API}/integraciones/whatsapp-baileys/desconectar`);
+  }
     
 }

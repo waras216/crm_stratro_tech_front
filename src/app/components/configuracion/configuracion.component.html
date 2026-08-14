@@ -36,7 +36,7 @@
     <!-- Tabs lateral -->
     <div class="w-52 flex-shrink-0 flex flex-col gap-1">
       <ng-container *ngFor="let tab of tabs">
-      <button *ngIf="(tab.id !== 'equipo' && tab.id !== 'negocio') || esAdmin" (click)="setActiveTab(tab.id)"
+      <button *ngIf="(tab.id !== 'equipo' && tab.id !== 'negocio' && tab.id !== 'fiscal') || esAdmin" (click)="setActiveTab(tab.id)"
         class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all text-left w-full"
         [ngClass]="activeTab===tab.id ? 'text-white' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'"
         [style]="activeTab===tab.id ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.3)' : 'background:transparent'">
@@ -680,6 +680,45 @@
           style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"
           [style.opacity]="(guardandoNegocio || !modulosNegocioValidos) ? 0.5 : 1">
           {{ guardandoNegocio ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </div>
+
+      <div *ngIf="activeTab==='fiscal' && esAdmin" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
+        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        <div>
+          <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Datos Fiscales del Emisor</h2>
+          <p class="text-[11px] text-slate-400 m-0 mt-1">Datos de tu empresa ante el SAT, necesarios para emitir facturas con timbrado real (CFDI) desde ERP → Facturación. Son opcionales si solo usás el registro interno de facturas.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] font-semibold" style="color:#6366f1">RFC</label>
+            <input [(ngModel)]="fiscalRfc" placeholder="XAXX010101000" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] font-semibold" style="color:#6366f1">Razón social</label>
+            <input [(ngModel)]="fiscalRazonSocial" placeholder="Razón social exacta ante el SAT" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] font-semibold" style="color:#6366f1">Régimen fiscal</label>
+            <select [(ngModel)]="fiscalRegimen" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
+              <option value="">Selecciona...</option>
+              <option *ngFor="let r of regimenesFiscales" [value]="r.value">{{ r.label }}</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11px] font-semibold" style="color:#6366f1">Código postal</label>
+            <input [(ngModel)]="fiscalCodigoPostal" placeholder="00000" maxlength="10" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+          </div>
+        </div>
+
+        <p *ngIf="errorFiscal" class="text-xs text-red-600 m-0">{{ errorFiscal }}</p>
+
+        <button (click)="guardarFiscal()" [disabled]="guardandoFiscal"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 w-fit"
+          style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"
+          [style.opacity]="guardandoFiscal ? 0.5 : 1">
+          {{ guardandoFiscal ? 'Guardando…' : 'Guardar cambios' }}
         </button>
       </div>
 

@@ -18,6 +18,7 @@ export class ErpInventarioComponent implements OnInit {
   fotoSeleccionada: File | null = null;
   fotoPreview: string | null = null;
   subiendoFoto = false;
+  editando: Producto | null = null;
 
   ajusteDialogOpen = false;
   ajusteTarget: Producto | null = null;
@@ -54,9 +55,27 @@ export class ErpInventarioComponent implements OnInit {
   get stockBajo() { return this.inventario.filter(p => p.stock <= p.stock_minimo).length; }
 
   openNew() {
+    this.editando = null;
     this.form = { nombre: '', sku: '', id_categorias: '', stock: '', stockMinimo: '', precioCompra: '', precio: '' };
     this.fotoSeleccionada = null;
     this.fotoPreview = null;
+    this.error = '';
+    this.dialogOpen = true;
+  }
+
+  openEdit(producto: Producto) {
+    this.editando = producto;
+    this.form = {
+      nombre: producto.nombre,
+      sku: producto.sku ?? '',
+      id_categorias: String(producto.id_categorias),
+      stock: String(producto.stock),
+      stockMinimo: String(producto.stock_minimo),
+      precioCompra: String(producto.precio_compra),
+      precio: String(producto.precio),
+    };
+    this.fotoSeleccionada = null;
+    this.fotoPreview = producto.imagen_url ?? null;
     this.error = '';
     this.dialogOpen = true;
   }
@@ -78,7 +97,7 @@ export class ErpInventarioComponent implements OnInit {
 
     this.saving = true;
     this.error = '';
-    this.erpService.addInventario({
+    const payload = {
       nombre: this.form.nombre,
       sku: this.form.sku || undefined,
       id_categorias: Number(this.form.id_categorias),
@@ -86,15 +105,21 @@ export class ErpInventarioComponent implements OnInit {
       stock_minimo: Number(this.form.stockMinimo) || 0,
       precio_compra: Number(this.form.precioCompra) || 0,
       precio: Number(this.form.precio) || 0,
-    }).subscribe({
-      next: (nuevo) => {
+    };
+
+    const peticion = this.editando
+      ? this.erpService.updateInventario(this.editando.id_productos, payload)
+      : this.erpService.addInventario(payload);
+
+    peticion.subscribe({
+      next: (guardado) => {
         if (!this.fotoSeleccionada) {
           this.saving = false;
           this.dialogOpen = false;
           this.cdr.detectChanges();
           return;
         }
-        this.erpService.subirFotoProducto(nuevo.id_productos, this.fotoSeleccionada).subscribe({
+        this.erpService.subirFotoProducto(guardado.id_productos, this.fotoSeleccionada).subscribe({
           next: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
           error: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
         });

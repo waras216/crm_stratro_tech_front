@@ -13,6 +13,7 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
       <div class="flex items-center justify-between">
         <div><h2 class="m-0 text-lg font-bold text-slate-800">Recursos Humanos</h2><p class="text-xs text-slate-500 m-0 mt-1">Nómina, personal y reclutamiento</p></div>
         <div class="flex gap-2">
+          <button *appPuede="'erp_rrhh.eliminar'" (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Papelera</button>
           <button *appPuede="'erp_rrhh.crear'" (click)="openNomina()" class="px-4 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-amber-50">Procesar Nómina</button>
           <button *appPuede="'erp_rrhh.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Empleado</button>
         </div>
@@ -33,6 +34,7 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
             <th class="text-left px-4 py-3 font-medium text-slate-500">Departamento</th>
             <th class="text-left px-4 py-3 font-medium text-slate-500">Puesto</th>
             <th class="text-center px-4 py-3 font-medium text-slate-500">Estado</th>
+            <th class="text-right px-4 py-3 font-medium text-slate-500">Acciones</th>
           </tr></thead>
           <tbody>
             <tr *ngFor="let e of empleados" class="border-b border-slate-100 hover:bg-slate-50">
@@ -40,8 +42,18 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
               <td class="px-4 py-3 text-slate-500">{{ e.departamento }}</td>
               <td class="px-4 py-3 text-slate-500">{{ e.puesto }}</td>
               <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="e.estado==='activo'?'badge-green':'badge-amber'">{{ e.estado }}</span></td>
+              <td class="px-4 py-3 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <button *appPuede="'erp_rrhh.editar'" (click)="openEdit(e)" title="Editar" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-amber-600 p-1">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button *appPuede="'erp_rrhh.eliminar'" (click)="eliminar(e)" title="Eliminar" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                  </button>
+                </div>
+              </td>
             </tr>
-            <tr *ngIf="empleados.length===0"><td colspan="4" class="text-center py-8 text-slate-400 text-xs">Sin empleados registrados todavía.</td></tr>
+            <tr *ngIf="empleados.length===0"><td colspan="5" class="text-center py-8 text-slate-400 text-xs">Sin empleados registrados todavía.</td></tr>
           </tbody>
         </table>
       </div>
@@ -69,7 +81,7 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
     <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
     <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="m-0 text-lg font-semibold">Nuevo Empleado</h3>
+        <h3 class="m-0 text-lg font-semibold">{{ editando ? 'Editar Empleado' : 'Nuevo Empleado' }}</h3>
         <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -79,8 +91,12 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
         <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.departamento" placeholder="Departamento" />
         <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.puesto" placeholder="Puesto" />
         <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.salario" placeholder="Salario mensual" />
+        <select *ngIf="editando" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.estado">
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </select>
         <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
-        <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Agregar' }}</button>
+        <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : (editando ? 'Guardar cambios' : 'Agregar') }}</button>
       </div>
     </div>
 
@@ -111,15 +127,39 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
         <button (click)="procesarNomina()" [disabled]="nominaSaving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ nominaSaving ? 'Procesando...' : 'Procesar Nómina' }}</button>
       </div>
     </div>
+
+    <div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
+    <div *ngIf="papeleraOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="m-0 text-lg font-semibold">Papelera de Empleados</h3>
+        <button (click)="papeleraOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="flex flex-col gap-2">
+        <p *ngIf="papelera.length === 0" class="text-sm text-slate-400 m-0">No hay empleados eliminados.</p>
+        <div *ngFor="let e of papelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+          <div>
+            <p class="m-0 font-medium">{{ e.nombre }}</p>
+            <p class="m-0 text-xs text-slate-500">{{ e.departamento }} · {{ e.puesto }}</p>
+          </div>
+          <button (click)="restaurar(e.id)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Restaurar</button>
+        </div>
+      </div>
+    </div>
   `,
 })
 export class ErpRrhhComponent implements OnInit {
   dialogOpen = false;
   saving = false;
   error = '';
-  form = { nombre: '', departamento: '', puesto: '', salario: '' };
+  form = { nombre: '', departamento: '', puesto: '', salario: '', estado: 'activo' };
+  editando: ErpEmpleado | null = null;
   empleados: ErpEmpleado[] = [];
   cargando = true;
+
+  papeleraOpen = false;
+  papelera: ErpEmpleado[] = [];
 
   historialNomina: ErpNominaPago[] = [];
 
@@ -153,7 +193,25 @@ export class ErpRrhhComponent implements OnInit {
       .reduce((s, e) => s + Number(e.salario || 0), 0);
   }
 
-  openNew() { this.form = { nombre: '', departamento: '', puesto: '', salario: '' }; this.error = ''; this.dialogOpen = true; }
+  openNew() {
+    this.editando = null;
+    this.form = { nombre: '', departamento: '', puesto: '', salario: '', estado: 'activo' };
+    this.error = '';
+    this.dialogOpen = true;
+  }
+
+  openEdit(empleado: ErpEmpleado) {
+    this.editando = empleado;
+    this.form = {
+      nombre: empleado.nombre,
+      departamento: empleado.departamento,
+      puesto: empleado.puesto,
+      salario: empleado.salario != null ? String(empleado.salario) : '',
+      estado: empleado.estado,
+    };
+    this.error = '';
+    this.dialogOpen = true;
+  }
 
   submit() {
     if (this.saving) return;
@@ -161,14 +219,44 @@ export class ErpRrhhComponent implements OnInit {
 
     this.saving = true;
     this.error = '';
-    this.erpService.addEmpleado({
+
+    const payload: Partial<ErpEmpleado> = {
       nombre: this.form.nombre,
       departamento: this.form.departamento,
       puesto: this.form.puesto,
       salario: this.form.salario ? Number(this.form.salario) : null,
-    }).subscribe({
+    };
+    if (this.editando) payload.estado = this.form.estado as 'activo' | 'inactivo';
+
+    const peticion = this.editando
+      ? this.erpService.updateEmpleado(this.editando.id, payload)
+      : this.erpService.addEmpleado(payload);
+
+    peticion.subscribe({
       next: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
       error: (err) => { this.saving = false; this.error = 'No se pudo guardar el empleado. Intenta de nuevo.'; this.cdr.detectChanges(); console.error(err); },
+    });
+  }
+
+  async eliminar(empleado: ErpEmpleado) {
+    const ok = await this.notify.confirm(`¿Eliminar a "${empleado.nombre}"? Podrás restaurarlo desde la papelera.`, { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+
+    this.erpService.deleteEmpleado(empleado.id).subscribe({
+      next: () => { this.notify.success('Empleado eliminado'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error('No se pudo eliminar el empleado'); console.error(err); },
+    });
+  }
+
+  abrirPapelera() {
+    this.papeleraOpen = true;
+    this.erpService.cargarPapeleraEmpleados().subscribe(data => { this.papelera = data; this.cdr.detectChanges(); });
+  }
+
+  restaurar(id: number) {
+    this.erpService.restaurarEmpleado(id).subscribe({
+      next: () => { this.papelera = this.papelera.filter(e => e.id !== id); this.notify.success('Empleado restaurado'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error('No se pudo restaurar el empleado'); console.error(err); },
     });
   }
 
