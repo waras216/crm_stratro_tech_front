@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { AuthService } from '../../../core/auth/authservices';
 import { ErpPedido } from '../../../models/erp.models';
 import { ItemCarrito } from '../carrito/carrito.component';
+import { modalLeave } from '../../shared/animations';
 
 function escapeHtml(value: string): string {
   const div = document.createElement('div');
@@ -20,6 +21,7 @@ const METODO_PAGO_LABEL: Record<string, string> = {
   standalone: false,
   templateUrl: './ticket.component.html',
   styleUrls: ['./ticket.component.scss'],
+  animations: [modalLeave],
 })
 export class PosTicketComponent {
   private auth = inject(AuthService);

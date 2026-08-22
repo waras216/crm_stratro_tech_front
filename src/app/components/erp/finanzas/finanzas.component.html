@@ -19,7 +19,7 @@
         <button (click)="filtroPreset('anio')" class="px-3 py-1.5 rounded-lg text-xs font-medium border-0 cursor-pointer" [ngClass]="presetActivo==='anio' ? 'bg-amber-600 text-white' : 'bg-transparent text-slate-600 hover:bg-slate-50'">Este año</button>
         <button (click)="filtroPreset('todo')" class="px-3 py-1.5 rounded-lg text-xs font-medium border-0 cursor-pointer" [ngClass]="presetActivo==='todo' ? 'bg-amber-600 text-white' : 'bg-transparent text-slate-600 hover:bg-slate-50'">Todo</button>
       </div>
-      <button *appPuede="'erp_finanzas.crear'" (click)="openNewAsiento()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Asiento</button>
+      <button *appPuede="'erp_finanzas.crear'" (click)="openNewAsiento()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Nuevo Asiento</button>
     </div>
 
     <div class="flex items-center gap-2 flex-wrap">
@@ -100,7 +100,7 @@
   <ng-container *ngIf="vista==='cuentas'">
     <div class="flex items-center justify-between gap-3 flex-wrap">
       <p class="text-xs text-slate-500 m-0 max-w-md">Aquí organizas las categorías contables de tu negocio: qué tienes (Activo), qué debes (Pasivo), y de dónde vienen tus ingresos y gastos.</p>
-      <button *appPuede="'erp_finanzas.crear'" (click)="openNewCuenta()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 flex-shrink-0">+ Nueva Cuenta</button>
+      <button *appPuede="'erp_finanzas.crear'" (click)="openNewCuenta()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 flex-shrink-0 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Nueva Cuenta</button>
     </div>
     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
       <table class="w-full text-sm border-collapse">
@@ -256,7 +256,7 @@
 
 <!-- ══════════════ MODAL: Nuevo Asiento ══════════════ -->
 <div *ngIf="dialogAsientoOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogAsientoOpen=false"></div>
-<div *ngIf="dialogAsientoOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
+<div *ngIf="dialogAsientoOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">Nuevo Asiento</h3>
     <button (click)="dialogAsientoOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
@@ -320,7 +320,7 @@
 
 <!-- ══════════════ MODAL: Nueva Cuenta ══════════════ -->
 <div *ngIf="dialogCuentaOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogCuentaOpen=false"></div>
-<div *ngIf="dialogCuentaOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+<div *ngIf="dialogCuentaOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">Nueva Cuenta</h3>
     <button (click)="dialogCuentaOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">

@@ -4,19 +4,19 @@
       <h2 class="m-0 text-lg font-bold text-slate-800">Facturación</h2>
       <p class="text-xs text-slate-500 m-0 mt-1">Emite comprobantes fiscales sobre pedidos ya facturados: registro interno o timbrado real (CFDI) vía PAC</p>
     </div>
-    <button *appPuede="'erp_ventas.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nueva Factura</button>
+    <button *appPuede="'erp_ventas.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Nueva Factura</button>
   </div>
 
   <div class="grid grid-cols-3 gap-4">
-    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1">
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1" style="box-shadow:var(--shadow-card)">
       <p class="text-xs text-slate-500 m-0">Facturas Registradas</p>
       <p class="text-2xl font-bold text-amber-600 m-0">{{ registradas }}</p>
     </div>
-    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2">
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2" style="box-shadow:var(--shadow-card)">
       <p class="text-xs text-slate-500 m-0">Timbradas (CFDI real)</p>
       <p class="text-2xl font-bold text-emerald-600 m-0">{{ timbradas }}</p>
     </div>
-    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3">
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3" style="box-shadow:var(--shadow-card)">
       <p class="text-xs text-slate-500 m-0">Pendientes / con error</p>
       <p class="text-2xl font-bold text-red-600 m-0">{{ pendientes }}</p>
     </div>
@@ -78,7 +78,7 @@
 </div>
 
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
-<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
+<div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">Nueva Factura</h3>
     <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
@@ -109,7 +109,7 @@
           Timbrado real (CFDI)
         </label>
       </div>
-      <p *ngIf="!timbradoRealIncluido" class="text-[11px] text-amber-600 mt-1 mb-0">El timbrado real no está incluido en tu plan actual. Actualiza tu plan en Configuración para habilitarlo.</p>
+      <p *ngIf="!timbradoRealIncluido" class="text-[11px] text-amber-600 mt-1 mb-0">El timbrado real no está incluido en tu plan actual. <a routerLink="/configuracion/suscripcion" class="font-semibold underline cursor-pointer">Actualiza tu plan en Configuración</a> para habilitarlo.</p>
       <p *ngIf="form.tipo==='timbrada' && timbradoRealIncluido" class="text-[11px] text-slate-400 mt-1 mb-0">Se crea como "pendiente de timbrado"; el timbrado ante el SAT se dispara después con el botón "Timbrar" en la lista, y requiere un PAC configurado.</p>
     </div>
 

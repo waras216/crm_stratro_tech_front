@@ -4,10 +4,12 @@ import { ContabilidadService } from '../../../core/services/contabilidad-service
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpEmpleado } from '../../../models/erp.models';
 import { ErpNominaPago } from '../../../models/contabilidad.models';
+import { modalLeave } from '../../shared/animations';
 
 @Component({
   selector: 'app-erp-rrhh',
   standalone: false,
+  animations: [modalLeave],
   template: `
     <div class="flex flex-col gap-5 page-enter">
       <div class="flex items-center justify-between">
@@ -15,13 +17,13 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
         <div class="flex gap-2">
           <button *appPuede="'erp_rrhh.eliminar'" (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Papelera</button>
           <button *appPuede="'erp_rrhh.crear'" (click)="openNomina()" class="px-4 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-amber-50">Procesar Nómina</button>
-          <button *appPuede="'erp_rrhh.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Empleado</button>
+          <button *appPuede="'erp_rrhh.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Nuevo Empleado</button>
         </div>
       </div>
       <div class="grid grid-cols-3 gap-4">
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1"><p class="text-xs text-slate-500 m-0">Empleados</p><p class="text-2xl font-bold text-purple-600 m-0">{{ empleados.length }}</p></div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2"><p class="text-xs text-slate-500 m-0">Nómina Mensual</p><p class="text-2xl font-bold text-emerald-600 m-0">\${{ nominaMensual.toLocaleString() }}</p></div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3"><p class="text-xs text-slate-500 m-0">Activos</p><p class="text-2xl font-bold text-blue-600 m-0">{{ activos }}</p></div>
+        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1" style="box-shadow:var(--shadow-card)"><p class="text-xs text-slate-500 m-0">Empleados</p><p class="text-2xl font-bold text-purple-600 m-0">{{ empleados.length }}</p></div>
+        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2" style="box-shadow:var(--shadow-card)"><p class="text-xs text-slate-500 m-0">Nómina Mensual</p><p class="text-2xl font-bold text-emerald-600 m-0">\${{ nominaMensual.toLocaleString() }}</p></div>
+        <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3" style="box-shadow:var(--shadow-card)"><p class="text-xs text-slate-500 m-0">Activos</p><p class="text-2xl font-bold text-blue-600 m-0">{{ activos }}</p></div>
       </div>
       <div *ngIf="cargando" class="flex flex-col gap-2">
         <div *ngFor="let _ of [1,2,3]" class="h-12 rounded-lg skeleton"></div>
@@ -79,7 +81,7 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
     </div>
 
     <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
-    <div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+    <div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
       <div class="flex items-center justify-between mb-4">
         <h3 class="m-0 text-lg font-semibold">{{ editando ? 'Editar Empleado' : 'Nuevo Empleado' }}</h3>
         <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
@@ -101,7 +103,7 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
     </div>
 
     <div *ngIf="nominaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="nominaDialogOpen=false"></div>
-    <div *ngIf="nominaDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+    <div *ngIf="nominaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
         <h3 class="m-0 text-lg font-semibold">Procesar Nómina</h3>
         <button (click)="nominaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
@@ -129,7 +131,7 @@ import { ErpNominaPago } from '../../../models/contabilidad.models';
     </div>
 
     <div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
-    <div *ngIf="papeleraOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+    <div *ngIf="papeleraOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
         <h3 class="m-0 text-lg font-semibold">Papelera de Empleados</h3>
         <button (click)="papeleraOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
@@ -233,8 +235,19 @@ export class ErpRrhhComponent implements OnInit {
       : this.erpService.addEmpleado(payload);
 
     peticion.subscribe({
-      next: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
-      error: (err) => { this.saving = false; this.error = 'No se pudo guardar el empleado. Intenta de nuevo.'; this.cdr.detectChanges(); console.error(err); },
+      next: () => {
+        this.saving = false;
+        this.dialogOpen = false;
+        this.notify.success(this.editando ? 'Empleado actualizado' : 'Empleado registrado');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.saving = false;
+        this.error = 'No se pudo guardar el empleado. Intenta de nuevo.';
+        this.notify.error(this.error);
+        this.cdr.detectChanges();
+        console.error(err);
+      },
     });
   }
 

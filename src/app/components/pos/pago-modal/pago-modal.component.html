@@ -1,5 +1,5 @@
 <div *ngIf="visible" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="onCancelar()"></div>
-<div *ngIf="visible" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-96 p-6 shadow-2xl z-[101] modal-in" (click)="$event.stopPropagation()">
+<div *ngIf="visible" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-96 p-6 shadow-2xl z-[101] modal-in" (click)="$event.stopPropagation()">
     <div class="text-center mb-4">
       <h3 class="m-0 text-lg font-bold text-slate-800">Modalidad de pago</h3>
       <p class="text-xs text-slate-400 mt-1">Total a cobrar: <span class="font-semibold text-emerald-600">${{ total.toLocaleString() }}</span></p>

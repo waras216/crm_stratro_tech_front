@@ -116,7 +116,7 @@
 <!-- Modal backdrop -->
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="closeDialog()"></div>
 <!-- Modal -->
-<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-modal max-h-[90vh] overflow-y-auto modal-in">
+<div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-modal max-h-[90vh] overflow-y-auto modal-in">
   <div class="flex justify-between items-center px-6 pt-5">
     <h2 class="m-0 text-lg font-semibold text-slate-800">{{ editingOp ? 'Editar Oportunidad' : 'Nueva Oportunidad' }}</h2>
     <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600" (click)="closeDialog()">
@@ -164,7 +164,7 @@
 
 <!-- Modal: gestión de pipelines -->
 <div *ngIf="pipelineManagerOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="closePipelineManager()"></div>
-<div *ngIf="pipelineManagerOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-md z-[101] shadow-modal max-h-[90vh] overflow-y-auto modal-in">
+<div *ngIf="pipelineManagerOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-md z-[101] shadow-modal max-h-[90vh] overflow-y-auto modal-in">
   <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
     <h2 class="m-0 text-lg font-semibold text-slate-800">Pipelines</h2>
     <button class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-slate-50 text-slate-500 hover:bg-slate-100" (click)="closePipelineManager()">
@@ -233,7 +233,7 @@
 
 <!-- Modal: elegir Ganada/Perdida al mover a Cierre -->
 <div *ngIf="cierrePromptOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="cancelCierre()"></div>
-<div *ngIf="cierrePromptOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-sm z-[101] shadow-modal modal-in">
+<div *ngIf="cierrePromptOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-sm z-[101] shadow-modal modal-in">
   <div class="px-5 pt-5 pb-3 text-center">
     <h2 class="m-0 text-lg font-semibold text-slate-800">¿Cómo terminó?</h2>
     <p class="text-sm text-slate-400 mt-1">Esta oportunidad está llegando a Cierre</p>

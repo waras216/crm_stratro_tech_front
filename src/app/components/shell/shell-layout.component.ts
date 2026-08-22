@@ -9,12 +9,15 @@ import { ModuleService, SidebarNavItem, ErpTab, PosTab, erpVentasLabel } from '.
 import { CrmService } from '../../core/services/crm-service';
 import { NotifyService } from '../../core/services/notify.service';
 import { NichoService } from '../../core/services/nicho.service';
+import { RouterOutlet } from '@angular/router';
+import { sidebarLeave, dropdownLeave, routeFade } from '../shared/animations';
 
 @Component({
   selector: 'app-shell-layout',
   standalone: false,
   templateUrl: './shell-layout.component.html',
   styleUrls: ['./shell-layout.component.scss'],
+  animations: [sidebarLeave, dropdownLeave, routeFade],
 })
 export class ShellLayoutComponent implements OnInit, OnDestroy {
   collapsed = false;
@@ -274,9 +277,21 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
 
   @HostListener('document:keydown', ['$event'])
   onKeydown(e: KeyboardEvent) {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); this.toggleSearch(); }
+    // TODO: implementar búsqueda real antes de reactivar
+    // if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); this.toggleSearch(); }
     if (e.key === 'Escape') this.closeAll();
   }
 
   toggleTheme() { this.theme.toggle(); }
+
+  async logout() {
+    const ok = await this.notify.confirm('¿Cerrar sesión?', { confirmText: 'Cerrar sesión' });
+    if (!ok) return;
+    this.auth.logout();
+  }
+
+  /** Clave de animación para el fade del <router-outlet>: cambia solo cuando cambia la ruta activa. */
+  prepareRoute(outlet: RouterOutlet): string {
+    return outlet?.isActivated ? (outlet.activatedRoute.routeConfig?.path ?? '') : '';
+  }
 }

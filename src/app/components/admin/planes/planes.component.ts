@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { PlanService } from '../../../core/services/plan.service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { Plan } from '../../../models/crm.models';
 
 @Component({
@@ -21,7 +22,7 @@ export class PlanesComponent implements OnInit {
     incluye_facturacion_real: boolean; fecha_inicio: string; fecha_fin: string;
   } = this.formVacio();
 
-  constructor(private planService: PlanService, private location: Location) {}
+  constructor(private planService: PlanService, private location: Location, private notify: NotifyService) {}
 
   ngOnInit() {
     this.cargarPlanes();
@@ -73,16 +74,29 @@ export class PlanesComponent implements OnInit {
       : this.planService.crearPlan(payload);
 
     obs.subscribe({
-      next: () => { this.guardando = false; this.cancelar(); },
-      error: err => { this.guardando = false; this.error = err?.error?.message || 'No se pudo guardar el plan'; },
+      next: () => {
+        this.guardando = false;
+        this.notify.success(this.editandoId ? 'Plan actualizado' : 'Plan creado');
+        this.cancelar();
+      },
+      error: err => {
+        this.guardando = false;
+        this.error = err?.error?.message || 'No se pudo guardar el plan';
+        this.notify.error(this.error);
+      },
     });
   }
 
-  eliminar(plan: Plan) {
-    if (!confirm(`¿Eliminar el plan "${plan.nombre_plan}"?`)) return;
+  async eliminar(plan: Plan) {
+    const ok = await this.notify.confirm(`¿Eliminar el plan "${plan.nombre_plan}"?`, { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
     this.error = '';
     this.planService.eliminarPlan(plan.id_plan).subscribe({
-      error: err => { this.error = err?.error?.message || 'No se pudo eliminar el plan'; },
+      next: () => this.notify.success('Plan eliminado'),
+      error: err => {
+        this.error = err?.error?.message || 'No se pudo eliminar el plan';
+        this.notify.error(this.error);
+      },
     });
   }
 }

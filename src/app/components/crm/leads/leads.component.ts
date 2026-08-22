@@ -1,11 +1,14 @@
 // src/app/components/leads/leads.component.ts
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { CrmService } from '../../../core/services/crm-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { Lead, Pipeline } from '../../../models/crm.models';
+import { modalLeave } from '../../shared/animations';
 
-@Component({ selector: 'app-leads', standalone: false, templateUrl: './leads.component.html', styleUrls: ['./leads.component.scss'] })
-export class LeadsComponent implements OnInit {
+@Component({ selector: 'app-leads', standalone: false, templateUrl: './leads.component.html', styleUrls: ['./leads.component.scss'], animations: [modalLeave] })
+export class LeadsComponent implements OnInit, OnDestroy {
   leads: Lead[]         = [];
   search                = '';
   filterEstatus         = 'todos';
@@ -45,6 +48,8 @@ export class LeadsComponent implements OnInit {
   };
   etapaOptions = ['prospeccion', 'contacto', 'propuesta', 'negociacion', 'cierre'];
 
+  private searchChange$ = new Subject<string>();
+
   constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
 
   ngOnInit() {
@@ -52,7 +57,14 @@ export class LeadsComponent implements OnInit {
     this.crm.cargarPipelines().subscribe({
       next: res => { this.pipelines = res ?? []; this.cdr.detectChanges(); },
     });
+
+    this.searchChange$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+    ).subscribe(() => { this.paginaActual = 1; this.cargar(); });
   }
+
+  ngOnDestroy() { this.searchChange$.complete(); }
 
   cargar() {
     this.cargando = true;
@@ -76,7 +88,7 @@ export class LeadsComponent implements OnInit {
 
   get filtered() { return this.leads; }
 
-  onSearchChange()   { this.paginaActual = 1; this.cargar(); }
+  onSearchChange()   { this.searchChange$.next(this.search); }
   onFiltroChange()   { this.paginaActual = 1; this.cargar(); }
   paginar(p: number) { if (p < 1 || p > this.totalPaginas) return; this.paginaActual = p; this.cargar(); }
 

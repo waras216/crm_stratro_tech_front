@@ -4,6 +4,7 @@ import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
 import { UsuarioService } from '../../core/services/usuario.service';
 import { RolService } from '../../core/services/rol.service';
+import { NotifyService } from '../../core/services/notify.service';
 import { Usuario, Rol } from '../../models/crm.models';
 import { REGIMENES_FISCALES_SAT } from '../../core/constants/sat.constants';
 
@@ -161,6 +162,7 @@ export class ConfiguracionComponent implements OnInit {
     private usuarioService: UsuarioService,
     private rolService: RolService,
     private cdr: ChangeDetectorRef,
+    private notify: NotifyService,
   ) {}
 
   goBack() { this.location.back(); }
@@ -303,8 +305,9 @@ export class ConfiguracionComponent implements OnInit {
     });
   }
 
-  restablecerDosFa(usuario: Usuario) {
-    if (!confirm(`¿Restablecer la verificación en dos pasos de ${usuario.nombre}? Va a necesitar configurarla de nuevo para poder entrar.`)) return;
+  async restablecerDosFa(usuario: Usuario) {
+    const ok = await this.notify.confirm(`¿Restablecer la verificación en dos pasos de ${usuario.nombre}? Va a necesitar configurarla de nuevo para poder entrar.`, { danger: true, confirmText: 'Restablecer' });
+    if (!ok) return;
     this.errorEquipo = '';
     this.usuarioService.restablecerDosFa(usuario.id_usuario).subscribe({
       next: () => { this.cargarUsuarios(); },
@@ -392,8 +395,9 @@ export class ConfiguracionComponent implements OnInit {
     });
   }
 
-  eliminarUsuario(usuario: Usuario) {
-    if (!confirm(`¿Eliminar a ${usuario.nombre} del equipo?`)) return;
+  async eliminarUsuario(usuario: Usuario) {
+    const ok = await this.notify.confirm(`¿Eliminar a ${usuario.nombre} del equipo?`, { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
     this.errorEquipo = '';
     this.usuarioService.eliminarUsuario(usuario.id_usuario).subscribe({
       error: err => { this.errorEquipo = err?.error?.message || 'No se pudo eliminar al usuario'; },

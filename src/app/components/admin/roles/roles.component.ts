@@ -2,13 +2,16 @@ import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { RolService } from '../../../core/services/rol.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { Rol, PermisoCatalogo, Usuario } from '../../../models/crm.models';
+import { modalLeave } from '../../shared/animations';
 
 @Component({
   selector: 'app-roles',
   standalone: false,
   templateUrl: './roles.component.html',
   styleUrls: ['./roles.component.scss'],
+  animations: [modalLeave],
 })
 export class RolesComponent implements OnInit {
   roles: Rol[] = [];
@@ -31,6 +34,7 @@ export class RolesComponent implements OnInit {
     private rolService: RolService,
     private usuarioService: UsuarioService,
     private location: Location,
+    private notify: NotifyService,
   ) {}
 
   ngOnInit() {
@@ -95,19 +99,35 @@ export class RolesComponent implements OnInit {
       : this.rolService.crearRol(payload);
 
     obs.subscribe({
-      next: () => { this.guardandoDialog = false; this.dialogOpen = false; this.cargar(); },
-      error: err => { this.guardandoDialog = false; this.errorDialog = err?.error?.message || 'No se pudo guardar el rol.'; },
+      next: () => {
+        this.guardandoDialog = false;
+        this.dialogOpen = false;
+        this.notify.success(this.editando ? 'Rol actualizado' : 'Rol creado');
+        this.cargar();
+      },
+      error: err => {
+        this.guardandoDialog = false;
+        this.errorDialog = err?.error?.message || 'No se pudo guardar el rol.';
+        this.notify.error(this.errorDialog);
+      },
     });
   }
 
-  eliminar(rol: Rol) {
+  async eliminar(rol: Rol) {
     if (rol.es_sistema) return;
-    if (!confirm(`¿Eliminar el rol "${rol.nombre}"?`)) return;
+    const ok = await this.notify.confirm(`¿Eliminar el rol "${rol.nombre}"?`, { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
 
     this.error = '';
     this.rolService.eliminarRol(rol.id_rol).subscribe({
-      next: () => { if (this.expandidoId === rol.id_rol) this.expandidoId = null; },
-      error: err => { this.error = err?.error?.message || 'No se pudo eliminar el rol'; },
+      next: () => {
+        if (this.expandidoId === rol.id_rol) this.expandidoId = null;
+        this.notify.success('Rol eliminado');
+      },
+      error: err => {
+        this.error = err?.error?.message || 'No se pudo eliminar el rol';
+        this.notify.error(this.error);
+      },
     });
   }
 

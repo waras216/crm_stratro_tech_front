@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpOrdenCompra, Proveedor, Producto } from '../../../models/erp.models';
+import { modalLeave } from '../../shared/animations';
 
 interface ItemRow { id_producto: string; cantidad: string; precio_unitario: string; }
 
@@ -10,6 +11,7 @@ interface ItemRow { id_producto: string; cantidad: string; precio_unitario: stri
   standalone: false,
   templateUrl: './compras.component.html',
   styleUrls: ['./compras.component.scss'],
+  animations: [modalLeave],
 })
 export class ErpComprasComponent implements OnInit {
   dialogOpen = false;

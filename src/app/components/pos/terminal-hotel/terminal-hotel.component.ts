@@ -4,10 +4,12 @@ import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
 import { NichoService } from '../../../core/services/nicho.service';
 import { ErpHabitacion, ErpPedido, Producto, PedidoPago } from '../../../models/erp.models';
+import { modalLeave } from '../../shared/animations';
 
 @Component({
   selector: 'app-pos-terminal-hotel',
   standalone: false,
+  animations: [modalLeave],
   template: `
 <div class="flex gap-4 h-full page-enter">
 
@@ -152,7 +154,7 @@ import { ErpHabitacion, ErpPedido, Producto, PedidoPago } from '../../../models/
 
 <!-- Modal: nueva habitación -->
 <div *ngIf="habDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="habDialogOpen=false"></div>
-<div *ngIf="habDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+<div *ngIf="habDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
   <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Habitación</h3>
   <div class="flex flex-col gap-3">
     <div class="grid grid-cols-3 gap-3">
@@ -175,7 +177,7 @@ import { ErpHabitacion, ErpPedido, Producto, PedidoPago } from '../../../models/
 
 <!-- Modal: check-in -->
 <div *ngIf="checkInDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="checkInDialogOpen=false"></div>
-<div *ngIf="checkInDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+<div *ngIf="checkInDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
   <h3 class="m-0 mb-4 text-lg font-semibold">Check-in — Habitación {{ habSeleccionada?.numero }}</h3>
   <div class="flex flex-col gap-3">
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="checkInForm.huesped" placeholder="Nombre del huésped" />

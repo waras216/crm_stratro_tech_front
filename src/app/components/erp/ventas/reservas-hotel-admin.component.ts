@@ -3,12 +3,14 @@ import { ErpService } from '../../../core/services/erp-service';
 import { NichoService } from '../../../core/services/nicho.service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpHabitacion } from '../../../models/erp.models';
+import { modalLeave } from '../../shared/animations';
 
 @Component({
   selector: 'app-erp-reservas-hotel-admin',
   standalone: false,
   templateUrl: './reservas-hotel-admin.component.html',
   styleUrls: ['./reservas-hotel-admin.component.scss'],
+  animations: [modalLeave],
 })
 export class ErpReservasHotelAdminComponent implements OnInit {
   habitaciones: ErpHabitacion[] = [];

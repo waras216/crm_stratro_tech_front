@@ -244,6 +244,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
         this.carrito = [];
         this.clienteSeleccionado = null;
         this.cobrando = false;
+        this.notify.success('Venta registrada');
         this.cdr.detectChanges();
       },
       error: err => {

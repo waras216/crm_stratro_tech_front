@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { ContabilidadService } from '../../../core/services/contabilidad-service';
 import { ReportExportService, ReportExportData } from '../../../core/services/report-export.service';
 import { NotifyService } from '../../../core/services/notify.service';
+import { modalLeave } from '../../shared/animations';
 import {
   ErpAsiento, ErpCuentaContable, ErpBalanceComprobacion, ErpEstadoResultados, ErpBalanceGeneral,
 } from '../../../models/contabilidad.models';
@@ -23,6 +24,7 @@ const TIPOS_CUENTA: { tipo: ErpCuentaContable['tipo']; label: string }[] = [
   standalone: false,
   templateUrl: './finanzas.component.html',
   styleUrls: ['./finanzas.component.scss'],
+  animations: [modalLeave],
 })
 export class ErpFinanzasComponent implements OnInit {
   vista: 'asientos' | 'cuentas' | 'estados' = 'asientos';

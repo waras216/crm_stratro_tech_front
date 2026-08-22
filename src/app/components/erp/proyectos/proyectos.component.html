@@ -137,7 +137,7 @@
 
 <!-- Modal: nuevo proyecto -->
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
-<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+<div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">Nuevo Proyecto</h3>
     <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
@@ -156,7 +156,7 @@
 
 <!-- Modal: nueva tarea -->
 <div *ngIf="tareaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="tareaDialogOpen=false"></div>
-<div *ngIf="tareaDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+<div *ngIf="tareaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">Nueva Tarea — {{ estadoLabels[tareaForm.estado] }}</h3>
     <button (click)="tareaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
@@ -178,7 +178,7 @@
 
 <!-- Modal: registrar horas -->
 <div *ngIf="horaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="horaDialogOpen=false"></div>
-<div *ngIf="horaDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+<div *ngIf="horaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">Registrar Horas</h3>
     <button (click)="horaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">

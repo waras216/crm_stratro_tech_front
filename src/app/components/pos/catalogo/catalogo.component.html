@@ -4,18 +4,26 @@
   <div class="flex gap-2 overflow-x-auto pb-1 flex-shrink-0">
     <button *ngFor="let cat of categorias"
       (click)="categoriaActiva=cat"
-      class="px-3 py-1.5 rounded-full text-xs font-semibold border-0 cursor-pointer whitespace-nowrap transition-all"
+      class="px-3 py-1.5 rounded-full text-xs font-semibold border-0 cursor-pointer whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-emerald-300"
       [ngClass]="categoriaActiva===cat ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-100'">
       {{ cat }}
     </button>
   </div>
-  <p *ngIf="cargando" class="text-xs text-slate-400 m-0">Cargando productos...</p>
   <p *ngIf="!cargando && !productos.length" class="text-xs text-slate-400 m-0">Sin productos en inventario todavía.</p>
+
+  <div *ngIf="cargando" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 overflow-y-auto flex-1 content-start">
+    <div *ngFor="let _ of [1,2,3,4,5,6,7,8]" class="flex flex-col items-center gap-1 p-2 bg-white border border-slate-100 rounded-xl">
+      <div class="w-8 h-8 rounded-lg skeleton"></div>
+      <div class="h-2.5 skeleton rounded-full w-3/4"></div>
+      <div class="h-3 skeleton rounded-full w-1/2"></div>
+      <div class="h-2 skeleton rounded-full w-2/3"></div>
+    </div>
+  </div>
 
   <div *ngIf="!cargando" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 overflow-y-auto flex-1 content-start">
     <button *ngFor="let p of filtrados; let i = index"
       (click)="agregar.emit(p)" [disabled]="p.stock <= 0"
-      class="flex flex-col items-center gap-1 p-2 bg-white border border-slate-100 rounded-xl cursor-pointer hover:shadow-md hover:border-emerald-200 transition-all group text-center hover-scale card-enter disabled:opacity-40 disabled:cursor-not-allowed"
+      class="flex flex-col items-center gap-1 p-2 bg-white border border-slate-100 rounded-xl cursor-pointer hover:shadow-md hover:border-emerald-200 transition-all group text-center hover-scale card-enter disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-emerald-300"
       [style.animation-delay]="(i * 0.03) + 's'"
       style="border:1px solid #e2e8f0">
       <img *ngIf="p.imagen_url" [src]="p.imagen_url" class="w-8 h-8 rounded-lg object-cover group-hover:scale-110 transition-transform" />

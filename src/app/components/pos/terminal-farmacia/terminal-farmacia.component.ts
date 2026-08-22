@@ -7,10 +7,12 @@ import { CrmService } from '../../../core/services/crm-service';
 import { Cliente } from '../../../models/crm.models';
 import { ErpReceta, Producto, PedidoPago } from '../../../models/erp.models';
 import { ItemCarrito } from '../carrito/carrito.component';
+import { modalLeave } from '../../shared/animations';
 
 @Component({
   selector: 'app-pos-terminal-farmacia',
   standalone: false,
+  animations: [modalLeave],
   template: `
 <div class="flex gap-4 h-full page-enter">
 
@@ -136,7 +138,7 @@ import { ItemCarrito } from '../carrito/carrito.component';
 
 <!-- Modal: nueva receta -->
 <div *ngIf="recetaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="recetaDialogOpen=false"></div>
-<div *ngIf="recetaDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+<div *ngIf="recetaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
   <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Receta — {{ pacienteSeleccionado?.nombre }}</h3>
   <div class="flex flex-col gap-3">
     <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="recetaForm.id_producto">

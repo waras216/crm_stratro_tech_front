@@ -3,6 +3,7 @@ import { ErpService } from '../../../core/services/erp-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { AuthService } from '../../../core/auth/authservices';
 import { ErpFactura, ErpPedido } from '../../../models/erp.models';
+import { modalLeave } from '../../shared/animations';
 
 const USO_CFDI = [
   { value: 'G01', label: 'G01 — Adquisición de mercancías' },
@@ -28,6 +29,7 @@ const METODO_PAGO_SAT = [
   standalone: false,
   templateUrl: './facturacion.component.html',
   styleUrls: ['./facturacion.component.scss'],
+  animations: [modalLeave],
 })
 export class ErpFacturacionComponent implements OnInit {
   cargando = true;
@@ -121,10 +123,16 @@ export class ErpFacturacionComponent implements OnInit {
       forma_pago_sat: this.form.forma_pago_sat,
       metodo_pago_sat: this.form.metodo_pago_sat,
     }).subscribe({
-      next: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
+      next: () => {
+        this.saving = false;
+        this.dialogOpen = false;
+        this.notify.success('Factura registrada correctamente.');
+        this.cdr.detectChanges();
+      },
       error: (err) => {
         this.saving = false;
         this.error = err?.error?.errors?.id_pedido?.[0] || err?.error?.errors?.tipo?.[0] || err?.error?.message || 'No se pudo registrar la factura.';
+        this.notify.error(this.error);
         this.cdr.detectChanges();
         console.error(err);
       },

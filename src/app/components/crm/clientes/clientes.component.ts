@@ -1,12 +1,16 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { Cliente, Contacto } from '../../../models/crm.models';
+import { modalLeave } from '../../shared/animations';
 
-@Component({ selector: 'app-clientes', standalone: false, templateUrl: './clientes.component.html', styleUrls: ['./clientes.component.scss'] })
+@Component({ selector: 'app-clientes', standalone: false, templateUrl: './clientes.component.html', styleUrls: ['./clientes.component.scss'], animations: [modalLeave] })
 export class ClientesComponent implements OnInit {
   clientes: Cliente[] = [];
   search = ''; filterTipo = 'todos'; dialogOpen = false; editingCliente: Cliente | null = null;
   cargando = false;
+  guardando = false;
+  error = '';
 
   sectorOptions = ['Tecnología', 'Software', 'Fintech', 'Consultoría', 'Retail', 'Salud', 'Educación', 'Manufactura', 'Freelance', 'Otro'];
   form = { nombre: '', telefono: '', email: '', direccion: '', sector_empresarial: 'Tecnología', tipo: 'empresa' as Cliente['tipo'] };
@@ -17,7 +21,7 @@ export class ClientesComponent implements OnInit {
   clienteDetalle: Cliente | null = null;
   detalleTab: 'leads' | 'oportunidades' | 'actividades' | 'contactos' | 'compras' = 'leads';
 
-  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
 
   ngOnInit() { this.cargar(); }
 
@@ -47,14 +51,30 @@ export class ClientesComponent implements OnInit {
   }
 
   handleSubmit() {
-    if (!this.form.nombre) return;
+    if (!this.form.nombre || this.guardando) return;
+    this.error = '';
+    this.guardando = true;
     const obs = this.editingCliente
       ? this.crm.updateCliente(this.editingCliente.id_cliente, this.form)
       : this.crm.addCliente(this.form);
-    obs.subscribe({ next: () => { this.dialogOpen = false; this.resetForm(); this.cargar(); } });
+    obs.subscribe({
+      next: () => { this.guardando = false; this.dialogOpen = false; this.resetForm(); this.cargar(); },
+      error: err => {
+        this.guardando = false;
+        this.error = err.error?.message ?? 'Error al guardar el cliente';
+        this.cdr.detectChanges();
+      },
+    });
   }
 
-  deleteCliente(id: number) { this.crm.deleteCliente(id).subscribe(() => this.cargar()); }
+  async deleteCliente(id: number) {
+    const ok = await this.notify.confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.', { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+    this.crm.deleteCliente(id).subscribe({
+      next: () => { this.cargar(); this.notify.success('Cliente eliminado'); },
+      error: () => { this.notify.error('No se pudo eliminar el cliente'); },
+    });
+  }
   closeDialog() { this.dialogOpen = false; this.resetForm(); }
 
   abrirDetalle(c: Cliente) {
@@ -106,6 +126,13 @@ export class ClientesComponent implements OnInit {
     obs.subscribe({ next: () => { this.contactoDialogOpen = false; this.resetContactoForm(); this.refrescarDetalle(); } });
   }
 
-  deleteContacto(id: number) { this.crm.deleteContacto(id).subscribe(() => this.refrescarDetalle()); }
+  async deleteContacto(id: number) {
+    const ok = await this.notify.confirm('¿Eliminar este contacto? Esta acción no se puede deshacer.', { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+    this.crm.deleteContacto(id).subscribe({
+      next: () => { this.refrescarDetalle(); this.notify.success('Contacto eliminado'); },
+      error: () => { this.notify.error('No se pudo eliminar el contacto'); },
+    });
+  }
   closeContactoDialog() { this.contactoDialogOpen = false; this.resetContactoForm(); }
 }

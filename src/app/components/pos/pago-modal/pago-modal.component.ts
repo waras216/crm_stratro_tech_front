@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { PedidoPago } from '../../../models/erp.models';
+import { modalLeave } from '../../shared/animations';
 
 interface FilaPago {
   metodo_pago: PedidoPago['metodo_pago'];
@@ -11,6 +12,7 @@ interface FilaPago {
   standalone: false,
   templateUrl: './pago-modal.component.html',
   styleUrls: ['./pago-modal.component.scss'],
+  animations: [modalLeave],
 })
 export class PagoModalComponent implements OnChanges {
   @Input() visible = false;

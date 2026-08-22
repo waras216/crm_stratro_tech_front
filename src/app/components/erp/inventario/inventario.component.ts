@@ -2,12 +2,14 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { Producto, Categoria, ErpMovimientoStock } from '../../../models/erp.models';
+import { modalLeave } from '../../shared/animations';
 
 @Component({
   selector: 'app-erp-inventario',
   standalone: false,
   templateUrl: './inventario.component.html',
   styleUrls: ['./inventario.component.scss'],
+  animations: [modalLeave],
 })
 export class ErpInventarioComponent implements OnInit {
   search = '';

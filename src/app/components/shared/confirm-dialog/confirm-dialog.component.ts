@@ -1,15 +1,17 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotifyService } from '../../../core/services/notify.service';
+import { modalLeave } from '../animations';
 
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
   imports: [CommonModule],
+  animations: [modalLeave],
   template: `
     <ng-container *ngIf="notify.confirmRequest() as req">
       <div class="backdrop-fade fixed inset-0 bg-black/45 backdrop-blur-sm z-[210]" (click)="respond(false)"></div>
-      <div class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-sm z-[211] shadow-modal p-6">
+      <div [@modalLeave] class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-sm z-[211] shadow-modal p-6">
         <div class="icon-badge w-11 h-11 rounded-full flex items-center justify-center text-lg font-bold mb-4"
           [ngClass]="[req.danger ? 'bg-red-100 text-red-600' : 'bg-indigo-100 text-indigo-600', req.danger ? 'icon-danger-pulse' : '']">
           {{ req.danger ? '⚠' : '?' }}

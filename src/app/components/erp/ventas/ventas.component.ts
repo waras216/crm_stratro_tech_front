@@ -2,8 +2,10 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
 import { NichoService } from '../../../core/services/nicho.service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { ErpPedido, Producto } from '../../../models/erp.models';
 import { Cliente } from '../../../models/crm.models';
+import { modalLeave } from '../../shared/animations';
 
 interface ItemRow { id_producto: string; cantidad: string; precio_unitario: string; }
 
@@ -12,6 +14,7 @@ interface ItemRow { id_producto: string; cantidad: string; precio_unitario: stri
   standalone: false,
   templateUrl: './ventas.component.html',
   styleUrls: ['./ventas.component.scss'],
+  animations: [modalLeave],
 })
 export class ErpVentasComponent implements OnInit {
   dialogOpen = false;
@@ -33,6 +36,7 @@ export class ErpVentasComponent implements OnInit {
     private crmService: CrmService,
     private cdr: ChangeDetectorRef,
     public nicho: NichoService,
+    private notify: NotifyService,
   ) {}
 
   ngOnInit() {
@@ -110,10 +114,16 @@ export class ErpVentasComponent implements OnInit {
       id_cliente: Number(this.form.id_cliente),
       items,
     }).subscribe({
-      next: () => { this.saving = false; this.dialogOpen = false; this.cdr.detectChanges(); },
+      next: () => {
+        this.saving = false;
+        this.dialogOpen = false;
+        this.notify.success('Pedido registrado');
+        this.cdr.detectChanges();
+      },
       error: (err) => {
         this.saving = false;
         this.error = err?.error?.errors?.items?.[0] || 'No se pudo guardar el pedido. Intenta de nuevo.';
+        this.notify.error(this.error);
         this.cdr.detectChanges();
         console.error(err);
       },
@@ -121,6 +131,9 @@ export class ErpVentasComponent implements OnInit {
   }
 
   cancelar(id: number) {
-    this.erpService.cancelarPedido(id).subscribe({ next: () => this.cdr.detectChanges(), error: (err) => console.error(err) });
+    this.erpService.cancelarPedido(id).subscribe({
+      next: () => { this.notify.success('Pedido cancelado'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error('No se pudo cancelar el pedido'); console.error(err); },
+    });
   }
 }

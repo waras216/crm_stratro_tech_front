@@ -95,7 +95,7 @@
 
 <!-- Modal: crear/editar rol -->
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
-<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-2xl z-[101] shadow-2xl p-6 modal-in" style="max-height:85vh;overflow-y:auto">
+<div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-2xl z-[101] shadow-2xl p-6 modal-in" style="max-height:85vh;overflow-y:auto">
   <h3 class="m-0 mb-4 text-lg font-semibold">{{ editando ? 'Editar rol' : 'Nuevo rol' }}</h3>
   <div class="flex flex-col gap-3">
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.nombre" placeholder="Nombre del rol (ej. Vendedor)" />

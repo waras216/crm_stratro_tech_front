@@ -32,7 +32,11 @@ export class AuthLoginComponent {
     this.cargandoUsuariosDosFa = true;
     this.auth.cargarUsuariosDosFa().subscribe({
       next: usuarios => { this.usuariosDosFa = usuarios; this.cargandoUsuariosDosFa = false; this.cdr.detectChanges(); },
-      error: () => { this.cargandoUsuariosDosFa = false; this.cdr.detectChanges(); },
+      error: () => {
+        this.cargandoUsuariosDosFa = false;
+        this.error = 'Error de conexión con el servidor. Intenta de nuevo.';
+        this.cdr.detectChanges();
+      },
     });
   }
 

@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { MarketingCampana, Cliente } from '../../../models/crm.models';
 
 @Component({ selector: 'app-marketing', standalone: false, templateUrl: './marketing.component.html', styleUrls: ['./marketing.component.scss'] })
@@ -13,7 +14,7 @@ export class MarketingComponent implements OnInit {
   form: { nombre_compania: string; segmento: string; estado: string; fecha_inicio: string; id_clientes: number[] } =
     { nombre_compania: '', segmento: '', estado: 'activa', fecha_inicio: '', id_clientes: [] };
 
-  constructor(private crm: CrmService, private cdr: ChangeDetectorRef) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
 
   ngOnInit() {
     this.cargar();
@@ -61,10 +62,23 @@ export class MarketingComponent implements OnInit {
     const obs = this.editingCamp
       ? this.crm.updateCampana(this.editingCamp.id, data)
       : this.crm.addCampana(data);
-    obs.subscribe({ next: () => { this.dialogOpen = false; this.resetForm(); this.cargar(); } });
+    obs.subscribe({
+      next: () => {
+        this.dialogOpen = false;
+        this.notify.success(this.editingCamp ? 'Campaña actualizada' : 'Campaña creada');
+        this.resetForm();
+        this.cargar();
+      },
+      error: () => this.notify.error('No se pudo guardar la campaña'),
+    });
   }
 
-  deleteCampana(id: number) { this.crm.deleteCampana(id).subscribe(() => this.cargar()); }
+  deleteCampana(id: number) {
+    this.crm.deleteCampana(id).subscribe({
+      next: () => { this.notify.success('Campaña eliminada'); this.cargar(); },
+      error: () => this.notify.error('No se pudo eliminar la campaña'),
+    });
+  }
   toggleExpanded(id: number) { this.expandedCamp = this.expandedCamp === id ? null : id; }
   closeDialog() { this.dialogOpen = false; this.resetForm(); }
 }

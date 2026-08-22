@@ -7,11 +7,11 @@
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
         <input [(ngModel)]="search"
-          class="pl-9 pr-4 py-2.5 rounded-xl text-sm font-medium w-56 focus:outline-none"
+          class="pl-9 pr-4 py-2.5 rounded-xl text-sm font-medium w-56 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
           style="background:#fff;border:1.5px solid rgba(99,102,241,.15);color:#1e1b4b"
           placeholder="Buscar clientes…" />
       </div>
-      <select [(ngModel)]="filterTipo" class="px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer focus:outline-none"
+      <select [(ngModel)]="filterTipo" class="px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
         style="background:#fff;border:1.5px solid rgba(99,102,241,.15);color:#1e1b4b">
         <option value="todos">Todos los tipos</option>
         <option value="empresa">Empresa</option>
@@ -26,8 +26,22 @@
     </button>
   </div>
 
+  <!-- Skeleton loader -->
+  <div *ngIf="cargando" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div *ngFor="let _ of [1,2,3,4,5,6]" class="rounded-2xl p-4" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl skeleton flex-shrink-0"></div>
+        <div class="flex-1 flex flex-col gap-2"><div class="h-3 skeleton rounded-full w-2/3"></div><div class="h-2 skeleton rounded-full w-1/3"></div></div>
+      </div>
+      <div class="flex flex-col gap-2 border-t border-slate-50 pt-3">
+        <div class="h-2.5 skeleton rounded-full w-3/4"></div>
+        <div class="h-2.5 skeleton rounded-full w-1/2"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+  <div *ngIf="!cargando" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
     <div *ngFor="let c of filtered; let i = index"
       class="rounded-2xl p-4 hover-lift group card-enter cursor-pointer"
       [style.animation-delay]="(i * 0.05) + 's'"
@@ -92,7 +106,7 @@
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <div *ngIf="dialogOpen" class="fixed inset-0 z-[100]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="closeDialog()"></div>
-<div *ngIf="dialogOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] max-h-[90vh] overflow-y-auto"
+<div *ngIf="dialogOpen" [@modalLeave] class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] max-h-[90vh] overflow-y-auto"
   style="background:#fff;border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
   <div class="px-6 pt-6 pb-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border-radius:24px 24px 0 0">
     <div class="flex items-center justify-between">
@@ -109,7 +123,7 @@
     <div class="flex flex-col gap-1.5">
       <label class="text-[11px] font-semibold" style="color:#6366f1">Nombre *</label>
       <input [(ngModel)]="form.nombre" placeholder="Nombre o Razón Social"
-        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
+        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
         style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
     </div>
     <div class="grid grid-cols-2 gap-3">
@@ -140,15 +154,16 @@
         </select>
       </div>
     </div>
-    <button (click)="handleSubmit()" class="w-full py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-95" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 14px rgba(99,102,241,.4)">
-      {{ editingCliente ? 'Guardar Cambios' : 'Crear Cliente' }}
+    <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
+    <button (click)="handleSubmit()" [disabled]="guardando" class="w-full py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 14px rgba(99,102,241,.4)">
+      {{ guardando ? 'Guardando...' : (editingCliente ? 'Guardar Cambios' : 'Crear Cliente') }}
     </button>
   </div>
 </div>
 
 <!-- Modal: detalle de cliente -->
 <div *ngIf="detalleOpen" class="fixed inset-0 z-[100]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="cerrarDetalle()"></div>
-<div *ngIf="detalleOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[94%] max-w-lg z-[101] max-h-[85vh] overflow-y-auto"
+<div *ngIf="detalleOpen" [@modalLeave] class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[94%] max-w-lg z-[101] max-h-[85vh] overflow-y-auto"
   style="background:#fff;border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
   <div class="px-6 pt-6 pb-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border-radius:24px 24px 0 0">
     <div class="flex items-center justify-between">
@@ -268,7 +283,7 @@
 
 <!-- Modal: nuevo/editar contacto (sobre el detalle de cliente) -->
 <div *ngIf="contactoDialogOpen" class="fixed inset-0 z-[110]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="closeContactoDialog()"></div>
-<div *ngIf="contactoDialogOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm z-[111] max-h-[90vh] overflow-y-auto"
+<div *ngIf="contactoDialogOpen" [@modalLeave] class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm z-[111] max-h-[90vh] overflow-y-auto"
   style="background:#fff;border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
   <div class="px-6 pt-6 pb-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border-radius:24px 24px 0 0">
     <div class="flex items-center justify-between">

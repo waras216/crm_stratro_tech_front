@@ -5,10 +5,12 @@ import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
 import { ErpMesa, ErpComandaItem, Producto, PedidoPago } from '../../../models/erp.models';
 import { ItemCarrito } from '../carrito/carrito.component';
+import { modalLeave } from '../../shared/animations';
 
 @Component({
   selector: 'app-pos-terminal-restaurante',
   standalone: false,
+  animations: [modalLeave],
   template: `
 <div class="flex gap-4 h-full page-enter">
 
@@ -106,7 +108,7 @@ import { ItemCarrito } from '../carrito/carrito.component';
               class="w-6 h-6 rounded-lg bg-slate-100 border-0 cursor-pointer text-slate-600 font-bold hover:bg-slate-200 text-xs">−</button>
             <span class="text-xs font-bold text-slate-700 w-4 text-center">{{ item.cantidad }}</span>
             <button (click)="cambiarCantidad(item,1)"
-              class="w-6 h-6 rounded-lg bg-red-50 border-0 cursor-pointer text-red-600 font-bold hover:bg-red-100 text-xs">+</button>
+              class="w-6 h-6 rounded-lg bg-emerald-50 border-0 cursor-pointer text-emerald-600 font-bold hover:bg-emerald-100 text-xs">+</button>
           </div>
           <p class="text-xs font-bold text-slate-800 m-0 w-14 text-right">\${{ item.precio_unitario * item.cantidad }}</p>
         </div>
@@ -156,7 +158,7 @@ import { ItemCarrito } from '../carrito/carrito.component';
 
 <!-- Modal: nueva mesa -->
 <div *ngIf="mesaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="mesaDialogOpen=false"></div>
-<div *ngIf="mesaDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+<div *ngIf="mesaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
   <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Mesa</h3>
   <div class="flex flex-col gap-3">
     <div class="grid grid-cols-2 gap-3">

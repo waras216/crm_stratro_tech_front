@@ -2,12 +2,14 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpProyecto, ErpProyectoTarea, ErpProyectoHora } from '../../../models/erp.models';
+import { modalLeave } from '../../shared/animations';
 
 @Component({
   selector: 'app-erp-proyectos',
   standalone: false,
   templateUrl: './proyectos.component.html',
   styleUrls: ['./proyectos.component.scss'],
+  animations: [modalLeave],
 })
 export class ErpProyectosComponent implements OnInit {
   dialogOpen = false;
@@ -111,7 +113,11 @@ export class ErpProyectosComponent implements OnInit {
     this.cdr.detectChanges();
 
     this.erpService.moverTareaProyecto(idProyecto, t.id, estado).subscribe({
-      error: () => { t.estado = anterior; this.cdr.detectChanges(); },
+      error: () => {
+        t.estado = anterior;
+        this.notify.error('No se pudo mover la tarea');
+        this.cdr.detectChanges();
+      },
     });
   }
 
@@ -159,6 +165,7 @@ export class ErpProyectosComponent implements OnInit {
         t.fecha_fin = actualizada.fecha_fin;
         this.cdr.detectChanges();
       },
+      error: () => this.notify.error('No se pudo actualizar la fecha de la tarea'),
     });
   }
 
@@ -175,7 +182,7 @@ export class ErpProyectosComponent implements OnInit {
         this.tareaDialogOpen = false;
         this.cdr.detectChanges();
       },
-      error: () => { this.tareaSaving = false; this.tareaError = 'No se pudo guardar la tarea.'; this.cdr.detectChanges(); },
+      error: () => { this.tareaSaving = false; this.tareaError = 'No se pudo guardar la tarea.'; this.notify.error(this.tareaError); this.cdr.detectChanges(); },
     });
   }
 
@@ -185,7 +192,12 @@ export class ErpProyectosComponent implements OnInit {
     if (!ok) return;
 
     this.erpService.eliminarTareaProyecto(this.expandidoId, t.id).subscribe({
-      next: () => { this.tareas = this.tareas.filter(x => x.id !== t.id); this.cdr.detectChanges(); },
+      next: () => {
+        this.tareas = this.tareas.filter(x => x.id !== t.id);
+        this.notify.success('Tarea eliminada');
+        this.cdr.detectChanges();
+      },
+      error: () => this.notify.error('No se pudo eliminar la tarea'),
     });
   }
 
@@ -220,7 +232,7 @@ export class ErpProyectosComponent implements OnInit {
         this.horaDialogOpen = false;
         this.cdr.detectChanges();
       },
-      error: () => { this.horaSaving = false; this.horaError = 'No se pudo guardar el registro.'; this.cdr.detectChanges(); },
+      error: () => { this.horaSaving = false; this.horaError = 'No se pudo guardar el registro.'; this.notify.error(this.horaError); this.cdr.detectChanges(); },
     });
   }
 
@@ -235,8 +247,10 @@ export class ErpProyectosComponent implements OnInit {
         this.horas = this.horas.filter(x => x.id !== h.id);
         const p = this.proyectos.find(x => x.id === idProyecto);
         if (p) p.horas_registradas = Math.max(0, (p.horas_registradas ?? 0) - h.horas);
+        this.notify.success('Registro de horas eliminado');
         this.cdr.detectChanges();
       },
+      error: () => this.notify.error('No se pudo eliminar el registro de horas'),
     });
   }
 }

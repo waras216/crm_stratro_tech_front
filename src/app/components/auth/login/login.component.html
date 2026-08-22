@@ -42,10 +42,10 @@
             <a routerLink="/auth/forgot-password" class="link-underline text-xs self-end cursor-pointer" style="color:#a5b4fc">¿Olvidaste tu contraseña?</a>
           </div>
 
-          <button (click)="submit()"
-            class="btn-submit w-full py-3 rounded-xl border-0 cursor-pointer text-sm font-bold text-white"
+          <button (click)="submit()" [disabled]="loading"
+            class="btn-submit w-full py-3 rounded-xl border-0 cursor-pointer text-sm font-bold text-white disabled:opacity-60 disabled:cursor-not-allowed"
             style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 20px rgba(99,102,241,.4)">
-            Iniciar Sesión
+            {{ loading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
           </button>
 
           <div class="flex items-center gap-3">
@@ -71,7 +71,7 @@
           <p class="text-center text-xs m-0" style="color:#a5b4fc">¿Quién eres?</p>
 
           <p *ngIf="cargandoUsuariosDosFa" class="text-center text-xs m-0" style="color:#a5b4fc">Cargando…</p>
-          <p *ngIf="!cargandoUsuariosDosFa && usuariosDosFa.length === 0" class="text-center text-xs m-0" style="color:#a5b4fc">
+          <p *ngIf="!cargandoUsuariosDosFa && !error && usuariosDosFa.length === 0" class="text-center text-xs m-0" style="color:#a5b4fc">
             Nadie tiene verificación en dos pasos configurada todavía en este negocio.
           </p>
 

@@ -2,11 +2,12 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { Actividad } from '../../../models/crm.models';
+import { modalLeave } from '../../shared/animations';
 
 const I = (p: string) =>
   `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">${p}</svg>`;
 
-@Component({ selector: 'app-actividades', standalone: false, templateUrl: './actividades.component.html', styleUrls: ['./actividades.component.scss'] })
+@Component({ selector: 'app-actividades', standalone: false, templateUrl: './actividades.component.html', styleUrls: ['./actividades.component.scss'], animations: [modalLeave] })
 export class ActividadesComponent implements OnInit {
   actividades: Actividad[] = [];
   search = ''; filterTipo = 'todos'; showCompleted = true; dialogOpen = false; editingAct: Actividad | null = null;

@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { UsuarioService } from '../../../core/services/usuario.service';
+import { NotifyService } from '../../../core/services/notify.service';
 import { Automatizacion, AutomatizacionAccion, AutomatizacionEvento, Usuario } from '../../../models/crm.models';
 
 const EVENTO_OPTIONS: { value: AutomatizacionEvento; label: string }[] = [
@@ -64,7 +65,7 @@ export class AutomatizarComponent implements OnInit {
     p_id_usuario: null as number | null,
   };
 
-  constructor(private crm: CrmService, private usuarioService: UsuarioService, private cdr: ChangeDetectorRef) {}
+  constructor(private crm: CrmService, private usuarioService: UsuarioService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
 
   ngOnInit() {
     this.cargar();
@@ -167,10 +168,28 @@ export class AutomatizarComponent implements OnInit {
     const obs = this.editingAuto
       ? this.crm.updateAutomatizacion(this.editingAuto.id, payload)
       : this.crm.addAutomatizacion(payload);
-    obs.subscribe({ next: () => { this.dialogOpen = false; this.resetForm(); this.cargar(); } });
+    obs.subscribe({
+      next: () => {
+        this.dialogOpen = false;
+        this.notify.success(this.editingAuto ? 'Automatización actualizada' : 'Automatización creada');
+        this.resetForm();
+        this.cargar();
+      },
+      error: () => this.notify.error('No se pudo guardar la automatización'),
+    });
   }
 
-  toggle(id: number) { this.crm.toggleAutomatizacion(id).subscribe(() => this.cargar()); }
-  delete(id: number) { this.crm.deleteAutomatizacion(id).subscribe(() => this.cargar()); }
+  toggle(id: number) {
+    this.crm.toggleAutomatizacion(id).subscribe({
+      next: () => this.cargar(),
+      error: () => this.notify.error('No se pudo cambiar el estado de la automatización'),
+    });
+  }
+  delete(id: number) {
+    this.crm.deleteAutomatizacion(id).subscribe({
+      next: () => { this.notify.success('Automatización eliminada'); this.cargar(); },
+      error: () => this.notify.error('No se pudo eliminar la automatización'),
+    });
+  }
   closeDialog() { this.dialogOpen = false; this.resetForm(); }
 }

@@ -1,15 +1,15 @@
 <div class="flex flex-col gap-5 page-enter">
   <!-- KPIs -->
   <div class="grid grid-cols-3 gap-4">
-    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1">
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1" style="box-shadow:var(--shadow-card)">
       <p class="text-xs text-slate-500 m-0">Productos</p>
       <p class="text-2xl font-bold text-slate-800 m-0">{{ inventario.length }}</p>
     </div>
-    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2">
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2" style="box-shadow:var(--shadow-card)">
       <p class="text-xs text-slate-500 m-0">Valor Inventario</p>
       <p class="text-2xl font-bold text-amber-600 m-0">${{ valorTotal.toLocaleString() }}</p>
     </div>
-    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3">
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3" style="box-shadow:var(--shadow-card)">
       <p class="text-xs text-slate-500 m-0">Stock Bajo</p>
       <p class="text-2xl font-bold m-0" [ngClass]="stockBajo > 0 ? 'text-red-600' : 'text-emerald-600'">{{ stockBajo }}</p>
     </div>
@@ -21,7 +21,7 @@
     <div class="flex gap-2">
       <button (click)="abrirCategorias()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Categorías</button>
       <button *appPuede="'erp_inventario.eliminar'" (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Papelera</button>
-      <button *appPuede="'erp_inventario.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Producto</button>
+      <button *appPuede="'erp_inventario.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Producto</button>
     </div>
   </div>
 
@@ -93,7 +93,7 @@
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
-<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+<div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">{{ editando ? 'Editar Producto' : 'Nuevo Producto' }}</h3>
     <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
@@ -137,7 +137,7 @@
 
 <!-- Modal: ajustar stock -->
 <div *ngIf="ajusteDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="ajusteDialogOpen=false"></div>
-<div *ngIf="ajusteDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+<div *ngIf="ajusteDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">Ajustar stock: {{ ajusteTarget?.nombre }}</h3>
     <button (click)="ajusteDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
@@ -155,7 +155,7 @@
 
 <!-- Modal: movimientos -->
 <div *ngIf="movimientosDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="movimientosDialogOpen=false"></div>
-<div *ngIf="movimientosDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+<div *ngIf="movimientosDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">Movimientos: {{ movimientosTarget?.nombre }}</h3>
     <button (click)="movimientosDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
@@ -176,7 +176,7 @@
 
 <!-- Modal: papelera -->
 <div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
-<div *ngIf="papeleraOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+<div *ngIf="papeleraOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">Papelera de Inventario</h3>
     <button (click)="papeleraOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
@@ -197,7 +197,7 @@
 
 <!-- Modal: categorías -->
 <div *ngIf="categoriasDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="categoriasDialogOpen=false"></div>
-<div *ngIf="categoriasDialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
+<div *ngIf="categoriasDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
   <div class="flex items-center justify-between mb-4">
     <h3 class="m-0 text-lg font-semibold">Categorías</h3>
     <button (click)="categoriasDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">

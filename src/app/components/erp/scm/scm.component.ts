@@ -2,12 +2,14 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpEnvio } from '../../../models/erp.models';
+import { modalLeave } from '../../shared/animations';
 
 @Component({
   selector: 'app-erp-scm',
   standalone: false,
   templateUrl: './scm.component.html',
   styleUrls: ['./scm.component.scss'],
+  animations: [modalLeave],
 })
 export class ErpScmComponent implements OnInit {
   envios: ErpEnvio[] = [];
