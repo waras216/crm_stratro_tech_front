@@ -2,9 +2,9 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { Cliente, Contacto } from '../../../models/crm.models';
-import { modalLeave } from '../../shared/animations';
+import { modalLeave, tabFade } from '../../shared/animations';
 
-@Component({ selector: 'app-clientes', standalone: false, templateUrl: './clientes.component.html', styleUrls: ['./clientes.component.scss'], animations: [modalLeave] })
+@Component({ selector: 'app-clientes', standalone: false, templateUrl: './clientes.component.html', styleUrls: ['./clientes.component.scss'], animations: [modalLeave, tabFade] })
 export class ClientesComponent implements OnInit {
   clientes: Cliente[] = [];
   search = ''; filterTipo = 'todos'; dialogOpen = false; editingCliente: Cliente | null = null;

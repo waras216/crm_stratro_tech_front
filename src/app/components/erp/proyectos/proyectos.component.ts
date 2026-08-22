@@ -2,14 +2,14 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpProyecto, ErpProyectoTarea, ErpProyectoHora } from '../../../models/erp.models';
-import { modalLeave } from '../../shared/animations';
+import { modalLeave, tabFade } from '../../shared/animations';
 
 @Component({
   selector: 'app-erp-proyectos',
   standalone: false,
   templateUrl: './proyectos.component.html',
   styleUrls: ['./proyectos.component.scss'],
-  animations: [modalLeave],
+  animations: [modalLeave, tabFade],
 })
 export class ErpProyectosComponent implements OnInit {
   dialogOpen = false;

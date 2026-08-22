@@ -53,8 +53,8 @@
           </tr>
         </thead>
         <tbody>
-          <ng-container *ngFor="let a of asientos">
-            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" (click)="toggleExpandido(a.id)">
+          <ng-container *ngFor="let a of asientos; let i=index">
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer fade-in" [style.animation-delay]="(i*0.03)+'s'" (click)="toggleExpandido(a.id)">
               <td class="px-4 py-3 text-slate-500 text-xs">{{ a.fecha }}</td>
               <td class="px-4 py-3 font-medium">{{ a.concepto }}</td>
               <td class="px-4 py-3 text-center">

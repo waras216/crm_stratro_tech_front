@@ -67,6 +67,7 @@ import { Cliente } from '../../models/crm.models';
             <app-pos-carrito
               [items]="carrito"
               (cambiarCantidad)="onCambiarCantidad($event)"
+              (establecerCantidad)="onEstablecerCantidad($event)"
               (quitar)="quitarItem($event)"
               (cobrar)="cobrar()"
               (limpiar)="limpiarCarrito()">
@@ -197,6 +198,10 @@ export class PosPageComponent implements OnInit, OnDestroy {
     this.carrito = this.carrito
       .map(i => i.producto.id_productos === ev.id ? { ...i, cantidad: i.cantidad + ev.delta } : i)
       .filter(i => i.cantidad > 0);
+  }
+
+  onEstablecerCantidad(ev: { id: number; cantidad: number }) {
+    this.carrito = this.carrito.map(i => i.producto.id_productos === ev.id ? { ...i, cantidad: ev.cantidad } : i);
   }
 
   quitarItem(id: number)  { this.carrito = this.carrito.filter(i => i.producto.id_productos !== id); }

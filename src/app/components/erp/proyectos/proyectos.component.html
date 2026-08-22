@@ -43,6 +43,7 @@
 
         <p *ngIf="cargandoDetalle" class="text-xs text-slate-400 m-0">Cargando...</p>
 
+        <div [@tabFade]="detalleTab">
         <!-- Kanban -->
         <div *ngIf="!cargandoDetalle && detalleTab==='kanban'" class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div *ngFor="let estado of estadosTarea" class="bg-white rounded-xl p-3 flex flex-col gap-2 border border-slate-100"
@@ -129,6 +130,7 @@
               </div>
             </div>
           </ng-container>
+        </div>
         </div>
       </div>
     </div>

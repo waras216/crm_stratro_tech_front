@@ -1,1 +1,14 @@
 :host { display: block; height: 100%; }
+
+// Cantidad del carrito: input numérico sin flechas nativas (los botones −/+ ya cumplen esa función)
+.cantidad-input {
+  appearance: textfield;
+  -moz-appearance: textfield;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}

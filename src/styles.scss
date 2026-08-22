@@ -410,6 +410,34 @@ body {
 .col-purple { @apply bg-purple-50 border border-purple-200; }
 .col-teal   { @apply bg-teal-50   border border-teal-200; }
 
+/* Form inputs (soft indigo look used across CRM dialogs) */
+.form-input-soft {
+  background: var(--bg-input);
+  border: 2px solid var(--border-input);
+  color: var(--text-primary);
+}
+
+/* Modal header gradient (CRM dialogs) */
+.modal-header-gradient {
+  background: linear-gradient(135deg, #faf5ff, #eef2ff);
+  border-radius: 24px 24px 0 0;
+}
+.dark .modal-header-gradient {
+  background: var(--bg-card);
+}
+
+/* Small icon buttons (edit/delete actions) */
+.icon-btn-edit { background: #eef2ff; color: #6366f1; }
+.dark .icon-btn-edit { background: rgba(99, 102, 241, .15); color: #818cf8; }
+
+.icon-btn-danger { background: #fff1f2; color: #e11d48; }
+.dark .icon-btn-danger { background: rgba(239, 68, 68, .15); color: #fb7185; }
+
+/* Dark-mode parity for the shadow-card utility (mirrors the old inline box-shadow override) */
+.dark .shadow-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.2) !important;
+}
+
 /* KPI icon bg */
 .kpi-blue   { @apply bg-blue-100 text-blue-600; }
 .kpi-amber  { @apply bg-amber-100 text-amber-600; }

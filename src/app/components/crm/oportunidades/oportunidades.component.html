@@ -23,6 +23,7 @@
     </div>
   </div>
 
+  <div [@tabFade]="viewMode">
   <!-- Kanban -->
   <div *ngIf="viewMode==='kanban'" class="flex gap-4 overflow-x-auto pb-2">
     <div class="min-w-[260px] w-[260px] flex-shrink-0 rounded-xl p-3 flex flex-col gap-2"
@@ -109,6 +110,7 @@
         </tbody>
       </table>
     </div>
+  </div>
   </div>
 </div>
 

@@ -18,8 +18,7 @@
       </div>
     </div>
     <button (click)="openNuevo()"
-      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
-      style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.4)">
+      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95 btn-accent">
       + Nuevo Rol
     </button>
   </div>
@@ -42,7 +41,7 @@
     </ng-container>
 
     <ng-container *ngIf="!cargando">
-      <div *ngFor="let rol of roles" class="flex flex-col rounded-xl" style="border:1px solid #eef2ff">
+      <div *ngFor="let rol of roles; let i=index" class="flex flex-col rounded-xl card-enter" [style.animation-delay]="(i*0.05)+'s'" style="border:1px solid #eef2ff">
         <div class="flex items-center justify-between py-3 px-3 cursor-pointer" (click)="toggleDetalle(rol)">
           <div>
             <p class="text-sm font-medium m-0" style="color:#1e1b4b">

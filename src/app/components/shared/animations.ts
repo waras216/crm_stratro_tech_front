@@ -46,3 +46,19 @@ export const routeFade = trigger('routeFade', [
     ]),
   ]),
 ]);
+
+/**
+ * Fade + leve slide para cambios de pestaña/vista dentro de una misma página
+ * (ej. Kanban ↔ Lista, o tabs de detalle). Se coloca en el contenedor que
+ * envuelve los bloques *ngIf que se alternan, con `[@tabFade]="miVariable"`.
+ * Más rápido que `routeFade` porque es una transición local, no de navegación.
+ */
+export const tabFade = trigger('tabFade', [
+  transition('* <=> *', [
+    query(':enter', [style({ opacity: 0, transform: 'translateY(4px)' })], { optional: true }),
+    group([
+      query(':leave', [animate('120ms cubic-bezier(.4,0,.2,1)', style({ opacity: 0 }))], { optional: true }),
+      query(':enter', [animate('160ms cubic-bezier(.22,1,.36,1)', style({ opacity: 1, transform: 'translateY(0)' }))], { optional: true }),
+    ]),
+  ]),
+]);

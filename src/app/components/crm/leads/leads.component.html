@@ -4,9 +4,7 @@
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div class="flex items-center gap-2 flex-1 flex-wrap">
       <div class="relative flex items-center">
-        <svg class="absolute left-3 text-indigo-400 pointer-events-none w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-        </svg>
+        <svg lucideSearch class="absolute left-3 text-indigo-400 pointer-events-none w-4 h-4" [strokeWidth]="2"></svg>
         <input [(ngModel)]="search" (ngModelChange)="onSearchChange()"
           class="pl-9 pr-4 py-2.5 rounded-xl text-sm font-medium w-56 focus:w-72 focus:outline-none transition-all"
           style="background:#fff;border:1.5px solid rgba(99,102,241,.15);color:#1e1b4b;box-shadow:0 1px 4px rgba(99,102,241,.06)"
@@ -20,9 +18,8 @@
       </select>
     </div>
     <button *appPuede="'leads.crear'" (click)="openNew()"
-      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
-      style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.4)">
-      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95 btn-accent">
+      <svg lucidePlus [size]="15" [strokeWidth]="2"></svg>
       Nuevo Lead
     </button>
   </div>
@@ -37,16 +34,16 @@
   </div>
 
   <!-- Skeleton loader -->
-  <div *ngIf="cargando" class="rounded-2xl overflow-hidden" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+  <div *ngIf="cargando" class="rounded-2xl overflow-hidden bg-white shadow-card">
     <div *ngFor="let _ of [1,2,3,4,5]" class="flex items-center gap-4 px-5 py-4 border-b border-slate-50 last:border-0">
-      <div class="w-8 h-8 rounded-full bg-slate-100 animate-pulse flex-shrink-0"></div>
-      <div class="flex-1 flex flex-col gap-2"><div class="h-3 bg-slate-100 rounded-full w-2/3 animate-pulse"></div><div class="h-2 bg-slate-50 rounded-full w-1/3 animate-pulse"></div></div>
-      <div class="h-5 bg-slate-100 rounded-full w-16 animate-pulse"></div>
+      <div class="w-8 h-8 rounded-full skeleton flex-shrink-0"></div>
+      <div class="flex-1 flex flex-col gap-2"><div class="h-3 skeleton rounded-full w-2/3"></div><div class="h-2 skeleton rounded-full w-1/3"></div></div>
+      <div class="h-5 skeleton rounded-full w-16"></div>
     </div>
   </div>
 
   <!-- Table -->
-  <div *ngIf="!cargando" class="rounded-2xl overflow-hidden" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+  <div *ngIf="!cargando" class="rounded-2xl overflow-hidden bg-white shadow-card">
     <div class="overflow-x-auto">
       <table class="w-full text-sm border-collapse">
         <thead>
@@ -58,9 +55,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let lead of (leads||[]); let odd=odd"
-            class="border-b border-slate-50 transition-colors hover:bg-indigo-50/40 group last:border-0"
-            [style.background]="odd?'rgba(248,250,252,.5)':'transparent'">
+          <tr *ngFor="let lead of (leads||[]); let odd=odd; let i=index"
+            class="border-b border-slate-50 transition-colors hover:bg-indigo-50/40 group last:border-0 fade-in"
+            [style.background]="odd?'rgba(248,250,252,.5)':'transparent'"
+            [style.animation-delay]="(i*0.03)+'s'">
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-3">
                 <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
@@ -92,20 +90,12 @@
                   </button>
                 </ng-container>
                 <button *appPuede="'leads.editar'" (click)="handleEdit(lead)"
-                  class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110"
-                  style="background:#eef2ff;color:#6366f1">
-                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
+                  class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110 icon-btn-edit">
+                  <svg lucidePencil [size]="13" [strokeWidth]="2"></svg>
                 </button>
                 <button *appPuede="'leads.eliminar'" (click)="deleteLead(lead.id_lead)"
-                  class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110"
-                  style="background:#fff1f2;color:#e11d48">
-                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                    <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
-                  </svg>
+                  class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110 icon-btn-danger">
+                  <svg lucideTrash2 [size]="13" [strokeWidth]="2"></svg>
                 </button>
               </div>
             </td>
@@ -131,14 +121,12 @@
       <span class="text-[11px] text-slate-400 font-medium">{{ total }} registros · página {{ paginaActual }} de {{ totalPaginas }}</span>
       <div class="flex gap-1.5">
         <button (click)="paginar(paginaActual-1)" [disabled]="paginaActual===1"
-          class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer font-bold transition-all disabled:opacity-30"
-          style="background:#eef2ff;color:#6366f1">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer font-bold transition-all disabled:opacity-30 icon-btn-edit">
+          <svg lucideChevronLeft [size]="14" [strokeWidth]="2"></svg>
         </button>
         <button (click)="paginar(paginaActual+1)" [disabled]="paginaActual===totalPaginas"
-          class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer font-bold transition-all disabled:opacity-30"
-          style="background:#eef2ff;color:#6366f1">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer font-bold transition-all disabled:opacity-30 icon-btn-edit">
+          <svg lucideChevronRight [size]="14" [strokeWidth]="2"></svg>
         </button>
       </div>
     </div>
@@ -152,7 +140,7 @@
   class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] max-h-[90vh] overflow-y-auto"
   style="background:#fff;border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
   <!-- Modal header -->
-  <div class="px-6 pt-6 pb-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border-radius:24px 24px 0 0">
+  <div class="px-6 pt-6 pb-4 modal-header-gradient">
     <div class="flex items-center justify-between">
       <div>
         <h2 class="m-0 text-sm font-bold" style="color:#1e1b4b">{{ editingLead ? 'Editar Lead' : 'Nuevo Lead' }}</h2>
@@ -161,7 +149,7 @@
       <button (click)="closeDialog()"
         class="w-8 h-8 rounded-xl flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all"
         style="background:rgba(99,102,241,.1);color:#6366f1">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg lucideX [size]="14" [strokeWidth]="2"></svg>
       </button>
     </div>
   </div>
@@ -170,49 +158,42 @@
     <div class="flex flex-col gap-1.5">
       <label class="text-[11px] font-semibold" style="color:#6366f1">Título del lead *</label>
       <input [(ngModel)]="form.titulo" placeholder="Ej. Interés en sistema ERP"
-        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
-        style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
     </div>
     <div class="flex flex-col gap-1.5">
       <label class="text-[11px] font-semibold" style="color:#6366f1">Nombre del contacto</label>
       <input [(ngModel)]="form.nombre" placeholder="Ej. Ana García"
-        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
-        style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Email</label>
         <input [(ngModel)]="form.email" type="email" placeholder="ana@ejemplo.com"
-          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
-          style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Teléfono</label>
         <input [(ngModel)]="form.telefono" placeholder="555-1234"
-          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
-          style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
       </div>
     </div>
     <div class="flex flex-col gap-1.5">
       <label class="text-[11px] font-semibold" style="color:#6366f1">Valor Estimado ($)</label>
       <input [(ngModel)]="form.valor_estimado" type="number" placeholder="15000.00" min="0" step="0.01"
-        class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
-        style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+        class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Fuente</label>
         <select [(ngModel)]="form.fuente"
-          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer"
-          style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer form-input-soft">
           <option *ngFor="let f of fuenteOptions" [value]="f">{{ f | titlecase }}</option>
         </select>
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Estado</label>
         <select [(ngModel)]="form.estado"
-          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer"
-          style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
+          class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer form-input-soft">
           <option *ngFor="let e of estatusOptions" [value]="e">{{ e | titlecase }}</option>
         </select>
       </div>
@@ -220,8 +201,7 @@
     <div class="flex flex-col gap-1.5">
       <label class="text-[11px] font-semibold" style="color:#6366f1">Descripción</label>
       <textarea [(ngModel)]="form.descripcion" rows="3" placeholder="Notas sobre este lead…"
-        class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none resize-none"
-        style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b"></textarea>
+        class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none resize-none form-input-soft"></textarea>
     </div>
     <button (click)="handleSubmit()"
       class="w-full py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
@@ -246,7 +226,7 @@
       <button (click)="closeConvert()"
         class="w-8 h-8 rounded-xl flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all"
         style="background:rgba(5,150,105,.1);color:#059669">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg lucideX [size]="14" [strokeWidth]="2"></svg>
       </button>
     </div>
   </div>

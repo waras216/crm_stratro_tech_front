@@ -2,9 +2,9 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CrmService } from '../../../core/services/crm-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { Oportunidad, Cliente, Pipeline } from '../../../models/crm.models';
-import { modalLeave } from '../../shared/animations';
+import { modalLeave, tabFade } from '../../shared/animations';
 
-@Component({ selector: 'app-oportunidades', standalone: false, templateUrl: './oportunidades.component.html', styleUrls: ['./oportunidades.component.scss'], animations: [modalLeave] })
+@Component({ selector: 'app-oportunidades', standalone: false, templateUrl: './oportunidades.component.html', styleUrls: ['./oportunidades.component.scss'], animations: [modalLeave, tabFade] })
 export class OportunidadesComponent implements OnInit {
   search = '';
   viewMode: 'kanban' | 'lista' = 'kanban';

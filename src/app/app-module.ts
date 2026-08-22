@@ -4,6 +4,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { LucideSearch, LucidePlus, LucidePencil, LucideTrash2, LucideX, LucideBuilding2, LucideUser, LucideChevronLeft, LucideChevronRight } from '@lucide/angular';
 
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
@@ -147,6 +148,16 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     NotFoundComponent,
     ToastContainerComponent,
     ConfirmDialogComponent,
+    // Lucide icons (pilot: crm/clientes, crm/leads)
+    LucideSearch,
+    LucidePlus,
+    LucidePencil,
+    LucideTrash2,
+    LucideX,
+    LucideBuilding2,
+    LucideUser,
+    LucideChevronLeft,
+    LucideChevronRight,
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor,  multi: true },
