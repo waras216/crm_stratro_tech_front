@@ -35,6 +35,7 @@ import { modalLeave } from '../../shared/animations';
             <th class="text-left px-4 py-3 font-medium text-slate-500">Nombre</th>
             <th class="text-left px-4 py-3 font-medium text-slate-500">Departamento</th>
             <th class="text-left px-4 py-3 font-medium text-slate-500">Puesto</th>
+            <th class="text-left px-4 py-3 font-medium text-slate-500">Periodicidad</th>
             <th class="text-center px-4 py-3 font-medium text-slate-500">Estado</th>
             <th class="text-right px-4 py-3 font-medium text-slate-500">Acciones</th>
           </tr></thead>
@@ -43,6 +44,7 @@ import { modalLeave } from '../../shared/animations';
               <td class="px-4 py-3 font-medium">{{ e.nombre }}</td>
               <td class="px-4 py-3 text-slate-500">{{ e.departamento }}</td>
               <td class="px-4 py-3 text-slate-500">{{ e.puesto }}</td>
+              <td class="px-4 py-3 text-slate-500 capitalize">{{ e.periodicidad }}</td>
               <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="e.estado==='activo'?'badge-green':'badge-amber'">{{ e.estado }}</span></td>
               <td class="px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-2">
@@ -55,7 +57,7 @@ import { modalLeave } from '../../shared/animations';
                 </div>
               </td>
             </tr>
-            <tr *ngIf="empleados.length===0"><td colspan="5" class="text-center py-8 text-slate-400 text-xs">Sin empleados registrados todavía.</td></tr>
+            <tr *ngIf="empleados.length===0"><td colspan="6" class="text-center py-8 text-slate-400 text-xs">Sin empleados registrados todavía.</td></tr>
           </tbody>
         </table>
       </div>
@@ -65,16 +67,24 @@ import { modalLeave } from '../../shared/animations';
         <table class="w-full text-sm border-collapse">
           <thead><tr class="bg-slate-50">
             <th class="text-left px-4 py-3 font-medium text-slate-500">Fecha</th>
+            <th class="text-left px-4 py-3 font-medium text-slate-500">Período</th>
             <th class="text-left px-4 py-3 font-medium text-slate-500">Empleados pagados</th>
             <th class="text-right px-4 py-3 font-medium text-slate-500">Total</th>
           </tr></thead>
           <tbody>
             <tr *ngFor="let p of historialNomina" class="border-b border-slate-100 hover:bg-slate-50">
               <td class="px-4 py-3 text-slate-500 text-xs">{{ p.fecha }}</td>
+              <td class="px-4 py-3">
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium capitalize" [ngClass]="{
+                  'bg-purple-100 text-purple-700': p.periodo==='semanal',
+                  'bg-blue-100 text-blue-700': p.periodo==='quincenal',
+                  'bg-slate-100 text-slate-600': p.periodo==='mensual'
+                }">{{ p.periodo || 'mensual' }}</span>
+              </td>
               <td class="px-4 py-3">{{ p.detalles.length }} empleados</td>
               <td class="px-4 py-3 text-right font-semibold text-emerald-600">\${{ p.total.toLocaleString() }}</td>
             </tr>
-            <tr *ngIf="historialNomina.length===0"><td colspan="3" class="text-center py-8 text-slate-400 text-xs">Sin pagos de nómina registrados.</td></tr>
+            <tr *ngIf="historialNomina.length===0"><td colspan="4" class="text-center py-8 text-slate-400 text-xs">Sin pagos de nómina registrados.</td></tr>
           </tbody>
         </table>
       </div>
@@ -92,7 +102,15 @@ import { modalLeave } from '../../shared/animations';
         <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.nombre" placeholder="Nombre" />
         <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.departamento" placeholder="Departamento" />
         <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.puesto" placeholder="Puesto" />
-        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.salario" placeholder="Salario mensual" />
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.salario" placeholder="Salario por período de pago" />
+        <div>
+          <label class="text-xs text-slate-500 block mb-1">Periodicidad de pago</label>
+          <select class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.periodicidad">
+            <option value="semanal">Semanal</option>
+            <option value="quincenal">Quincenal</option>
+            <option value="mensual">Mensual</option>
+          </select>
+        </div>
         <select *ngIf="editando" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.estado">
           <option value="activo">Activo</option>
           <option value="inactivo">Inactivo</option>
@@ -111,15 +129,26 @@ import { modalLeave } from '../../shared/animations';
         </button>
       </div>
       <div class="flex flex-col gap-3">
-        <input type="date" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="nominaFecha" />
-        <p class="text-xs text-slate-500 m-0">Empleados activos a pagar:</p>
+        <div>
+          <label class="text-xs text-slate-500 block mb-1">Período a procesar</label>
+          <select class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="nominaPeriodo" (ngModelChange)="onPeriodoChange()">
+            <option value="semanal">Semanal</option>
+            <option value="quincenal">Quincenal</option>
+            <option value="mensual">Mensual</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-500 block mb-1">Fecha de corte</label>
+          <input type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="nominaFecha" />
+        </div>
+        <p class="text-xs text-slate-500 m-0">Empleados activos a pagar ({{ nominaPeriodo }}):</p>
         <div class="flex flex-col gap-1 max-h-48 overflow-y-auto border border-slate-100 rounded-lg p-2">
-          <label *ngFor="let e of empleadosActivos" class="flex items-center gap-2 text-sm px-2 py-1.5 rounded hover:bg-slate-50 cursor-pointer">
+          <label *ngFor="let e of empleadosNominaPeriodo" class="flex items-center gap-2 text-sm px-2 py-1.5 rounded hover:bg-slate-50 cursor-pointer">
             <input type="checkbox" [(ngModel)]="seleccionNomina[e.id]" />
             <span class="flex-1">{{ e.nombre }} — {{ e.puesto }}</span>
             <span class="text-slate-500">\${{ (e.salario || 0).toLocaleString() }}</span>
           </label>
-          <p *ngIf="empleadosActivos.length===0" class="text-xs text-slate-400 m-0 text-center py-3">No hay empleados activos.</p>
+          <p *ngIf="empleadosNominaPeriodo.length===0" class="text-xs text-slate-400 m-0 text-center py-3">No hay empleados activos con periodicidad "{{ nominaPeriodo }}".</p>
         </div>
         <div class="flex justify-between text-sm font-bold pt-2 border-t border-slate-100">
           <span>Total a pagar</span>
@@ -155,7 +184,8 @@ export class ErpRrhhComponent implements OnInit {
   dialogOpen = false;
   saving = false;
   error = '';
-  form = { nombre: '', departamento: '', puesto: '', salario: '', estado: 'activo' };
+  form: { nombre: string; departamento: string; puesto: string; salario: string; estado: string; periodicidad: 'semanal' | 'quincenal' | 'mensual' } =
+    { nombre: '', departamento: '', puesto: '', salario: '', estado: 'activo', periodicidad: 'mensual' };
   editando: ErpEmpleado | null = null;
   empleados: ErpEmpleado[] = [];
   cargando = true;
@@ -169,6 +199,7 @@ export class ErpRrhhComponent implements OnInit {
   nominaSaving = false;
   nominaError = '';
   nominaFecha = new Date().toISOString().slice(0, 10);
+  nominaPeriodo: 'semanal' | 'quincenal' | 'mensual' = 'mensual';
   seleccionNomina: Record<number, boolean> = {};
 
   constructor(
@@ -185,19 +216,40 @@ export class ErpRrhhComponent implements OnInit {
     this.contabilidad.nomina$.subscribe(data => { this.historialNomina = data; this.cdr.detectChanges(); });
   }
 
+  private static readonly FACTOR_MENSUAL: Record<'semanal' | 'quincenal' | 'mensual', number> = {
+    semanal: 4.33,
+    quincenal: 2,
+    mensual: 1,
+  };
+
   get activos() { return this.empleados.filter(e => e.estado === 'activo').length; }
-  get nominaMensual() { return this.empleados.reduce((s, e) => s + Number(e.salario || 0), 0); }
+
+  /** Suma cada salario llevado a su equivalente mensual según la periodicidad de pago del empleado. */
+  get nominaMensual() {
+    return this.empleados.reduce((s, e) => s + Number(e.salario || 0) * ErpRrhhComponent.FACTOR_MENSUAL[e.periodicidad || 'mensual'], 0);
+  }
+
   get empleadosActivos() { return this.empleados.filter(e => e.estado === 'activo'); }
 
+  /** Empleados activos cuya periodicidad de pago coincide con el período seleccionado para procesar nómina. */
+  get empleadosNominaPeriodo() {
+    return this.empleadosActivos.filter(e => (e.periodicidad || 'mensual') === this.nominaPeriodo);
+  }
+
   get totalNominaSeleccionada() {
-    return this.empleadosActivos
+    return this.empleadosNominaPeriodo
       .filter(e => this.seleccionNomina[e.id])
       .reduce((s, e) => s + Number(e.salario || 0), 0);
   }
 
+  onPeriodoChange() {
+    this.seleccionNomina = {};
+    this.empleadosNominaPeriodo.forEach(e => this.seleccionNomina[e.id] = true);
+  }
+
   openNew() {
     this.editando = null;
-    this.form = { nombre: '', departamento: '', puesto: '', salario: '', estado: 'activo' };
+    this.form = { nombre: '', departamento: '', puesto: '', salario: '', estado: 'activo', periodicidad: 'mensual' };
     this.error = '';
     this.dialogOpen = true;
   }
@@ -210,6 +262,7 @@ export class ErpRrhhComponent implements OnInit {
       puesto: empleado.puesto,
       salario: empleado.salario != null ? String(empleado.salario) : '',
       estado: empleado.estado,
+      periodicidad: empleado.periodicidad || 'mensual',
     };
     this.error = '';
     this.dialogOpen = true;
@@ -227,6 +280,7 @@ export class ErpRrhhComponent implements OnInit {
       departamento: this.form.departamento,
       puesto: this.form.puesto,
       salario: this.form.salario ? Number(this.form.salario) : null,
+      periodicidad: this.form.periodicidad,
     };
     if (this.editando) payload.estado = this.form.estado as 'activo' | 'inactivo';
 
@@ -275,8 +329,9 @@ export class ErpRrhhComponent implements OnInit {
 
   openNomina() {
     this.nominaFecha = new Date().toISOString().slice(0, 10);
+    this.nominaPeriodo = 'mensual';
     this.seleccionNomina = {};
-    this.empleadosActivos.forEach(e => this.seleccionNomina[e.id] = true);
+    this.empleadosNominaPeriodo.forEach(e => this.seleccionNomina[e.id] = true);
     this.nominaError = '';
     this.nominaDialogOpen = true;
   }
@@ -284,15 +339,15 @@ export class ErpRrhhComponent implements OnInit {
   async procesarNomina() {
     if (this.nominaSaving) return;
 
-    const empleadosIds = this.empleadosActivos.filter(e => this.seleccionNomina[e.id]).map(e => e.id);
+    const empleadosIds = this.empleadosNominaPeriodo.filter(e => this.seleccionNomina[e.id]).map(e => e.id);
     if (empleadosIds.length === 0) { this.nominaError = 'Selecciona al menos un empleado.'; return; }
 
-    const ok = await this.notify.confirm(`¿Procesar nómina por $${this.totalNominaSeleccionada.toLocaleString()} para ${empleadosIds.length} empleado(s)?`, { confirmText: 'Procesar' });
+    const ok = await this.notify.confirm(`¿Procesar nómina ${this.nominaPeriodo} por $${this.totalNominaSeleccionada.toLocaleString()} para ${empleadosIds.length} empleado(s)?`, { confirmText: 'Procesar' });
     if (!ok) return;
 
     this.nominaSaving = true;
     this.nominaError = '';
-    this.contabilidad.procesarNomina({ fecha: this.nominaFecha, empleados: empleadosIds }).subscribe({
+    this.contabilidad.procesarNomina({ periodo: this.nominaPeriodo, fecha: this.nominaFecha, empleados: empleadosIds }).subscribe({
       next: () => { this.nominaSaving = false; this.nominaDialogOpen = false; this.notify.success('Nómina procesada'); this.cdr.detectChanges(); },
       error: err => {
         this.nominaSaving = false;

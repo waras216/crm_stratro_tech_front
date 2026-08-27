@@ -101,6 +101,9 @@ export interface ErpNominaPago {
   id: number;
   id_tenant?: number;
   fecha: string;
+  periodo: 'semanal' | 'quincenal' | 'mensual';
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
   total: number;
   id_asiento: number;
   detalles: ErpNominaPagoDetalle[];

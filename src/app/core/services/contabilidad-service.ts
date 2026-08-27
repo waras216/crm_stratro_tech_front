@@ -116,7 +116,7 @@ export class ContabilidadService {
     );
   }
 
-  procesarNomina(datos: { fecha?: string; empleados?: number[] }): Observable<ErpNominaPago> {
+  procesarNomina(datos: { periodo?: 'semanal' | 'quincenal' | 'mensual'; fecha?: string; empleados?: number[] }): Observable<ErpNominaPago> {
     return this.http.post<ErpNominaPago>(`${API}/erp/rrhh/nomina/procesar`, datos).pipe(
       tap(pago => this._nomina.next([pago, ...this.nomina]))
     );

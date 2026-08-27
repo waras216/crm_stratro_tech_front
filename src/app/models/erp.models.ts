@@ -201,6 +201,8 @@ export interface ErpReceta {
   pendiente: boolean;
 }
 
+export type ErpPeriodicidadNomina = 'semanal' | 'quincenal' | 'mensual';
+
 export interface ErpEmpleado {
   id: number;
   id_tenant?: number;
@@ -209,6 +211,7 @@ export interface ErpEmpleado {
   puesto: string;
   estado: 'activo' | 'inactivo';
   salario?: number | null;
+  periodicidad: ErpPeriodicidadNomina;
 }
 
 export interface ErpOrdenProduccion {
