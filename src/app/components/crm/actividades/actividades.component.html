@@ -10,14 +10,6 @@
         <option value="todos">Todos</option>
         <option *ngFor="let t of tipoOptions" [value]="t">{{ t | titlecase }}</option>
       </select>
-      <label class="flex items-center gap-2 text-xs font-medium text-slate-500 cursor-pointer select-none">
-        <div (click)="showCompleted=!showCompleted" class="w-9 h-5 rounded-full transition-colors cursor-pointer relative flex-shrink-0"
-          [style.background]="showCompleted?'linear-gradient(135deg,#6366f1,#8b5cf6)':'#e2e8f0'">
-          <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-            [class.translate-x-4]="showCompleted" [class.translate-x-0.5]="!showCompleted"></div>
-        </div>
-        Completadas
-      </label>
     </div>
     <button *appPuede="'actividades.crear'" (click)="openNew()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.4)">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -25,51 +17,94 @@
     </button>
   </div>
 
-  <!-- Activity list -->
-  <div class="flex flex-col gap-3">
-    <div *ngFor="let act of filtered; let i = index"
-      class="rounded-2xl p-4 hover-lift group card-enter"
-      [class.opacity-60]="act.estado === 'completada'"
-      [style.animation-delay]="(i * 0.04) + 's'"
-      style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
-      <div class="flex items-center gap-3">
-        <!-- Toggle check -->
-        <button *appPuede="'actividades.editar'" (click)="toggleActividad(act.id_actividad)"
-          class="w-6 h-6 rounded-full flex items-center justify-center border-2 flex-shrink-0 cursor-pointer transition-all hover:scale-110"
-          [style]="act.estado === 'completada'?'background:linear-gradient(135deg,#6366f1,#8b5cf6);border-color:transparent':'background:transparent;border-color:#c7d2fe'">
-          <svg *ngIf="act.estado === 'completada'" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        </button>
-        <!-- Type icon -->
-        <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" [ngClass]="tipoColors[act.tipo]">
-          <span [innerHTML]="tipoSvg[act.tipo]"></span>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-xs font-semibold text-slate-700 m-0" [class.line-through]="act.estado === 'completada'" [class.text-slate-400]="act.estado === 'completada'">{{ act.titulo }}</p>
-          <div class="flex items-center gap-2 mt-1 flex-wrap">
-            <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold" [ngClass]="tipoColors[act.tipo]">{{ act.tipo }}</span>
-            <span class="text-[10px] text-slate-400 flex items-center gap-1">
-              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              {{ act.fecha_inicio }}
-            </span>
-            <span *ngIf="act.descripcion" class="text-[10px] text-slate-400">{{ act.descripcion }}</span>
-          </div>
-        </div>
-        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-          <button *appPuede="'actividades.editar'" (click)="handleEdit(act)" class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all" style="background:#eef2ff;color:#6366f1">
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button *appPuede="'actividades.eliminar'" (click)="deleteActividad(act.id_actividad)" class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all" style="background:#fff1f2;color:#e11d48">
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-          </button>
-        </div>
-      </div>
+  <!-- Skeleton loader -->
+  <div *ngIf="cargando" class="rounded-2xl overflow-hidden" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    <div *ngFor="let _ of [1,2,3,4,5]" class="flex items-center gap-3 px-4 py-4 border-b border-slate-50 last:border-0">
+      <div class="w-6 h-6 rounded-full bg-slate-100 animate-pulse flex-shrink-0"></div>
+      <div class="w-8 h-8 rounded-xl bg-slate-100 animate-pulse flex-shrink-0"></div>
+      <div class="flex-1 flex flex-col gap-2"><div class="h-3 bg-slate-100 rounded-full w-1/2 animate-pulse"></div><div class="h-2 bg-slate-50 rounded-full w-1/4 animate-pulse"></div></div>
     </div>
-    <div *ngIf="filtered.length===0" class="py-16 text-center flex flex-col items-center gap-2">
+  </div>
+
+  <!-- Pending activities -->
+  <div *ngIf="!cargando" class="flex flex-col gap-3">
+    <ng-container *ngFor="let act of pendientes; let i = index">
+      <ng-container *ngTemplateOutlet="actividadCard; context: { act: act, i: i }"></ng-container>
+    </ng-container>
+
+    <div *ngIf="pendientes.length===0 && completadas.length===0" class="py-16 text-center flex flex-col items-center gap-2">
       <svg width="40" height="40" fill="none" stroke="#c7d2fe" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
       <p class="text-sm font-semibold text-slate-400">No hay actividades</p>
     </div>
+    <div *ngIf="pendientes.length===0 && completadas.length>0" class="py-10 text-center flex flex-col items-center gap-2">
+      <svg width="32" height="32" fill="none" stroke="#a7f3d0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <p class="text-sm font-semibold text-slate-400">No quedan actividades pendientes</p>
+    </div>
+  </div>
+
+  <!-- Completed accordion -->
+  <div *ngIf="!cargando && completadas.length>0" class="rounded-2xl overflow-hidden" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    <button type="button" (click)="completedExpanded = !completedExpanded"
+      class="w-full flex items-center justify-between px-4 py-3 border-0 bg-transparent cursor-pointer">
+      <span class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Completadas
+        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold" style="background:#eef2ff;color:#6366f1">{{ completadas.length }}</span>
+      </span>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"
+        class="text-slate-400 transition-transform" [class.rotate-180]="completedExpanded"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div *ngIf="completedExpanded" class="flex flex-col gap-3 px-4 pb-4 pt-1" style="border-top:1px solid #f1f5f9">
+      <ng-container *ngFor="let act of completadas; let i = index">
+        <ng-container *ngTemplateOutlet="actividadCard; context: { act: act, i: i }"></ng-container>
+      </ng-container>
+    </div>
   </div>
 </div>
+
+<app-bulk-action-bar *ngIf="selectedIds.size>0" [label]="bulkLabel" (deleteSelected)="bulkDelete()" (clearSelection)="clearSelection()"></app-bulk-action-bar>
+
+<!-- Tarjeta de actividad: template compartido entre la lista principal y el acordeón de completadas -->
+<ng-template #actividadCard let-act="act" let-i="i">
+  <div class="rounded-2xl p-4 hover-lift group card-enter"
+    [class.opacity-60]="act.estado === 'completada'"
+    [style.animation-delay]="(i * 0.04) + 's'"
+    style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    <div class="flex items-center gap-3">
+      <!-- Selección en bloque -->
+      <input type="checkbox" class="w-4 h-4 accent-indigo-600 cursor-pointer flex-shrink-0" [checked]="selectedIds.has(act.id_actividad)" (click)="toggleSelect(act.id_actividad, $event)" />
+      <!-- Toggle check -->
+      <button *appPuede="'actividades.editar'" (click)="toggleActividad(act.id_actividad)"
+        class="w-6 h-6 rounded-full flex items-center justify-center border-2 flex-shrink-0 cursor-pointer transition-all hover:scale-110"
+        [style]="act.estado === 'completada'?'background:linear-gradient(135deg,#6366f1,#8b5cf6);border-color:transparent':'background:transparent;border-color:#c7d2fe'">
+        <svg *ngIf="act.estado === 'completada'" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <!-- Type icon -->
+      <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" [ngClass]="tipoColors[act.tipo]">
+        <span [innerHTML]="tipoSvg[act.tipo]"></span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-semibold text-slate-700 m-0" [class.line-through]="act.estado === 'completada'" [class.text-slate-400]="act.estado === 'completada'">{{ act.titulo }}</p>
+        <div class="flex items-center gap-2 mt-1 flex-wrap">
+          <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold" [ngClass]="tipoColors[act.tipo]">{{ act.tipo }}</span>
+          <span class="text-[10px] text-slate-400 flex items-center gap-1">
+            <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            {{ act.fecha_inicio }}
+          </span>
+          <span *ngIf="act.descripcion" class="text-[10px] text-slate-400">{{ act.descripcion }}</span>
+        </div>
+      </div>
+      <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+        <button *appPuede="'actividades.editar'" (click)="handleEdit(act)" class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all" style="background:#eef2ff;color:#6366f1">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button *appPuede="'actividades.eliminar'" (click)="deleteActividad(act.id_actividad)" class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all" style="background:#fff1f2;color:#e11d48">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <div *ngIf="dialogOpen" class="fixed inset-0 z-[100]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="closeDialog()"></div>
@@ -86,20 +121,25 @@
     </div>
   </div>
   <div class="px-6 py-5 flex flex-col gap-4">
+    <div *ngIf="formError" class="px-4 py-2.5 rounded-xl text-sm font-medium" style="background:#fff1f2;border:1.5px solid #fecdd3;color:#e11d48">{{ formError }}</div>
     <div class="flex flex-col gap-1.5">
       <label class="text-[11px] font-semibold" style="color:#6366f1">Actividad *</label>
       <input [(ngModel)]="form.titulo" placeholder="Descripción de la actividad" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
     </div>
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-semibold" style="color:#6366f1">Tipo</label>
+      <select [(ngModel)]="form.tipo" class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
+        <option *ngFor="let t of tipoOptions" [value]="t">{{ t | titlecase }}</option>
+      </select>
+    </div>
     <div class="grid grid-cols-2 gap-3">
-      <div class="flex flex-col gap-1.5">
-        <label class="text-[11px] font-semibold" style="color:#6366f1">Tipo</label>
-        <select [(ngModel)]="form.tipo" class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
-          <option *ngFor="let t of tipoOptions" [value]="t">{{ t | titlecase }}</option>
-        </select>
-      </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Fecha</label>
         <input [(ngModel)]="form.fecha_inicio" type="date" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-semibold" style="color:#6366f1">Hora</label>
+        <input [(ngModel)]="form.hora" type="time" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
       </div>
     </div>
     <div class="flex flex-col gap-1.5">

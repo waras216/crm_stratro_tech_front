@@ -6,18 +6,37 @@
       <input class="pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-sm w-56 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
         placeholder="Buscar campañas..." [(ngModel)]="search" />
     </div>
-    <button *appPuede="'marketing.crear'" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 border-0 cursor-pointer"
-      (click)="openNew()">+ Nueva Campaña</button>
+    <div class="flex items-center gap-3">
+      <label *ngIf="filtered.length>0" class="flex items-center gap-1.5 text-xs font-medium text-slate-500 cursor-pointer select-none">
+        <input type="checkbox" class="w-4 h-4 accent-blue-600 cursor-pointer" [checked]="allSelected" (change)="toggleSelectAll()" />
+        Seleccionar todo
+      </label>
+      <button *appPuede="'marketing.crear'" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 border-0 cursor-pointer"
+        (click)="openNew()">+ Nueva Campaña</button>
+    </div>
+  </div>
+
+  <!-- Skeleton loader -->
+  <div *ngIf="cargando" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div *ngFor="let _ of [1,2,3,4,5,6]" class="bg-white border border-slate-200 rounded-xl p-4">
+      <div class="h-3 bg-slate-100 rounded-full w-2/3 animate-pulse mb-2"></div>
+      <div class="h-2 bg-slate-50 rounded-full w-1/3 animate-pulse mb-4"></div>
+      <div class="h-5 bg-slate-100 rounded-full w-20 animate-pulse mb-4"></div>
+      <div class="h-8 bg-slate-50 rounded-lg w-full animate-pulse"></div>
+    </div>
   </div>
 
   <!-- Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+  <div *ngIf="!cargando" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
     <div class="bg-white border border-slate-200 rounded-xl p-4 hover-lift card-enter" *ngFor="let camp of filtered; let i = index"
       [style.animation-delay]="(i * 0.05) + 's'">
       <div class="flex items-start justify-between mb-3">
-        <div>
-          <h3 class="font-semibold text-sm m-0">{{ camp.nombre_compania }}</h3>
-          <p class="text-slate-500 text-xs m-0 mt-0.5">{{ camp.segmento }}</p>
+        <div class="flex items-start gap-2">
+          <input type="checkbox" class="w-4 h-4 mt-0.5 accent-blue-600 cursor-pointer flex-shrink-0" [checked]="selectedIds.has(camp.id)" (click)="toggleSelect(camp.id, $event)" />
+          <div>
+            <h3 class="font-semibold text-sm m-0">{{ camp.nombre_compania }}</h3>
+            <p class="text-slate-500 text-xs m-0 mt-0.5">{{ camp.segmento }}</p>
+          </div>
         </div>
         <div class="flex items-center gap-1">
           <button *appPuede="'marketing.editar'" class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100 text-base" (click)="handleEdit(camp)"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
@@ -43,9 +62,20 @@
         <p *ngIf="!camp.clientes?.length" class="text-xs text-slate-400 m-0">Sin clientes asignados</p>
       </div>
     </div>
-    <div *ngIf="filtered.length===0" class="col-span-full text-center text-slate-400 py-12">No se encontraron campañas</div>
+    <app-empty-state *ngIf="filtered.length===0"
+      [titulo]="campanas.length===0 ? 'Aún no tienes campañas' : 'No se encontraron campañas'"
+      [subtitulo]="campanas.length===0 ? 'Crea tu primera campaña para empezar a llegar a tus clientes.' : 'Ajusta la búsqueda para ver más resultados.'"
+      [accionLabel]="campanas.length===0 ? 'Nueva Campaña' : ''"
+      color="blue"
+      (accion)="openNew()">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+      </svg>
+    </app-empty-state>
   </div>
 </div>
+
+<app-bulk-action-bar *ngIf="selectedIds.size>0" [label]="bulkLabel" (deleteSelected)="bulkDelete()" (clearSelection)="clearSelection()"></app-bulk-action-bar>
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <!-- Modal backdrop -->
@@ -57,6 +87,7 @@
     <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100" (click)="closeDialog()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   </div>
   <div class="px-6 py-5 flex flex-col gap-4">
+    <div *ngIf="formError" class="px-3 py-2 rounded-lg text-sm font-medium bg-rose-50 text-rose-600">{{ formError }}</div>
     <div class="flex flex-col gap-1">
       <label class="text-xs font-medium text-slate-600">Nombre *</label>
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" [(ngModel)]="form.nombre_compania" placeholder="Nombre de la campaña" />

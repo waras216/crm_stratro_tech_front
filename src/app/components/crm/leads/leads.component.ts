@@ -1,14 +1,15 @@
 // src/app/components/leads/leads.component.ts
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { CrmService } from '../../../core/services/crm-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { Lead, Pipeline } from '../../../models/crm.models';
-import { modalLeave } from '../../shared/animations';
+import { ViewMode } from '../../shared/view-toggle/view-toggle.component';
 
-@Component({ selector: 'app-leads', standalone: false, templateUrl: './leads.component.html', styleUrls: ['./leads.component.scss'], animations: [modalLeave] })
-export class LeadsComponent implements OnInit, OnDestroy {
+const VIEW_MODE_KEY = 'crm_leads_view';
+
+@Component({ selector: 'app-leads', standalone: false, templateUrl: './leads.component.html', styleUrls: ['./leads.component.scss'] })
+export class LeadsComponent implements OnInit {
   leads: Lead[]         = [];
   search                = '';
   filterEstatus         = 'todos';
@@ -16,6 +17,8 @@ export class LeadsComponent implements OnInit, OnDestroy {
   editingLead: Lead | null = null;
   cargando              = true;
   error                 = '';
+  formError             = '';
+  viewMode: ViewMode = (localStorage.getItem(VIEW_MODE_KEY) as ViewMode) || 'table';
 
   paginaActual = 1;
   totalPaginas = 1;
@@ -48,8 +51,6 @@ export class LeadsComponent implements OnInit, OnDestroy {
   };
   etapaOptions = ['prospeccion', 'contacto', 'propuesta', 'negociacion', 'cierre'];
 
-  private searchChange$ = new Subject<string>();
-
   constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
 
   ngOnInit() {
@@ -57,18 +58,15 @@ export class LeadsComponent implements OnInit, OnDestroy {
     this.crm.cargarPipelines().subscribe({
       next: res => { this.pipelines = res ?? []; this.cdr.detectChanges(); },
     });
-
-    this.searchChange$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-    ).subscribe(() => { this.paginaActual = 1; this.cargar(); });
   }
-
-  ngOnDestroy() { this.searchChange$.complete(); }
 
   cargar() {
     this.cargando = true;
     this.error    = '';
+    // Flush inmediato: si "cargando" queda en `true` sin pasar por un chequeo de Angular,
+    // un signal-write ajeno (p. ej. un toast) puede disparar un chequeo global que lo agarra
+    // en ese estado transitorio nunca visto antes, y Angular tira NG0100 en modo dev.
+    this.cdr.detectChanges();
     this.crm.cargarLeads(this.paginaActual, this.search, this.filterEstatus).subscribe({
       next: res => {
         this.leads        = res?.data ?? [];
@@ -88,9 +86,43 @@ export class LeadsComponent implements OnInit, OnDestroy {
 
   get filtered() { return this.leads; }
 
-  onSearchChange()   { this.searchChange$.next(this.search); }
-  onFiltroChange()   { this.paginaActual = 1; this.cargar(); }
-  paginar(p: number) { if (p < 1 || p > this.totalPaginas) return; this.paginaActual = p; this.cargar(); }
+  setViewMode(mode: ViewMode) { this.viewMode = mode; localStorage.setItem(VIEW_MODE_KEY, mode); }
+
+  // Selección en bloque (página actual)
+  selectedIds = new Set<number>();
+  get allSelected() { return this.leads.length > 0 && this.leads.every(l => this.selectedIds.has(l.id_lead)); }
+  get bulkLabel() { const n = this.selectedIds.size; return `${n} lead${n === 1 ? '' : 's'} seleccionado${n === 1 ? '' : 's'}`; }
+
+  toggleSelect(id: number, event: Event) {
+    event.stopPropagation();
+    if (this.selectedIds.has(id)) this.selectedIds.delete(id); else this.selectedIds.add(id);
+  }
+
+  toggleSelectAll() {
+    if (this.allSelected) this.selectedIds.clear();
+    else this.leads.forEach(l => this.selectedIds.add(l.id_lead));
+  }
+
+  clearSelection() { this.selectedIds.clear(); }
+
+  async bulkDelete() {
+    const n = this.selectedIds.size;
+    const ok = await this.notify.confirm(`¿Eliminar ${n} lead${n === 1 ? '' : 's'}? Esta acción no se puede deshacer.`, { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+    forkJoin(Array.from(this.selectedIds).map(id => this.crm.deleteLead(id))).subscribe({
+      next: () => {
+        this.selectedIds.clear();
+        this.cdr.detectChanges();
+        this.cargar();
+        this.notify.success(`${n} lead${n === 1 ? '' : 's'} eliminado${n === 1 ? '' : 's'}`);
+      },
+      error: () => this.notify.error('No se pudieron eliminar algunos leads'),
+    });
+  }
+
+  onSearchChange()   { this.paginaActual = 1; this.selectedIds.clear(); this.cargar(); }
+  onFiltroChange()   { this.paginaActual = 1; this.selectedIds.clear(); this.cargar(); }
+  paginar(p: number) { if (p < 1 || p > this.totalPaginas) return; this.paginaActual = p; this.selectedIds.clear(); this.cargar(); }
 
   resetForm()   {
     this.form = {
@@ -98,6 +130,7 @@ export class LeadsComponent implements OnInit, OnDestroy {
       fuente: 'web', estado: 'nuevo', descripcion: '', valor_estimado: null as number | string | null,
     };
     this.editingLead = null;
+    this.formError = '';
   }
   openNew()     { this.resetForm(); this.dialogOpen = true; }
   closeDialog() { this.dialogOpen = false; this.resetForm(); }
@@ -108,11 +141,12 @@ export class LeadsComponent implements OnInit, OnDestroy {
       titulo: lead.titulo, nombre: lead.nombre || '', email: lead.email || '', telefono: lead.telefono || '',
       fuente: lead.fuente, estado: lead.estado, descripcion: lead.descripcion || '', valor_estimado: lead.valor_estimado || null,
     };
+    this.formError = '';
     this.dialogOpen = true;
   }
 
   handleSubmit() {
-    if (!this.form.titulo) return;
+    if (!this.form.titulo.trim()) { this.formError = 'El título del lead es obligatorio.'; return; }
 
     const payload = { ...this.form } as any;
 
@@ -130,7 +164,7 @@ export class LeadsComponent implements OnInit, OnDestroy {
       next: ()  => { this.dialogOpen = false; this.resetForm(); this.cargar(); },
       error: err => {
         console.error('Errores de Laravel:', err.error?.errors);
-        this.error = err.error?.message ?? 'Error al guardar';
+        this.formError = err.error?.message ?? 'Error al guardar';
         this.cdr.detectChanges();
       },
     });

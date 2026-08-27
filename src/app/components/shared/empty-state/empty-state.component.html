@@ -1,0 +1,29 @@
+<div class="col-span-full w-full flex flex-col items-center justify-center text-center gap-3 py-16 px-4">
+  <div class="w-14 h-14 rounded-2xl flex items-center justify-center" [ngClass]="{
+    'bg-indigo-50 text-indigo-300':  color==='indigo',
+    'bg-blue-50 text-blue-300':      color==='blue',
+    'bg-emerald-50 text-emerald-300': color==='emerald',
+    'bg-amber-50 text-amber-300':    color==='amber',
+    'bg-rose-50 text-rose-300':      color==='rose'
+  }">
+    <ng-content></ng-content>
+  </div>
+
+  <div class="flex flex-col gap-1 max-w-xs">
+    <p class="text-sm font-semibold text-slate-500 m-0">{{ titulo }}</p>
+    <p *ngIf="subtitulo" class="text-xs text-slate-400 m-0">{{ subtitulo }}</p>
+  </div>
+
+  <button *ngIf="accionLabel" type="button" (click)="accion.emit()"
+    class="inline-flex items-center gap-2 mt-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
+    [ngClass]="{
+      'bg-indigo-600 hover:bg-indigo-700':   color==='indigo',
+      'bg-blue-600 hover:bg-blue-700':       color==='blue',
+      'bg-emerald-600 hover:bg-emerald-700': color==='emerald',
+      'bg-amber-600 hover:bg-amber-700':     color==='amber',
+      'bg-rose-600 hover:bg-rose-700':       color==='rose'
+    }">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    {{ accionLabel }}
+  </button>
+</div>

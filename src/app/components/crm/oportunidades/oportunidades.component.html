@@ -23,12 +23,25 @@
     </div>
   </div>
 
-  <div [@tabFade]="viewMode">
+  <!-- Skeleton loader -->
+  <div *ngIf="cargando" class="flex gap-4 overflow-x-auto pb-2">
+    <div *ngFor="let etapa of etapas" class="min-w-[260px] w-[260px] flex-shrink-0 rounded-xl p-3 flex flex-col gap-2" [ngClass]="etapaColors[etapa]">
+      <div class="h-3 bg-white/70 rounded-full w-1/2 animate-pulse mb-2"></div>
+      <div *ngFor="let _ of [1,2]" class="bg-white border border-slate-100 rounded-lg p-3">
+        <div class="h-2.5 bg-slate-100 rounded-full w-3/4 animate-pulse mb-2"></div>
+        <div class="h-2 bg-slate-50 rounded-full w-1/2 animate-pulse"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Kanban -->
-  <div *ngIf="viewMode==='kanban'" class="flex gap-4 overflow-x-auto pb-2">
-    <div class="min-w-[260px] w-[260px] flex-shrink-0 rounded-xl p-3 flex flex-col gap-2"
+  <div *ngIf="!cargando && viewMode==='kanban'" class="flex gap-4 overflow-x-auto pb-2">
+    <div class="min-w-[260px] w-[260px] flex-shrink-0 rounded-xl p-3 flex flex-col gap-2 transition-transform duration-150"
       *ngFor="let etapa of etapas"
       [ngClass]="etapaColors[etapa]"
+      [class.col-drag-target]="dragOverEtapa===etapa"
+      (dragenter)="onDragEnter(etapa)"
+      (dragleave)="onDragLeave(etapa)"
       (dragover)="onDragOver($event)"
       (drop)="onDrop($event, etapa)">
       <!-- Column header -->
@@ -43,10 +56,12 @@
       <!-- Cards -->
       <div class="flex flex-col gap-2 flex-1 min-h-[60px]">
         <div class="bg-white border border-slate-100 rounded-lg p-3 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-all hover-scale card-enter"
-          *ngFor="let op of opsByEtapa(etapa); let i = index"
+          *ngFor="let op of opsByEtapa(etapa); trackBy: trackByOp; let i = index"
           [style.animation-delay]="(i * 0.04) + 's'"
+          [class.opacity-40]="draggedOp?.id_oportunidad===op.id_oportunidad"
           draggable="true"
-          (dragstart)="onDragStart(op)">
+          (dragstart)="onDragStart(op)"
+          (dragend)="onDragEnd()">
           <p class="font-medium text-sm m-0 text-slate-800">{{ op.titulo }}</p>
           <p class="text-slate-400 text-xs m-0 mt-0.5">{{ op.cliente?.nombre }}</p>
           <div class="flex items-center justify-between mt-2">
@@ -73,11 +88,14 @@
   </div>
 
   <!-- Lista -->
-  <div *ngIf="viewMode==='lista'" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+  <div *ngIf="!cargando && viewMode==='lista'" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
     <div class="overflow-x-auto">
       <table class="w-full text-sm border-collapse">
         <thead>
           <tr class="bg-slate-50">
+            <th class="pl-4 pr-1 py-3 border-b border-slate-200">
+              <input type="checkbox" class="w-4 h-4 accent-indigo-600 cursor-pointer" [checked]="allSelected" (change)="toggleSelectAll()" />
+            </th>
             <th class="text-left px-4 py-3 font-medium text-slate-500 border-b border-slate-200">Nombre</th>
             <th class="text-left px-4 py-3 font-medium text-slate-500 border-b border-slate-200">Cliente</th>
             <th class="text-left px-4 py-3 font-medium text-slate-500 border-b border-slate-200">Pipeline</th>
@@ -88,6 +106,9 @@
         </thead>
         <tbody>
           <tr *ngFor="let op of filtered" class="hover:bg-slate-50 border-b border-slate-100">
+            <td class="pl-4 pr-1 py-3">
+              <input type="checkbox" class="w-4 h-4 accent-indigo-600 cursor-pointer" [checked]="selectedIds.has(op.id_oportunidad)" (click)="toggleSelect(op.id_oportunidad, $event)" />
+            </td>
             <td class="px-4 py-3 font-medium text-slate-800">{{ op.titulo }}</td>
             <td class="px-4 py-3 text-slate-500">{{ op.cliente?.nombre }}</td>
             <td class="px-4 py-3 text-slate-500">{{ op.pipeline?.nombre }}</td>
@@ -105,20 +126,21 @@
             </td>
           </tr>
           <tr *ngIf="filtered.length===0">
-            <td colspan="6" class="text-center text-slate-400 py-8">No se encontraron oportunidades</td>
+            <td colspan="7" class="text-center text-slate-400 py-8">No se encontraron oportunidades</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-  </div>
 </div>
+
+<app-bulk-action-bar *ngIf="selectedIds.size>0" [label]="bulkLabel" (deleteSelected)="bulkDelete()" (clearSelection)="clearSelection()"></app-bulk-action-bar>
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <!-- Modal backdrop -->
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="closeDialog()"></div>
 <!-- Modal -->
-<div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-modal max-h-[90vh] overflow-y-auto modal-in">
+<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-modal max-h-[90vh] overflow-y-auto modal-in">
   <div class="flex justify-between items-center px-6 pt-5">
     <h2 class="m-0 text-lg font-semibold text-slate-800">{{ editingOp ? 'Editar Oportunidad' : 'Nueva Oportunidad' }}</h2>
     <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600" (click)="closeDialog()">
@@ -126,6 +148,7 @@
     </button>
   </div>
   <div class="px-6 py-5 flex flex-col gap-4">
+    <div *ngIf="formError" class="px-3 py-2.5 rounded-lg text-sm font-medium bg-rose-50 text-rose-600">{{ formError }}</div>
     <div class="flex flex-col gap-1.5">
       <label class="text-xs font-medium text-slate-600">Nombre *</label>
       <input class="px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
@@ -166,7 +189,7 @@
 
 <!-- Modal: gestión de pipelines -->
 <div *ngIf="pipelineManagerOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="closePipelineManager()"></div>
-<div *ngIf="pipelineManagerOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-md z-[101] shadow-modal max-h-[90vh] overflow-y-auto modal-in">
+<div *ngIf="pipelineManagerOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-md z-[101] shadow-modal max-h-[90vh] overflow-y-auto modal-in">
   <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
     <h2 class="m-0 text-lg font-semibold text-slate-800">Pipelines</h2>
     <button class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer bg-slate-50 text-slate-500 hover:bg-slate-100" (click)="closePipelineManager()">
@@ -235,7 +258,7 @@
 
 <!-- Modal: elegir Ganada/Perdida al mover a Cierre -->
 <div *ngIf="cierrePromptOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="cancelCierre()"></div>
-<div *ngIf="cierrePromptOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-sm z-[101] shadow-modal modal-in">
+<div *ngIf="cierrePromptOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-sm z-[101] shadow-modal modal-in">
   <div class="px-5 pt-5 pb-3 text-center">
     <h2 class="m-0 text-lg font-semibold text-slate-800">¿Cómo terminó?</h2>
     <p class="text-sm text-slate-400 mt-1">Esta oportunidad está llegando a Cierre</p>

@@ -1,7 +1,4 @@
 import { Injectable } from '@angular/core';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { Workbook } from 'exceljs';
 
 export interface ReportExportSection {
   heading: string;
@@ -28,7 +25,12 @@ function slug(title: string): string {
 @Injectable({ providedIn: 'root' })
 export class ReportExportService {
 
-  exportPdf(data: ReportExportData): void {
+  async exportPdf(data: ReportExportData): Promise<void> {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
+
     const doc = new jsPDF();
     doc.setFontSize(16);
     doc.text(data.title, 14, 16);
@@ -70,6 +72,7 @@ export class ReportExportService {
   }
 
   async exportExcel(data: ReportExportData): Promise<void> {
+    const { Workbook } = await import('exceljs');
     const wb = new Workbook();
     const ws = wb.addWorksheet(data.title.slice(0, 31) || 'Reporte');
 

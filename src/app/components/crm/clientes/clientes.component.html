@@ -3,54 +3,65 @@
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <div class="flex items-center gap-2 flex-1 flex-wrap">
       <div class="relative flex items-center">
-        <svg lucideSearch class="absolute left-3 text-indigo-400 pointer-events-none w-4 h-4" [strokeWidth]="2"></svg>
+        <svg class="absolute left-3 text-indigo-400 pointer-events-none w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
         <input [(ngModel)]="search"
-          class="pl-9 pr-4 py-2.5 rounded-xl text-sm font-medium w-56 focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+          class="pl-9 pr-4 py-2.5 rounded-xl text-sm font-medium w-56 focus:outline-none"
           style="background:#fff;border:1.5px solid rgba(99,102,241,.15);color:#1e1b4b"
           placeholder="Buscar clientes…" />
       </div>
-      <select [(ngModel)]="filterTipo" class="px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+      <select [(ngModel)]="filterTipo" class="px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer focus:outline-none"
         style="background:#fff;border:1.5px solid rgba(99,102,241,.15);color:#1e1b4b">
         <option value="todos">Todos los tipos</option>
         <option value="empresa">Empresa</option>
         <option value="persona">Persona</option>
       </select>
     </div>
-    <button *appPuede="'clientes.crear'" (click)="openNew()"
-      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95 btn-accent">
-      <svg lucidePlus [size]="15" [strokeWidth]="2"></svg>
-      Nuevo Cliente
-    </button>
+    <div class="flex items-center gap-2">
+      <app-view-toggle [value]="viewMode" (valueChange)="setViewMode($event)" gridLabel="Tarjetas" tableLabel="Lista"></app-view-toggle>
+      <button *appPuede="'clientes.crear'" (click)="openNew()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white border-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
+        style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.4)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo Cliente
+      </button>
+    </div>
   </div>
 
   <!-- Skeleton loader -->
   <div *ngIf="cargando" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-    <div *ngFor="let _ of [1,2,3,4,5,6]" class="rounded-2xl p-4 bg-white shadow-card">
+    <div *ngFor="let _ of [1,2,3,4,5,6]" class="rounded-2xl p-4" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
       <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl skeleton flex-shrink-0"></div>
-        <div class="flex-1 flex flex-col gap-2"><div class="h-3 skeleton rounded-full w-2/3"></div><div class="h-2 skeleton rounded-full w-1/3"></div></div>
+        <div class="w-10 h-10 rounded-xl bg-slate-100 animate-pulse flex-shrink-0"></div>
+        <div class="flex-1 flex flex-col gap-1.5"><div class="h-3 bg-slate-100 rounded-full w-2/3 animate-pulse"></div><div class="h-2 bg-slate-50 rounded-full w-1/3 animate-pulse"></div></div>
       </div>
       <div class="flex flex-col gap-2 border-t border-slate-50 pt-3">
-        <div class="h-2.5 skeleton rounded-full w-3/4"></div>
-        <div class="h-2.5 skeleton rounded-full w-1/2"></div>
+        <div class="h-2 bg-slate-50 rounded-full w-3/4 animate-pulse"></div>
+        <div class="h-2 bg-slate-50 rounded-full w-1/2 animate-pulse"></div>
       </div>
     </div>
   </div>
 
   <!-- Cards -->
-  <div *ngIf="!cargando" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+  <div *ngIf="!cargando && viewMode==='grid'" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
     <div *ngFor="let c of filtered; let i = index"
-      class="rounded-2xl p-4 hover-lift group card-enter cursor-pointer bg-white shadow-card"
+      class="rounded-2xl p-4 hover-lift group card-enter cursor-pointer"
       [style.animation-delay]="(i * 0.05) + 's'"
-      (click)="abrirDetalle(c)">
+      (click)="abrirDetalle(c)"
+      style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
       <div class="flex items-start justify-between mb-3">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
             [class.bg-indigo-100]="c.tipo==='empresa'" [class.text-indigo-600]="c.tipo==='empresa'"
             [class.bg-emerald-100]="c.tipo==='persona'" [class.text-emerald-600]="c.tipo==='persona'">
             <!-- Building or User icon -->
-            <svg *ngIf="c.tipo==='empresa'" lucideBuilding2 [size]="18" [strokeWidth]="2"></svg>
-            <svg *ngIf="c.tipo==='persona'" lucideUser [size]="18" [strokeWidth]="2"></svg>
+            <svg *ngIf="c.tipo==='empresa'" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+            <svg *ngIf="c.tipo==='persona'" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
           </div>
           <div>
             <p class="font-bold text-xs text-slate-700 m-0">{{ c.nombre }}</p>
@@ -58,11 +69,11 @@
           </div>
         </div>
         <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button *appPuede="'clientes.editar'" (click)="$event.stopPropagation(); handleEdit(c)" class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all icon-btn-edit">
-            <svg lucidePencil [size]="12" [strokeWidth]="2"></svg>
+          <button *appPuede="'clientes.editar'" (click)="$event.stopPropagation(); handleEdit(c)" class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all" style="background:#eef2ff;color:#6366f1">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
-          <button *appPuede="'clientes.eliminar'" (click)="$event.stopPropagation(); deleteCliente(c.id_cliente)" class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all icon-btn-danger">
-            <svg lucideTrash2 [size]="12" [strokeWidth]="2"></svg>
+          <button *appPuede="'clientes.eliminar'" (click)="$event.stopPropagation(); deleteCliente(c.id_cliente)" class="w-7 h-7 rounded-lg flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all" style="background:#fff1f2;color:#e11d48">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
           </button>
         </div>
       </div>
@@ -94,76 +105,159 @@
       </div>
     </div>
   </div>
+
+  <!-- Table -->
+  <div *ngIf="!cargando && viewMode==='table'" class="rounded-2xl overflow-hidden" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr style="background:linear-gradient(135deg,#faf5ff,#eef2ff)">
+            <th class="pl-5 pr-1 py-3.5" style="border-bottom:2px solid #e0e7ff">
+              <input type="checkbox" class="w-4 h-4 accent-indigo-600 cursor-pointer" [checked]="allSelected" (click)="$event.stopPropagation()" (change)="toggleSelectAll()" />
+            </th>
+            <th *ngFor="let h of ['Nombre','Contacto','Dirección','Tipo','']"
+              class="px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest"
+              [class.text-left]="h" [class.text-right]="!h"
+              style="color:#6366f1;border-bottom:2px solid #e0e7ff">{{ h }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of filtered; let odd=odd" (click)="abrirDetalle(c)"
+            class="border-b border-slate-50 transition-colors hover:bg-indigo-50/40 group last:border-0 cursor-pointer"
+            [style.background]="odd?'rgba(248,250,252,.5)':'transparent'">
+            <td class="pl-5 pr-1 py-3.5">
+              <input type="checkbox" class="w-4 h-4 accent-indigo-600 cursor-pointer" [checked]="selectedIds.has(c.id_cliente)" (click)="toggleSelect(c.id_cliente, $event)" />
+            </td>
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                  [class.bg-indigo-100]="c.tipo==='empresa'" [class.text-indigo-600]="c.tipo==='empresa'"
+                  [class.bg-emerald-100]="c.tipo==='persona'" [class.text-emerald-600]="c.tipo==='persona'">
+                  <svg *ngIf="c.tipo==='empresa'" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                  </svg>
+                  <svg *ngIf="c.tipo==='persona'" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-semibold text-slate-700 text-xs">{{ c.nombre }}</span>
+                  <span class="text-[10px] text-slate-400">{{ c.sector_empresarial || '—' }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="px-5 py-3.5">
+              <div class="flex flex-col text-[11px] text-slate-500">
+                <span>{{ c.telefono || '—' }}</span>
+                <span class="text-slate-400">{{ c.email || '—' }}</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5 text-[11px] text-slate-400 max-w-[220px] truncate">{{ c.direccion || '—' }}</td>
+            <td class="px-5 py-3.5">
+              <span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-semibold"
+                [class.bg-indigo-100]="c.tipo==='empresa'" [class.text-indigo-700]="c.tipo==='empresa'"
+                [class.bg-emerald-100]="c.tipo==='persona'" [class.text-emerald-700]="c.tipo==='persona'">{{ c.tipo }}</span>
+            </td>
+            <td class="px-5 py-3.5">
+              <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button *appPuede="'clientes.editar'" (click)="$event.stopPropagation(); handleEdit(c)"
+                  class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110"
+                  style="background:#eef2ff;color:#6366f1">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button *appPuede="'clientes.eliminar'" (click)="$event.stopPropagation(); deleteCliente(c.id_cliente)"
+                  class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer transition-all hover:scale-110"
+                  style="background:#fff1f2;color:#e11d48">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filtered.length===0">
+            <td colspan="5" class="py-16 text-center">
+              <div class="flex flex-col items-center gap-2 text-slate-400">
+                <svg width="36" height="36" fill="none" stroke="#c7d2fe" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                <p class="text-sm font-semibold text-slate-400">No se encontraron clientes</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
+
+<app-bulk-action-bar *ngIf="selectedIds.size>0" [label]="bulkLabel" (deleteSelected)="bulkDelete()" (clearSelection)="clearSelection()"></app-bulk-action-bar>
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <div *ngIf="dialogOpen" class="fixed inset-0 z-[100]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="closeDialog()"></div>
-<div *ngIf="dialogOpen" [@modalLeave] class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] max-h-[90vh] overflow-y-auto"
+<div *ngIf="dialogOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] max-h-[90vh] overflow-y-auto"
   style="background:#fff;border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
-  <div class="px-6 pt-6 pb-4 modal-header-gradient">
+  <div class="px-6 pt-6 pb-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border-radius:24px 24px 0 0">
     <div class="flex items-center justify-between">
       <div>
         <h2 class="m-0 text-sm font-bold" style="color:#1e1b4b">{{ editingCliente ? 'Editar Cliente' : 'Nuevo Cliente' }}</h2>
         <p class="text-[11px] text-slate-400 m-0 mt-0.5">{{ editingCliente ? 'Actualiza los datos' : 'Agrega un nuevo cliente al CRM' }}</p>
       </div>
       <button (click)="closeDialog()" class="w-8 h-8 rounded-xl flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all" style="background:rgba(99,102,241,.1);color:#6366f1">
-        <svg lucideX [size]="14" [strokeWidth]="2"></svg>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
   </div>
   <div class="px-6 py-5 flex flex-col gap-4">
+    <div *ngIf="formError" class="px-4 py-2.5 rounded-xl text-sm font-medium" style="background:#fff1f2;border:1.5px solid #fecdd3;color:#e11d48">{{ formError }}</div>
     <div class="flex flex-col gap-1.5">
       <label class="text-[11px] font-semibold" style="color:#6366f1">Nombre *</label>
       <input [(ngModel)]="form.nombre" placeholder="Nombre o Razón Social"
-        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 form-input-soft" />
+        class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none"
+        style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Teléfono</label>
-        <input [(ngModel)]="form.telefono" placeholder="555-0000" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
+        <input [(ngModel)]="form.telefono" placeholder="555-0000" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Email</label>
-        <input [(ngModel)]="form.email" type="email" placeholder="correo@email.com" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
+        <input [(ngModel)]="form.email" type="email" placeholder="correo@email.com" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
       </div>
     </div>
     <div class="flex flex-col gap-1.5">
       <label class="text-[11px] font-semibold" style="color:#6366f1">Dirección</label>
-      <input [(ngModel)]="form.direccion" placeholder="Dirección completa" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
+      <input [(ngModel)]="form.direccion" placeholder="Dirección completa" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Sector</label>
-        <select [(ngModel)]="form.sector_empresarial" class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer form-input-soft">
+        <select [(ngModel)]="form.sector_empresarial" class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
           <option *ngFor="let s of sectorOptions" [value]="s">{{ s }}</option>
         </select>
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Tipo</label>
-        <select [(ngModel)]="form.tipo" class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer form-input-soft">
+        <select [(ngModel)]="form.tipo" class="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none cursor-pointer" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b">
           <option value="empresa">Empresa</option><option value="persona">Persona</option>
         </select>
       </div>
     </div>
-    <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
-    <button (click)="handleSubmit()" [disabled]="guardando" class="w-full py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 14px rgba(99,102,241,.4)">
-      {{ guardando ? 'Guardando...' : (editingCliente ? 'Guardar Cambios' : 'Crear Cliente') }}
+    <button (click)="handleSubmit()" class="w-full py-3 rounded-xl text-sm font-bold text-white border-0 cursor-pointer transition-all hover:scale-[1.02] active:scale-95" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 14px rgba(99,102,241,.4)">
+      {{ editingCliente ? 'Guardar Cambios' : 'Crear Cliente' }}
     </button>
   </div>
 </div>
 
 <!-- Modal: detalle de cliente -->
 <div *ngIf="detalleOpen" class="fixed inset-0 z-[100]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="cerrarDetalle()"></div>
-<div *ngIf="detalleOpen" [@modalLeave] class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[94%] max-w-lg z-[101] max-h-[85vh] overflow-y-auto"
+<div *ngIf="detalleOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[94%] max-w-lg z-[101] max-h-[85vh] overflow-y-auto"
   style="background:#fff;border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
-  <div class="px-6 pt-6 pb-4 modal-header-gradient">
+  <div class="px-6 pt-6 pb-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border-radius:24px 24px 0 0">
     <div class="flex items-center justify-between">
       <div>
         <h2 class="m-0 text-sm font-bold" style="color:#1e1b4b">{{ clienteDetalle?.nombre || 'Cliente' }}</h2>
         <p class="text-[11px] text-slate-400 m-0 mt-0.5">{{ clienteDetalle?.email || clienteDetalle?.telefono || '—' }}</p>
       </div>
       <button (click)="cerrarDetalle()" class="w-8 h-8 rounded-xl flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all" style="background:rgba(99,102,241,.1);color:#6366f1">
-        <svg lucideX [size]="14" [strokeWidth]="2"></svg>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
   </div>
@@ -195,7 +289,7 @@
       </button>
     </div>
 
-    <div class="px-6 py-4 flex flex-col gap-2 min-h-[120px]" [@tabFade]="detalleTab">
+    <div class="px-6 py-4 flex flex-col gap-2 min-h-[120px]">
       <ng-container *ngIf="detalleTab==='leads'">
         <div *ngFor="let l of clienteDetalle.leads" class="flex items-center justify-between px-3 py-2 rounded-xl border border-slate-100">
           <div>
@@ -232,7 +326,8 @@
       <ng-container *ngIf="detalleTab==='contactos'">
         <div class="flex justify-end mb-1">
           <button *appPuede="'contactos.crear'" (click)="openNewContacto()"
-            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border-0 cursor-pointer hover:scale-105 transition-all icon-btn-edit">
+            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border-0 cursor-pointer hover:scale-105 transition-all"
+            style="background:#eef2ff;color:#6366f1">
             <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Agregar contacto
           </button>
@@ -245,11 +340,11 @@
           <div class="flex items-center gap-1.5">
             <span *ngIf="ct.principal" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600">Principal</span>
             <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button *appPuede="'contactos.editar'" (click)="handleEditContacto(ct)" class="w-6 h-6 rounded-lg flex items-center justify-center border-0 cursor-pointer icon-btn-edit">
-                <svg lucidePencil [size]="11" [strokeWidth]="2"></svg>
+              <button *appPuede="'contactos.editar'" (click)="handleEditContacto(ct)" class="w-6 h-6 rounded-lg flex items-center justify-center border-0 cursor-pointer" style="background:#eef2ff;color:#6366f1">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
-              <button *appPuede="'contactos.eliminar'" (click)="deleteContacto(ct.id_contacto)" class="w-6 h-6 rounded-lg flex items-center justify-center border-0 cursor-pointer icon-btn-danger">
-                <svg lucideTrash2 [size]="11" [strokeWidth]="2"></svg>
+              <button *appPuede="'contactos.eliminar'" (click)="deleteContacto(ct.id_contacto)" class="w-6 h-6 rounded-lg flex items-center justify-center border-0 cursor-pointer" style="background:#fff1f2;color:#e11d48">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
               </button>
             </div>
           </div>
@@ -273,42 +368,43 @@
 
 <!-- Modal: nuevo/editar contacto (sobre el detalle de cliente) -->
 <div *ngIf="contactoDialogOpen" class="fixed inset-0 z-[110]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="closeContactoDialog()"></div>
-<div *ngIf="contactoDialogOpen" [@modalLeave] class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm z-[111] max-h-[90vh] overflow-y-auto"
+<div *ngIf="contactoDialogOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm z-[111] max-h-[90vh] overflow-y-auto"
   style="background:#fff;border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
-  <div class="px-6 pt-6 pb-4 modal-header-gradient">
+  <div class="px-6 pt-6 pb-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border-radius:24px 24px 0 0">
     <div class="flex items-center justify-between">
       <div>
         <h2 class="m-0 text-sm font-bold" style="color:#1e1b4b">{{ editingContacto ? 'Editar Contacto' : 'Nuevo Contacto' }}</h2>
         <p class="text-[11px] text-slate-400 m-0 mt-0.5">{{ clienteDetalle?.nombre }}</p>
       </div>
       <button (click)="closeContactoDialog()" class="w-8 h-8 rounded-xl flex items-center justify-center border-0 cursor-pointer hover:scale-110 transition-all" style="background:rgba(99,102,241,.1);color:#6366f1">
-        <svg lucideX [size]="14" [strokeWidth]="2"></svg>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
   </div>
   <div class="px-6 py-5 flex flex-col gap-4">
+    <div *ngIf="contactoFormError" class="px-4 py-2.5 rounded-xl text-sm font-medium" style="background:#fff1f2;border:1.5px solid #fecdd3;color:#e11d48">{{ contactoFormError }}</div>
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Nombre *</label>
-        <input [(ngModel)]="contactoForm.nombre" placeholder="Nombre" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
+        <input [(ngModel)]="contactoForm.nombre" placeholder="Nombre" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Apellido</label>
-        <input [(ngModel)]="contactoForm.apellido_p" placeholder="Apellido" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
+        <input [(ngModel)]="contactoForm.apellido_p" placeholder="Apellido" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
       </div>
     </div>
     <div class="flex flex-col gap-1.5">
       <label class="text-[11px] font-semibold" style="color:#6366f1">Cargo</label>
-      <input [(ngModel)]="contactoForm.cargo" placeholder="Cargo o puesto" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
+      <input [(ngModel)]="contactoForm.cargo" placeholder="Cargo o puesto" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Teléfono</label>
-        <input [(ngModel)]="contactoForm.telefono" placeholder="555-0000" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
+        <input [(ngModel)]="contactoForm.telefono" placeholder="555-0000" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-[11px] font-semibold" style="color:#6366f1">Email</label>
-        <input [(ngModel)]="contactoForm.email" type="email" placeholder="correo@email.com" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none form-input-soft" />
+        <input [(ngModel)]="contactoForm.email" type="email" placeholder="correo@email.com" class="px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none" style="background:#faf5ff;border:2px solid #e0e7ff;color:#1e1b4b" />
       </div>
     </div>
     <label class="flex items-center gap-2 text-[11px] font-semibold cursor-pointer" style="color:#6366f1">

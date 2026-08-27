@@ -281,6 +281,11 @@ body {
   border-color: rgba(255,255,255,.08) !important;
 }
 
+.dark .col-drag-target {
+  background-color: rgba(99,102,241,.16) !important;
+  outline-color: rgba(129,140,248,.6);
+}
+
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 99px; }
@@ -322,6 +327,10 @@ body {
   from { opacity: 0; transform: translate(-50%, -46%) scale(0.96); }
   to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
+@keyframes bulkBarIn {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -344,6 +353,7 @@ body {
 .scale-in      { animation: scaleIn .3s cubic-bezier(.22,1,.36,1) both; }
 .pop-in        { animation: pop .4s cubic-bezier(.22,1,.36,1) both; }
 .modal-in      { animation: modalIn .25s cubic-bezier(.16,1,.3,1) forwards; }
+.bulk-bar-in   { animation: bulkBarIn .2s cubic-bezier(.16,1,.3,1) forwards; }
 .bounce-in     { animation: bounce-in .5s cubic-bezier(.22,1,.36,1) both; }
 .pulse-soft    { animation: pulse-soft 2s ease-in-out infinite; }
 
@@ -410,32 +420,12 @@ body {
 .col-purple { @apply bg-purple-50 border border-purple-200; }
 .col-teal   { @apply bg-teal-50   border border-teal-200; }
 
-/* Form inputs (soft indigo look used across CRM dialogs) */
-.form-input-soft {
-  background: var(--bg-input);
-  border: 2px solid var(--border-input);
-  color: var(--text-primary);
-}
-
-/* Modal header gradient (CRM dialogs) */
-.modal-header-gradient {
-  background: linear-gradient(135deg, #faf5ff, #eef2ff);
-  border-radius: 24px 24px 0 0;
-}
-.dark .modal-header-gradient {
-  background: var(--bg-card);
-}
-
-/* Small icon buttons (edit/delete actions) */
-.icon-btn-edit { background: #eef2ff; color: #6366f1; }
-.dark .icon-btn-edit { background: rgba(99, 102, 241, .15); color: #818cf8; }
-
-.icon-btn-danger { background: #fff1f2; color: #e11d48; }
-.dark .icon-btn-danger { background: rgba(239, 68, 68, .15); color: #fb7185; }
-
-/* Dark-mode parity for the shadow-card utility (mirrors the old inline box-shadow override) */
-.dark .shadow-card {
-  box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.2) !important;
+/* Kanban column: active drop target while dragging a card over it */
+.col-drag-target {
+  outline: 2px dashed rgba(99,102,241,.55);
+  outline-offset: -2px;
+  background-color: rgba(99,102,241,.07);
+  transform: scale(1.015);
 }
 
 /* KPI icon bg */

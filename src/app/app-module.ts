@@ -19,6 +19,10 @@ import { PuedeDirective } from './core/directives/puede.directive';
 import { RolesComponent } from './components/admin/roles/roles.component';
 import { ToastContainerComponent } from './components/shared/toast/toast-container.component';
 import { ConfirmDialogComponent } from './components/shared/confirm-dialog/confirm-dialog.component';
+import { ViewToggleComponent } from './components/shared/view-toggle/view-toggle.component';
+import { EmptyStateComponent } from './components/shared/empty-state/empty-state.component';
+import { DateRangeComponent } from './components/shared/date-range/date-range.component';
+import { BulkActionBarComponent } from './components/shared/bulk-action-bar/bulk-action-bar.component';
 
 // Auth
 import { AuthLoginComponent }      from './components/auth/login/login.component';
@@ -87,6 +91,10 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     // Shared
     AppSwitcherComponent,
     ReportExportButtonsComponent,
+    ViewToggleComponent,
+    EmptyStateComponent,
+    DateRangeComponent,
+    BulkActionBarComponent,
     PuedeDirective,
     // Auth
     AuthLoginComponent,

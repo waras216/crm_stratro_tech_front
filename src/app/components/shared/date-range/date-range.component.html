@@ -1,0 +1,23 @@
+<div class="flex items-center gap-2 flex-wrap bg-white border border-slate-200 rounded-xl px-4 py-3">
+  <div class="flex items-center gap-2 text-slate-500">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span class="text-xs font-semibold">Periodo</span>
+  </div>
+
+  <div class="flex rounded-lg overflow-hidden border border-slate-200">
+    <button type="button" *ngFor="let p of presets" (click)="applyPreset(p.dias)"
+      class="px-3 py-1.5 text-xs font-medium border-0 border-l border-slate-200 first:border-l-0 cursor-pointer"
+      [ngClass]="activePreset===p.dias ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'">{{ p.label }}</button>
+    <button type="button" (click)="clear()"
+      class="px-3 py-1.5 text-xs font-medium border-0 border-l border-slate-200 cursor-pointer"
+      [ngClass]="activePreset==='todo' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'">Todo</button>
+  </div>
+
+  <div class="flex items-center gap-1.5">
+    <input type="date" [ngModel]="desde" (ngModelChange)="onCustomChange('desde', $event)"
+      class="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-400 cursor-pointer text-slate-600" />
+    <span class="text-slate-300 text-xs">—</span>
+    <input type="date" [ngModel]="hasta" (ngModelChange)="onCustomChange('hasta', $event)"
+      class="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-400 cursor-pointer text-slate-600" />
+  </div>
+</div>
