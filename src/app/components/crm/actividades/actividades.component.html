@@ -18,7 +18,7 @@
   </div>
 
   <!-- Skeleton loader -->
-  <div *ngIf="cargando" class="rounded-2xl overflow-hidden" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+  <div *ngIf="cargando" class="rounded-2xl overflow-hidden" style="background:var(--bg-card);box-shadow:var(--shadow-card)">
     <div *ngFor="let _ of [1,2,3,4,5]" class="flex items-center gap-3 px-4 py-4 border-b border-slate-50 last:border-0">
       <div class="w-6 h-6 rounded-full bg-slate-100 animate-pulse flex-shrink-0"></div>
       <div class="w-8 h-8 rounded-xl bg-slate-100 animate-pulse flex-shrink-0"></div>
@@ -43,7 +43,7 @@
   </div>
 
   <!-- Completed accordion -->
-  <div *ngIf="!cargando && completadas.length>0" class="rounded-2xl overflow-hidden" style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+  <div *ngIf="!cargando && completadas.length>0" class="rounded-2xl overflow-hidden" style="background:var(--bg-card);box-shadow:var(--shadow-card)">
     <button type="button" (click)="completedExpanded = !completedExpanded"
       class="w-full flex items-center justify-between px-4 py-3 border-0 bg-transparent cursor-pointer">
       <span class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -108,8 +108,8 @@
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <div *ngIf="dialogOpen" class="fixed inset-0 z-[100]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="closeDialog()"></div>
-<div *ngIf="dialogOpen" [@modalLeave] class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] max-h-[90vh] overflow-y-auto" style="background:#fff;border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
-  <div class="px-6 pt-6 pb-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border-radius:24px 24px 0 0">
+<div *ngIf="dialogOpen" [@modalLeave] class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] max-h-[90vh] overflow-y-auto" style="background:var(--bg-card);border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
+  <div class="px-6 pt-6 pb-4" style="background:var(--bg-card-hover);border-radius:24px 24px 0 0">
     <div class="flex items-center justify-between">
       <div>
         <h2 class="m-0 text-sm font-bold" style="color:#1e1b4b">{{ editingAct ? 'Editar Actividad' : 'Nueva Actividad' }}</h2>

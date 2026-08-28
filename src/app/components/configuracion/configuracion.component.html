@@ -51,7 +51,7 @@
 
       <!-- General -->
       <div *ngIf="activeTab==='general'" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
-        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        style="background:var(--bg-card);box-shadow:var(--shadow-card)">
         <div>
           <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Información de la Empresa</h2>
           <p class="text-[11px] text-slate-400 m-0 mt-1">Datos generales de tu organización</p>
@@ -111,7 +111,7 @@
 
       <!-- Cuenta -->
       <div *ngIf="activeTab==='cuenta'" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
-        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        style="background:var(--bg-card);box-shadow:var(--shadow-card)">
         <div>
           <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Mi Cuenta</h2>
           <p class="text-[11px] text-slate-400 m-0 mt-1">Información personal y acceso</p>
@@ -151,7 +151,7 @@
 
       <!-- Notificaciones -->
       <div *ngIf="activeTab==='notificaciones'" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
-        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        style="background:var(--bg-card);box-shadow:var(--shadow-card)">
         <div>
           <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Notificaciones</h2>
           <p class="text-[11px] text-slate-400 m-0 mt-1">Controla cómo y cuándo recibes alertas</p>
@@ -212,7 +212,7 @@
 
       <!-- Apariencia -->
       <div *ngIf="activeTab==='apariencia'" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
-        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        style="background:var(--bg-card);box-shadow:var(--shadow-card)">
         <div>
           <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Apariencia</h2>
           <p class="text-[11px] text-slate-400 m-0 mt-1">Personaliza el aspecto visual del sistema</p>
@@ -353,7 +353,7 @@
 
       <!-- Seguridad -->
       <div *ngIf="activeTab==='seguridad'" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
-        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        style="background:var(--bg-card);box-shadow:var(--shadow-card)">
         <div>
           <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Seguridad</h2>
           <p class="text-[11px] text-slate-400 m-0 mt-1">Protege tu cuenta y datos</p>
@@ -389,7 +389,7 @@
 
       <!-- Equipo -->
       <div *ngIf="activeTab==='equipo' && esAdmin" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
-        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        style="background:var(--bg-card);box-shadow:var(--shadow-card)">
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Equipo</h2>
@@ -648,7 +648,7 @@
 
       <!-- Negocio: nicho y módulos contratados -->
       <div *ngIf="activeTab==='negocio' && esAdmin" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
-        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        style="background:var(--bg-card);box-shadow:var(--shadow-card)">
         <div>
           <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Nicho y Módulos</h2>
           <p class="text-[11px] text-slate-400 m-0 mt-1">Cambia el giro de negocio y qué módulos tiene contratados tu empresa</p>
@@ -686,7 +686,7 @@
       </div>
 
       <div *ngIf="activeTab==='fiscal' && esAdmin" class="rounded-2xl p-6 flex flex-col gap-5 fade-up"
-        style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+        style="background:var(--bg-card);box-shadow:var(--shadow-card)">
         <div>
           <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Datos Fiscales del Emisor</h2>
           <p class="text-[11px] text-slate-400 m-0 mt-1">Datos de tu empresa ante el SAT, necesarios para emitir facturas con timbrado real (CFDI) desde ERP → Facturación. Son opcionales si solo usás el registro interno de facturas.</p>

@@ -23,7 +23,7 @@
 
   <!-- KPI: usuarios registrados por nicho -->
   <div class="rounded-2xl p-6 flex flex-col gap-3 fade-up"
-    style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    style="background:var(--bg-card);box-shadow:var(--shadow-card)">
     <h2 class="text-sm font-bold m-0" style="color:#1e1b4b">Usuarios registrados por nicho</h2>
 
     <div *ngIf="cargandoKpis" class="flex gap-2 flex-wrap">
@@ -42,7 +42,7 @@
 
   <!-- Lista -->
   <div class="rounded-2xl p-6 flex flex-col gap-2 fade-up"
-    style="background:#fff;box-shadow:0 1px 3px rgba(99,102,241,.07),0 4px 16px rgba(99,102,241,.05)">
+    style="background:var(--bg-card);box-shadow:var(--shadow-card)">
     <h2 *ngIf="!cargando" class="text-sm font-bold m-0 mb-2" style="color:#1e1b4b">{{ empresas.length }} empresa(s) registradas</h2>
     <h2 *ngIf="cargando" class="text-sm font-bold m-0 mb-2" style="color:#1e1b4b">Cargando empresas...</h2>
 
