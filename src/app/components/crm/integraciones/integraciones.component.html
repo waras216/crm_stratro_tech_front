@@ -159,3 +159,66 @@
     </div>
   </ng-container>
 </div>
+
+<!-- Modal: Sitio Web (formulario web-to-lead) -->
+<div *ngIf="dialogSitioWebOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="cerrarSitioWeb()"></div>
+<div *ngIf="dialogSitioWebOpen && sitioWebIntegracion" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-xl z-[101] shadow-2xl max-h-[90vh] overflow-y-auto">
+  <div class="flex justify-between items-center px-6 pt-5">
+    <div>
+      <h2 class="m-0 text-lg font-semibold">Sitio Web</h2>
+      <p class="text-[11px] text-slate-400 m-0 mt-0.5">Captura leads desde el formulario de contacto de tu landing (WordPress u otra)</p>
+    </div>
+    <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100" (click)="cerrarSitioWeb()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
+  <div class="px-6 py-5 flex flex-col gap-4">
+    <div class="flex items-center justify-between py-2 border-b border-slate-100">
+      <span class="text-sm text-slate-500">Estado</span>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <div *appPuede="'integraciones.editar'" class="relative w-10 h-5 rounded-full transition-colors cursor-pointer"
+          [class.bg-blue-500]="sitioWebIntegracion.estado === 'conectada'" [class.bg-slate-200]="sitioWebIntegracion.estado !== 'conectada'"
+          (click)="toggleSitioWeb()">
+          <div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+            [class.translate-x-5]="sitioWebIntegracion.estado === 'conectada'" [class.translate-x-0.5]="sitioWebIntegracion.estado !== 'conectada'"></div>
+        </div>
+        <span class="text-xs text-slate-500">{{ sitioWebIntegracion.estado === 'conectada' ? 'Activo' : 'Inactivo' }}</span>
+      </label>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-medium text-slate-600">URL de tu landing page</label>
+      <input [(ngModel)]="sitioWebForm.url_sitio" placeholder="https://tuempresa.com"
+        class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-medium text-slate-600">ID de Google Analytics (GA4)</label>
+      <input [(ngModel)]="sitioWebForm.google_analytics_id" placeholder="G-XXXXXXXXXX"
+        class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" />
+      <p class="text-[11px] text-slate-400 m-0">Solo de referencia — es el ID que ya tienes pegado en tu sitio, STRATO no mide nada por ti.</p>
+    </div>
+
+    <button *appPuede="'integraciones.editar'" (click)="guardarSitioWeb()" [disabled]="guardandoSitioWeb"
+      class="px-4 py-2.5 rounded-lg text-sm font-medium border-0 cursor-pointer bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60">
+      {{ guardandoSitioWeb ? 'Guardando...' : 'Guardar' }}
+    </button>
+
+    <div class="flex flex-col gap-2 pt-2 border-t border-slate-100">
+      <div class="flex items-center justify-between">
+        <label class="text-xs font-medium text-slate-600">Formulario para pegar en tu sitio</label>
+        <button *appPuede="'integraciones.editar'" (click)="copiar(sitioWebSnippet, 'El código')" class="text-[11px] font-semibold text-blue-600 bg-transparent border-0 cursor-pointer hover:underline">Copiar código</button>
+      </div>
+      <textarea readonly rows="6" [value]="sitioWebSnippet"
+        class="px-3 py-2 border border-slate-200 rounded-lg text-[11px] font-mono text-slate-500 resize-none bg-slate-50" (click)="$any($event.target).select()"></textarea>
+      <p class="text-[11px] text-slate-400 m-0">Pégalo en un bloque "HTML personalizado" de WordPress (o cualquier sitio) — no necesita ningún plugin.</p>
+    </div>
+
+    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+      <span class="text-[11px] text-slate-400">¿Alguien más tiene este código?</span>
+      <button *appPuede="'integraciones.editar'" (click)="regenerarToken()" [disabled]="regenerandoToken"
+        class="text-[11px] font-semibold text-red-600 bg-transparent border-0 cursor-pointer hover:underline disabled:opacity-60">
+        {{ regenerandoToken ? 'Regenerando...' : 'Regenerar token' }}
+      </button>
+    </div>
+  </div>
+</div>

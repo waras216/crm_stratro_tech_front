@@ -132,7 +132,7 @@ export interface Automatizacion {
 export interface Integracion {
   id: number;
   nombre: string;
-  tipo: 'whatsapp' | 'email' | 'calendario' | 'almacenamiento' | 'otro';
+  tipo: 'whatsapp' | 'email' | 'calendario' | 'almacenamiento' | 'sitio_web' | 'otro';
   estado: 'conectada' | 'desconectada' | 'error';
   configuracion?: Record<string, string | undefined>;
 }
@@ -144,6 +144,7 @@ export interface Usuario {
   id_tenant:  number;
   nombre:     string;
   email:      string;
+  telefono?:  string | null;
   es_admin?:  boolean;
   estado?:    EstadoUsuario;
   created_at?: string;

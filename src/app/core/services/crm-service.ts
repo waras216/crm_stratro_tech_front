@@ -354,6 +354,18 @@ export class CrmService {
     );
   }
 
+  actualizarConfiguracionIntegracion(id: number, data: { url_sitio?: string | null; google_analytics_id?: string | null }): Observable<Integracion> {
+    return this.http.put<Integracion>(`${API}/integraciones/${id}/configuracion`, data).pipe(
+      tap(updated => this._integraciones.next(this.integraciones.map(i => i.id === id ? updated : i)))
+    );
+  }
+
+  regenerarTokenIntegracion(id: number): Observable<Integracion> {
+    return this.http.post<Integracion>(`${API}/integraciones/${id}/regenerar-token`, {}).pipe(
+      tap(updated => this._integraciones.next(this.integraciones.map(i => i.id === id ? updated : i)))
+    );
+  }
+
   conectarGoogleCalendar(): Observable<{ url: string }> {
     return this.http.post<{ url: string }>(`${API}/integraciones/google-calendar/conectar`, {});
   }

@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CrmService } from '../../../core/services/crm-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { Integracion } from '../../../models/crm.models';
+import { environment } from '../../../../environments/environment';
 
 @Component({ selector: 'app-integraciones', standalone: false, templateUrl: './integraciones.component.html', styleUrls: ['./integraciones.component.scss'] })
 export class IntegracionesComponent implements OnInit, OnDestroy {
@@ -15,6 +16,7 @@ export class IntegracionesComponent implements OnInit, OnDestroy {
     email:         { icon: '✉️', color: '#dc2626', bg: '#fee2e2' },
     calendario:    { icon: '📅', color: '#2563eb', bg: '#dbeafe' },
     almacenamiento:{ icon: '💾', color: '#ca8a04', bg: '#fef9c3' },
+    sitio_web:     { icon: '🌐', color: '#0369a1', bg: '#e0f2fe' },
     otro:          { icon: '🔌', color: '#64748b', bg: '#f1f5f9' },
   };
 
@@ -47,6 +49,8 @@ export class IntegracionesComponent implements OnInit, OnDestroy {
   esGestionadaPorSistema(integ: Integracion): boolean { return integ.tipo === 'almacenamiento'; }
   /** "whatsapp" se conecta escaneando un QR (WhatsApp Web casero, ver Baileys), no con el toggle simple. */
   esQr(integ: Integracion): boolean { return integ.tipo === 'whatsapp'; }
+  /** "sitio_web" abre un panel propio (URL + Analytics + snippet del formulario) en vez del diálogo genérico de solo lectura. */
+  esSitioWeb(integ: Integracion): boolean { return integ.tipo === 'sitio_web'; }
 
   // WhatsApp (Baileys) -- QR
   dialogWhatsappOpen = false;
@@ -133,8 +137,105 @@ export class IntegracionesComponent implements OnInit, OnDestroy {
   }
 
   toggle(id: number) { this.crm.toggleIntegracion(id).subscribe(() => this.cargar()); }
-  openConfig(integ: Integracion) { this.selected = integ; }
+  openConfig(integ: Integracion) {
+    if (this.esSitioWeb(integ)) { this.abrirSitioWeb(integ); return; }
+    this.selected = integ;
+  }
   closeConfig() { this.selected = null; }
+
+  // Sitio Web -- formulario web-to-lead
+  dialogSitioWebOpen = false;
+  sitioWebIntegracion: Integracion | null = null;
+  sitioWebForm = { url_sitio: '', google_analytics_id: '' };
+  guardandoSitioWeb = false;
+  regenerandoToken = false;
+
+  abrirSitioWeb(integ: Integracion) {
+    this.sitioWebIntegracion = integ;
+    this.sitioWebForm = {
+      url_sitio: integ.configuracion?.['url_sitio'] ?? '',
+      google_analytics_id: integ.configuracion?.['google_analytics_id'] ?? '',
+    };
+    this.dialogSitioWebOpen = true;
+  }
+
+  cerrarSitioWeb() { this.dialogSitioWebOpen = false; this.sitioWebIntegracion = null; }
+
+  get sitioWebToken(): string { return this.sitioWebIntegracion?.configuracion?.['token'] ?? ''; }
+
+  get sitioWebEndpoint(): string {
+    return `${environment.apiUrl}/public/formularios/${this.sitioWebToken}/leads`;
+  }
+
+  /** Snippet HTML+JS listo para pegar en un bloque "HTML personalizado" de WordPress (o cualquier sitio) — funciona standalone, sin plugins. */
+  get sitioWebSnippet(): string {
+    return `<form id="strato-lead-form">
+  <input type="text" name="nombre" placeholder="Tu nombre" required>
+  <input type="email" name="email" placeholder="Tu email" required>
+  <input type="tel" name="telefono" placeholder="Tu teléfono">
+  <textarea name="mensaje" placeholder="¿En qué te ayudamos?"></textarea>
+  <!-- Honeypot anti-spam: se oculta con CSS, un humano nunca lo llena -->
+  <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
+  <button type="submit">Enviar</button>
+  <p id="strato-lead-form-msg"></p>
+</form>
+<script>
+document.getElementById('strato-lead-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  var form = e.target, msg = document.getElementById('strato-lead-form-msg');
+  var data = Object.fromEntries(new FormData(form));
+  fetch('${this.sitioWebEndpoint}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  }).then(function (r) { return r.json(); }).then(function () {
+    msg.textContent = '¡Gracias! Te contactaremos pronto.';
+    form.reset();
+  }).catch(function () {
+    msg.textContent = 'No se pudo enviar, intenta de nuevo.';
+  });
+});
+</script>`;
+  }
+
+  guardarSitioWeb() {
+    if (!this.sitioWebIntegracion) return;
+    this.guardandoSitioWeb = true;
+    this.crm.actualizarConfiguracionIntegracion(this.sitioWebIntegracion.id, this.sitioWebForm).subscribe({
+      next: updated => {
+        this.guardandoSitioWeb = false;
+        this.sitioWebIntegracion = updated;
+        this.notify.success('Configuración guardada.');
+        this.cargar();
+      },
+      error: () => { this.guardandoSitioWeb = false; this.notify.error('No se pudo guardar la configuración.'); this.cdr.detectChanges(); },
+    });
+  }
+
+  async regenerarToken() {
+    if (!this.sitioWebIntegracion) return;
+    const ok = await this.notify.confirm('¿Regenerar el token del formulario? El snippet que ya pegaste en tu sitio dejará de funcionar hasta que lo reemplaces por el nuevo.', { danger: true, confirmText: 'Regenerar' });
+    if (!ok) return;
+    this.regenerandoToken = true;
+    this.crm.regenerarTokenIntegracion(this.sitioWebIntegracion.id).subscribe({
+      next: updated => { this.regenerandoToken = false; this.sitioWebIntegracion = updated; this.notify.success('Token regenerado.'); this.cargar(); },
+      error: () => { this.regenerandoToken = false; this.notify.error('No se pudo regenerar el token.'); this.cdr.detectChanges(); },
+    });
+  }
+
+  toggleSitioWeb() {
+    if (!this.sitioWebIntegracion) return;
+    this.toggle(this.sitioWebIntegracion.id);
+    const activando = this.sitioWebIntegracion.estado !== 'conectada';
+    this.sitioWebIntegracion = { ...this.sitioWebIntegracion, estado: activando ? 'conectada' : 'desconectada' };
+  }
+
+  copiar(texto: string, etiqueta: string) {
+    navigator.clipboard.writeText(texto).then(
+      () => this.notify.success(`${etiqueta} copiado al portapapeles.`),
+      () => this.notify.error('No se pudo copiar. Selecciónalo y copia manualmente.'),
+    );
+  }
 
   private static readonly CLAVES_SENSIBLES = ['access_token', 'refresh_token'];
 
