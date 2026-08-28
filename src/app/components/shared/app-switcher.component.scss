@@ -300,7 +300,14 @@
   &:active { transform: scale(0.94); }
 }
 
+// Mismo breakpoint que el drawer del shell (768px): ahí aparece la bottom
+// tab bar de 60px, así que el FAB y su panel tienen que flotar por encima
+// de ella en vez de a ras del borde inferior.
+@media (max-width: 768px) {
+  .fab { bottom: 76px; right: 16px; }
+  .launcher { bottom: 148px; right: 16px; }
+}
+
 @media (max-width: 480px) {
-  .launcher { right: 12px; left: 12px; width: auto; bottom: 92px; }
-  .fab { bottom: 20px; right: 20px; }
+  .launcher { right: 12px; left: 12px; width: auto; }
 }

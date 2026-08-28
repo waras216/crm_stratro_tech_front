@@ -250,6 +250,38 @@
     </main>
   </div>
 
+  <!-- ── Bottom tab bar (solo mobile, ver media query en el .scss) ──
+       Accesos directos al pulgar: abrir el drawer completo, los primeros
+       items del sidebar del módulo activo, y el menú de perfil. No reemplaza
+       la hamburguesa/drawer, es un atajo para no tener que abrirlo siempre. -->
+  <nav *ngIf="!isConfigRoute" class="bottom-tabbar"
+    [style]="darkMode
+      ? 'background:rgba(17,24,39,.94);border-top:1px solid rgba(75,85,99,.3)'
+      : 'background:rgba(255,255,255,.94);border-top:1px solid ' + activeModule.borderColor">
+    <button class="tabbar-item" (click)="mobileOpen = true" aria-label="Abrir menú"
+      [style]="darkMode ? 'color:#9ca3af' : 'color:#64748b'">
+      <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+      <span>Menú</span>
+    </button>
+
+    <button *ngFor="let item of quickNavItems" class="tabbar-item" (click)="onNavigate(item)"
+      [style]="isItemActive(item) ? 'color:' + activeModule.accent : (darkMode ? 'color:#9ca3af' : 'color:#64748b')">
+      <span class="tabbar-icon" [innerHTML]="safe(item.svg)"></span>
+      <span>{{ item.label }}</span>
+    </button>
+
+    <button class="tabbar-item" (click)="toggleUserMenu()" aria-label="Mi perfil"
+      [style]="showUserMenu ? 'color:' + activeModule.accent : (darkMode ? 'color:#9ca3af' : 'color:#64748b')">
+      <div class="tabbar-avatar" [style]="'background:' + activeModule.activeGradient">
+        <img *ngIf="logo" [src]="logo" class="w-full h-full object-cover" alt="avatar" />
+        <span *ngIf="!logo">{{ userName.charAt(0) }}</span>
+      </div>
+      <span>Perfil</span>
+    </button>
+  </nav>
+
   <!-- ── FAB Module Launcher ── -->
   <app-switcher></app-switcher>
 

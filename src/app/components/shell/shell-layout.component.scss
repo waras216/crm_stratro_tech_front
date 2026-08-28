@@ -837,6 +837,59 @@
   animation: sidebar-fade 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Bottom tab bar: oculta en desktop, se activa en la media query mobile. */
+.bottom-tabbar {
+  display: none;
+  align-items: stretch;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60px;
+  backdrop-filter: blur(16px);
+  z-index: 35; // por debajo del .mobile-overlay (40): al abrir el drawer, el
+               // overlay oscurece también la tab bar en vez de quedar encima.
+}
+
+.tabbar-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0;
+
+  span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+}
+
+.tabbar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+}
+
+.tabbar-avatar {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  color: #fff;
+  overflow: hidden;
+}
+
 @keyframes sidebar-fade {
   from { opacity: 0; transform: translateX(-6px); }
   to   { opacity: 1; transform: translateX(0); }
@@ -857,19 +910,53 @@
   // Colapsar no tiene sentido en un drawer a pantalla completa
   .collapse-btn, .expand-btn-wrap { display: none; }
 
-  .hamburger { display: flex; }
+  .hamburger {
+    display: flex;
+    // Ícono de 20px pero hit-area de 44px (mínimo recomendado táctil):
+    // padding asimétrico vía min-width/height en vez de agrandar el ícono.
+    min-width: 44px;
+    min-height: 44px;
+  }
 
-  .topbar { padding: 0 12px; gap: 10px; }
+  .topbar { padding: 0 8px; gap: 6px; }
   .brand-name, .breadcrumb-sep { display: none; }
 
-  .content { padding: 12px; padding-bottom: 96px; }
+  // La bottom tab bar (60px) reemplaza al FAB como acceso principal, así que
+  // el contenido necesita despejar ambos: la tab bar y el FAB flotando justo
+  // encima de ella (ver app-switcher.component.scss).
+  .content { padding: 12px; padding-bottom: 180px; }
 
+  .bottom-tabbar { display: flex; }
+
+  .topbar-btn, .topbar-avatar { width: 44px; height: 44px; }
+
+  .nav-item {
+    padding: 12px 10px;
+    &--collapsed { width: 48px; height: 48px; }
+  }
+
+  .collapse-btn, .logout-btn { width: 36px; height: 36px; }
+
+  // Notificaciones y menú de usuario pasan a bottom sheet: más natural para
+  // el pulgar que un dropdown pegado arriba a la derecha, y más fácil de
+  // cerrar (basta con deslizar la vista o tocar el backdrop).
   .floating-panel {
-    left: 12px;
-    right: 12px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
     width: auto;
-    top: 64px;
+    max-height: 75vh;
+    overflow-y: auto;
+    border-radius: 20px 20px 0 0;
+    animation: sheet-enter 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .search-overlay { padding-top: 8vh; padding-left: 12px; padding-right: 12px; }
+}
+
+@keyframes sheet-enter {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
 }

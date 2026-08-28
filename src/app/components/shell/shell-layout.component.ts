@@ -47,6 +47,10 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   get darkMode() { return this.theme.isDark; }
   get activeModule() { return this.module.activeModule(); }
   get sidebarSections() { return this.module.getSidebar(this.activeModule.id, this.nicho.nicho); }
+  /** Primeros 3 accesos del sidebar del módulo activo, para la bottom tab bar de mobile. */
+  get quickNavItems(): SidebarNavItem[] {
+    return this.sidebarSections.flatMap(s => s.items).slice(0, 3);
+  }
   get isConfigRoute() {
     return this.currentUrl.startsWith('/configuracion')
       || this.currentUrl.startsWith('/admin/empresas')
@@ -280,6 +284,39 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
     // TODO: implementar búsqueda real antes de reactivar
     // if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); this.toggleSearch(); }
     if (e.key === 'Escape') this.closeAll();
+  }
+
+  // ── Swipe para abrir/cerrar el drawer en mobile ──
+  // Solo con touchstart/touchend (sin touchmove ni preventDefault) a propósito:
+  // así nunca compite con el scroll vertical normal ni con el scroll horizontal
+  // de las tablas de ERP (overflow-x-auto) — si no fue un gesto horizontal claro
+  // y de suficiente distancia, no pasa nada.
+  private swipeStartX = 0;
+  private swipeStartY = 0;
+  private swipeTracking = false;
+
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(e: TouchEvent) {
+    if (window.innerWidth > 768) { this.swipeTracking = false; return; }
+    const t = e.touches[0];
+    this.swipeStartX = t.clientX;
+    this.swipeStartY = t.clientY;
+    // Trackeamos si el drawer ya está abierto (se puede cerrar deslizando desde
+    // cualquier punto) o si el toque arranca pegado al borde izquierdo (abre
+    // el drawer, como el swipe-back nativo de iOS/Android).
+    this.swipeTracking = this.mobileOpen || t.clientX < 20;
+  }
+
+  @HostListener('touchend', ['$event'])
+  onTouchEnd(e: TouchEvent) {
+    if (!this.swipeTracking) return;
+    this.swipeTracking = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - this.swipeStartX;
+    const dy = t.clientY - this.swipeStartY;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (!this.mobileOpen && dx > 0) this.mobileOpen = true;
+    else if (this.mobileOpen && dx < 0) this.mobileOpen = false;
   }
 
   toggleTheme() { this.theme.toggle(); }
