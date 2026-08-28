@@ -15,6 +15,10 @@ export class ClientesComponent implements OnInit {
   formError = '';
   viewMode: ViewMode = (localStorage.getItem(VIEW_MODE_KEY) as ViewMode) || 'grid';
 
+  paginaActual = 1;
+  totalPaginas = 1;
+  total        = 0;
+
   sectorOptions = ['Tecnología', 'Software', 'Fintech', 'Consultoría', 'Retail', 'Salud', 'Educación', 'Manufactura', 'Freelance', 'Otro'];
   form = { nombre: '', telefono: '', email: '', direccion: '', sector_empresarial: 'Tecnología', tipo: 'empresa' as Cliente['tipo'] };
 
@@ -34,25 +38,32 @@ export class ClientesComponent implements OnInit {
     // un signal-write ajeno (p. ej. un toast) puede disparar un chequeo global que lo agarra
     // en ese estado transitorio nunca visto antes, y Angular tira NG0100 en modo dev.
     this.cdr.detectChanges();
-    this.crm.cargarClientes().subscribe({
-      next: res => { this.clientes = res.data ?? []; this.cargando = false; this.cdr.detectChanges(); },
+    const tipo = this.filterTipo === 'todos' ? '' : this.filterTipo;
+    this.crm.cargarClientes(this.paginaActual, this.search, tipo).subscribe({
+      next: res => {
+        this.clientes     = res?.data ?? [];
+        this.total        = res?.total ?? 0;
+        this.totalPaginas = res?.last_page ?? 1;
+        this.cargando     = false;
+        this.cdr.detectChanges();
+      },
       error: () => { this.cargando = false; this.cdr.detectChanges(); }
     });
   }
 
-  get filtered() {
-    return this.clientes.filter(c => {
-      const ms = c.nombre.toLowerCase().includes(this.search.toLowerCase()) ||
-                 (c.email ?? '').toLowerCase().includes(this.search.toLowerCase());
-      return ms && (this.filterTipo === 'todos' || c.tipo === this.filterTipo);
-    });
-  }
+  // El filtro por texto/tipo ya lo hace el backend (paginado) — este getter
+  // queda solo para no tener que renombrar `filtered` en toda la plantilla.
+  get filtered() { return this.clientes; }
 
   setViewMode(mode: ViewMode) { this.viewMode = mode; localStorage.setItem(VIEW_MODE_KEY, mode); }
 
-  // Selección en bloque (vista de tabla)
+  onSearchChange() { this.paginaActual = 1; this.selectedIds.clear(); this.cargar(); }
+  onFiltroChange() { this.paginaActual = 1; this.selectedIds.clear(); this.cargar(); }
+  paginar(p: number) { if (p < 1 || p > this.totalPaginas) return; this.paginaActual = p; this.selectedIds.clear(); this.cargar(); }
+
+  // Selección en bloque (página actual)
   selectedIds = new Set<number>();
-  get allSelected() { return this.filtered.length > 0 && this.filtered.every(c => this.selectedIds.has(c.id_cliente)); }
+  get allSelected() { return this.clientes.length > 0 && this.clientes.every(c => this.selectedIds.has(c.id_cliente)); }
   get bulkLabel() { const n = this.selectedIds.size; return `${n} cliente${n === 1 ? '' : 's'} seleccionado${n === 1 ? '' : 's'}`; }
 
   toggleSelect(id: number, event: Event) {
@@ -62,7 +73,7 @@ export class ClientesComponent implements OnInit {
 
   toggleSelectAll() {
     if (this.allSelected) this.selectedIds.clear();
-    else this.filtered.forEach(c => this.selectedIds.add(c.id_cliente));
+    else this.clientes.forEach(c => this.selectedIds.add(c.id_cliente));
   }
 
   clearSelection() { this.selectedIds.clear(); }

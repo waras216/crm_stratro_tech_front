@@ -6,12 +6,12 @@
         <svg class="absolute left-3 text-indigo-400 pointer-events-none w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
-        <input [(ngModel)]="search"
+        <input [(ngModel)]="search" (ngModelChange)="onSearchChange()"
           class="pl-9 pr-4 py-2.5 rounded-xl text-sm font-medium w-56 focus:outline-none"
           style="background:#fff;border:1.5px solid rgba(99,102,241,.15);color:#1e1b4b"
           placeholder="Buscar clientes…" />
       </div>
-      <select [(ngModel)]="filterTipo" class="px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer focus:outline-none"
+      <select [(ngModel)]="filterTipo" (ngModelChange)="onFiltroChange()" class="px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer focus:outline-none"
         style="background:#fff;border:1.5px solid rgba(99,102,241,.15);color:#1e1b4b">
         <option value="todos">Todos los tipos</option>
         <option value="empresa">Empresa</option>
@@ -98,12 +98,14 @@
         <span class="text-[10px] text-slate-300 font-medium">{{ c.fecha_registro }}</span>
       </div>
     </div>
-    <div *ngIf="filtered.length===0" class="col-span-full py-16 text-center">
-      <div class="flex flex-col items-center gap-2">
-        <svg width="40" height="40" fill="none" stroke="#c7d2fe" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-        <p class="text-sm font-semibold text-slate-400">No se encontraron clientes</p>
-      </div>
-    </div>
+    <app-empty-state *ngIf="filtered.length===0"
+      [titulo]="total===0 ? 'Aún no tienes clientes' : 'No se encontraron clientes'"
+      [subtitulo]="total===0 ? 'Registra tu primer cliente para empezar a llevar el control de tu cartera.' : 'Ajusta la búsqueda o el filtro para ver más resultados.'"
+      [accionLabel]="total===0 ? 'Nuevo Cliente' : ''"
+      color="indigo"
+      (accion)="openNew()">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+    </app-empty-state>
   </div>
 
   <!-- Table -->
@@ -174,15 +176,36 @@
             </td>
           </tr>
           <tr *ngIf="filtered.length===0">
-            <td colspan="5" class="py-16 text-center">
-              <div class="flex flex-col items-center gap-2 text-slate-400">
-                <svg width="36" height="36" fill="none" stroke="#c7d2fe" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                <p class="text-sm font-semibold text-slate-400">No se encontraron clientes</p>
-              </div>
+            <td colspan="5">
+              <app-empty-state
+                [titulo]="total===0 ? 'Aún no tienes clientes' : 'No se encontraron clientes'"
+                [subtitulo]="total===0 ? 'Registra tu primer cliente para empezar a llevar el control de tu cartera.' : 'Ajusta la búsqueda o el filtro para ver más resultados.'"
+                [accionLabel]="total===0 ? 'Nuevo Cliente' : ''"
+                color="indigo"
+                (accion)="openNew()">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              </app-empty-state>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Pagination: independiente de la vista (grid o tabla) -->
+  <div *ngIf="totalPaginas>1" class="flex items-center justify-between px-1">
+    <span class="text-[11px] text-slate-400 font-medium">{{ total }} registros · página {{ paginaActual }} de {{ totalPaginas }}</span>
+    <div class="flex gap-1.5">
+      <button (click)="paginar(paginaActual-1)" [disabled]="paginaActual===1"
+        class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer font-bold transition-all disabled:opacity-30"
+        style="background:#eef2ff;color:#6366f1">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button (click)="paginar(paginaActual+1)" [disabled]="paginaActual===totalPaginas"
+        class="w-8 h-8 rounded-lg flex items-center justify-center border-0 cursor-pointer font-bold transition-all disabled:opacity-30"
+        style="background:#eef2ff;color:#6366f1">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
     </div>
   </div>
 </div>
