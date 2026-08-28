@@ -41,7 +41,7 @@
     </ng-container>
 
     <ng-container *ngIf="!cargando">
-      <div *ngFor="let rol of roles; let i=index" class="flex flex-col rounded-xl card-enter" [style.animation-delay]="(i*0.05)+'s'" style="border:1px solid #eef2ff">
+      <div *ngFor="let rol of roles; let i=index" class="flex flex-col rounded-xl card-enter" [style.animation-delay]="(i*0.05)+'s'" style="border:1px solid var(--border-card)">
         <div class="flex items-center justify-between py-3 px-3 cursor-pointer" (click)="toggleDetalle(rol)">
           <div>
             <p class="text-sm font-medium m-0" style="color:#1e1b4b">
