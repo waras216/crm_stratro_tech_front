@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ErpService } from '../../../core/services/erp-service';
 import { ErpDashboardActividad, ErpDashboardModulo, ErpDashboardTendencia } from '../../../models/erp.models';
 
@@ -49,7 +50,7 @@ const ICONS_MODULO: Record<string, string> = {
           <div *ngFor="let k of kpis; let i = index" class="bg-white rounded-xl p-4 border border-slate-100 card-enter hover-lift" [style.animation-delay]="(i*0.06)+'s'">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" [ngClass]="k.bg">
-                <span [innerHTML]="k.icon"></span>
+                <span [innerHTML]="safe(k.icon)"></span>
               </div>
               <div class="min-w-0">
                 <p class="text-xl font-bold m-0 leading-tight" [ngClass]="k.color">{{ k.value }}</p>
@@ -107,7 +108,7 @@ const ICONS_MODULO: Record<string, string> = {
           <div *ngFor="let m of modulos; let i = index" class="relative overflow-hidden bg-white rounded-xl p-5 border border-slate-100 hover-lift card-enter" [style.animation-delay]="(i*0.05+0.2)+'s'">
             <span class="absolute inset-y-0 left-0 w-1" [ngClass]="m.bg.replace('100','400')"></span>
             <div class="flex items-center gap-3 mb-3">
-              <div class="w-9 h-9 rounded-lg flex items-center justify-center" [ngClass]="[m.bg, m.bg.replace('bg-','text-').replace('100','600')]" [innerHTML]="m.icono"></div>
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center" [ngClass]="[m.bg, m.bg.replace('bg-','text-').replace('100','600')]" [innerHTML]="safe(m.icono)"></div>
               <div class="min-w-0">
                 <p class="text-sm font-bold text-slate-800 m-0 truncate">{{ m.titulo }}</p>
                 <p class="text-[10px] text-slate-400 m-0 mt-0.5 truncate">{{ m.subtitulo }}</p>
@@ -146,7 +147,10 @@ export class ErpDashboardComponent implements OnInit {
   balanceMes = 0;
   absBalanceMes = 0;
 
-  constructor(private erpService: ErpService, private cdr: ChangeDetectorRef) {}
+  constructor(private erpService: ErpService, private cdr: ChangeDetectorRef, private sanitizer: DomSanitizer) {}
+
+  // Angular sanitiza (y descarta) cualquier <svg> pasado a [innerHTML] sin esto.
+  safe(html?: string): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(html ?? ''); }
 
   ngOnInit() {
     this.erpService.cargarDashboardResumen().subscribe(res => {

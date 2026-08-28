@@ -81,7 +81,7 @@
       </button>
       <!-- Type icon -->
       <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" [ngClass]="tipoColors[act.tipo]">
-        <span [innerHTML]="tipoSvg[act.tipo]"></span>
+        <span [innerHTML]="safe(tipoSvg[act.tipo])"></span>
       </div>
       <div class="flex-1 min-w-0">
         <p class="text-xs font-semibold text-slate-700 m-0" [class.line-through]="act.estado === 'completada'" [class.text-slate-400]="act.estado === 'completada'">{{ act.titulo }}</p>

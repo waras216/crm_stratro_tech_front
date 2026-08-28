@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { forkJoin } from 'rxjs';
 import { CrmService } from '../../../core/services/crm-service';
 import { NotifyService } from '../../../core/services/notify.service';
@@ -32,7 +33,10 @@ export class ActividadesComponent implements OnInit {
   form: { titulo: string; tipo: Actividad['tipo']; descripcion: string; fecha_inicio: string; hora: string; estado: Actividad['estado'] } =
     { titulo: '', tipo: 'tarea', descripcion: '', fecha_inicio: '', hora: '', estado: 'pendiente' };
 
-  constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService, private sanitizer: DomSanitizer) {}
+
+  // Angular sanitiza (y descarta) cualquier <svg> pasado a [innerHTML] sin esto.
+  safe(html: string): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(html); }
   ngOnInit() { this.cargar(); }
 
   cargar() {

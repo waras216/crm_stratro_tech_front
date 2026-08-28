@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Location } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
 import { UsuarioService } from '../../core/services/usuario.service';
@@ -163,7 +164,11 @@ export class ConfiguracionComponent implements OnInit {
     private rolService: RolService,
     private cdr: ChangeDetectorRef,
     private notify: NotifyService,
+    private sanitizer: DomSanitizer,
   ) {}
+
+  // Angular sanitiza (y descarta) cualquier <svg> pasado a [innerHTML] sin esto.
+  safe(html: string): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(html); }
 
   goBack() { this.location.back(); }
 

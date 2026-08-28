@@ -40,7 +40,7 @@
         class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all text-left w-auto whitespace-nowrap flex-shrink-0 lg:w-full lg:whitespace-normal"
         [ngClass]="activeTab===tab.id ? 'text-white' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'"
         [style]="activeTab===tab.id ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 4px 12px rgba(99,102,241,.3)' : 'background:transparent'">
-        <span [innerHTML]="tab.icon"></span>
+        <span [innerHTML]="safe(tab.icon)"></span>
         {{ tab.label }}
       </button>
       </ng-container>

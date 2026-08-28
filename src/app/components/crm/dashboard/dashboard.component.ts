@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CrmService } from '../../../core/services/crm-service';
 import { NichoService } from '../../../core/services/nicho.service';
 import { AuthService } from '../../../core/auth/authservices';
@@ -39,7 +40,11 @@ export class DashboardComponent implements OnInit {
     nuevo:'badge-blue', contactado:'badge-amber', calificado:'badge-green', perdido:'badge-red', convertido:'badge-emerald'
   };
 
-  constructor(private crm: CrmService, public nicho: NichoService, private auth: AuthService, private cdr: ChangeDetectorRef) {}
+  constructor(private crm: CrmService, public nicho: NichoService, private auth: AuthService, private cdr: ChangeDetectorRef, private sanitizer: DomSanitizer) {}
+
+  // Angular sanitiza (y descarta) cualquier <svg> pasado a [innerHTML] sin
+  // esto — por eso los íconos de las tarjetas KPI no se veían.
+  safe(html: string): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(html); }
 
   ngOnInit() {
     const s = this.auth.session;
