@@ -180,8 +180,10 @@ export class CrmService {
   oportunidades$ = this._oportunidades.asObservable();
   get oportunidades() { return this._oportunidades.getValue(); }
 
-  cargarOportunidades(): Observable<ApiPage<Oportunidad>> {
-    return this.http.get<any>(`${API}/oportunidades`).pipe(
+  cargarOportunidades(search = ''): Observable<ApiPage<Oportunidad>> {
+    let params = new HttpParams();
+    if (search) params = params.set('search', search);
+    return this.http.get<any>(`${API}/oportunidades`, { params }).pipe(
       map(res => toPage<Oportunidad>(res)),
       tap(page => this._oportunidades.next(page.data))
     );

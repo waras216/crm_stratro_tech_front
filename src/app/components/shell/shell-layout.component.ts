@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
-import { Subject, interval } from 'rxjs';
-import { filter, takeUntil } from 'rxjs/operators';
+import { Subject, interval, forkJoin, of } from 'rxjs';
+import { filter, takeUntil, debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
@@ -11,6 +11,14 @@ import { NotifyService } from '../../core/services/notify.service';
 import { NichoService } from '../../core/services/nicho.service';
 import { RouterOutlet } from '@angular/router';
 import { sidebarLeave, dropdownLeave, routeFade } from '../shared/animations';
+
+interface SearchResult {
+  tipo: 'lead' | 'cliente' | 'oportunidad';
+  id: number;
+  titulo: string;
+  subtitulo: string;
+  icon: string;
+}
 
 @Component({
   selector: 'app-shell-layout',
@@ -33,6 +41,8 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   showNotifPanel = false;
   showUserMenu = false;
   searchQuery = '';
+  buscando = false;
+  searchResults: SearchResult[] = [];
 
   notifications: { id: number; icon: string; title: string; desc: string; time: string; unread: boolean }[] = [];
 
@@ -41,6 +51,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   };
 
   private destroy$ = new Subject<void>();
+  private search$ = new Subject<string>();
   private knownNotifIds = new Set<number>();
   private audioCtx: AudioContext | null = null;
 
@@ -98,6 +109,56 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
 
     this.cargarNotificaciones(false);
     interval(20000).pipe(takeUntil(this.destroy$)).subscribe(() => this.cargarNotificaciones(true));
+
+    this.search$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(q => {
+        if (q.trim().length < 2) return of(null);
+        this.buscando = true;
+        return forkJoin({
+          leads: this.crm.cargarLeads(1, q, 'todos', 5).pipe(catchError(() => of(null))),
+          clientes: this.crm.cargarClientes(1, q, '', 5).pipe(catchError(() => of(null))),
+          oportunidades: this.crm.cargarOportunidades(q).pipe(catchError(() => of(null))),
+        });
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(res => {
+      this.buscando = false;
+      if (!res) { this.searchResults = []; this.cdr.detectChanges(); return; }
+      const leads: SearchResult[] = (res.leads?.data ?? []).map(l => ({
+        tipo: 'lead', id: l.id_lead, titulo: l.titulo, subtitulo: l.nombre || l.email || 'Lead', icon: '📥',
+      }));
+      const clientes: SearchResult[] = (res.clientes?.data ?? []).map(c => ({
+        tipo: 'cliente', id: c.id_cliente, titulo: c.nombre, subtitulo: c.email || c.telefono || 'Cliente', icon: '🏢',
+      }));
+      // Solo hasta 5 en el modal de búsqueda, aunque el backend no pagine oportunidades.
+      const oportunidades: SearchResult[] = (res.oportunidades?.data ?? []).slice(0, 5).map(o => ({
+        tipo: 'oportunidad', id: o.id_oportunidad, titulo: o.titulo, subtitulo: o.cliente?.nombre || 'Oportunidad', icon: '⭐',
+      }));
+      this.searchResults = [...leads, ...clientes, ...oportunidades];
+      this.cdr.detectChanges();
+    });
+  }
+
+  onSearchInput() {
+    this.search$.next(this.searchQuery);
+  }
+
+  /**
+   * No hay ruta de detalle individual para lead/cliente/oportunidad (se editan
+   * desde un diálogo dentro de su propia lista) — navegar al resultado lleva
+   * a esa lista con el mismo texto precargado en el buscador de la página,
+   * para que el registro buscado quede visible/filtrado ahí.
+   */
+  goToSearchResult(r: SearchResult) {
+    const rutas: Record<SearchResult['tipo'], string> = {
+      lead: '/crm/leads', cliente: '/crm/clientes', oportunidad: '/crm/oportunidades',
+    };
+    this.router.navigate([rutas[r.tipo]], { queryParams: { q: r.titulo } });
+    this.closeAll();
+    this.searchQuery = '';
+    this.searchResults = [];
   }
 
   private cargarNotificaciones(detectarNuevas: boolean) {
@@ -175,7 +236,12 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   }
 
   isItemActive(item: SidebarNavItem): boolean {
-    if (item.route) return this.currentUrl === item.route || this.currentUrl.startsWith(item.route + '/');
+    if (item.route) {
+      // Se descartan los query params (ej. ?q=... desde un resultado de
+      // búsqueda) antes de comparar, si no el item nunca queda activo.
+      const path = this.currentUrl.split('?')[0];
+      return path === item.route || path.startsWith(item.route + '/');
+    }
     if (item.erpTab) return this.activeErpTab === item.erpTab;
     if (item.posTab) return this.activePosTab === item.posTab;
     return false;
@@ -184,7 +250,9 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   getPageTitle(): string {
     if (this.activeModule.id === 'erp') return this.erpLabel(this.activeErpTab);
     if (this.activeModule.id === 'pos') return this.posLabel(this.activePosTab);
-    const parts = this.currentUrl.split('/').filter(Boolean);
+    // currentUrl puede traer query params (ej. ?q=... desde un resultado de
+    // búsqueda) — se descartan antes de derivar el título de la URL.
+    const parts = this.currentUrl.split('?')[0].split('/').filter(Boolean);
     if (parts.length >= 2) return parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
     return this.activeModule.label;
   }
@@ -204,7 +272,12 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
     return tab === 'terminal' ? 'Terminal de Venta' : 'Historial de Ventas';
   }
 
-  toggleSearch()    { this.showSearch = !this.showSearch; this.showNotifPanel = false; this.showUserMenu = false; }
+  toggleSearch()    {
+    this.showSearch = !this.showSearch;
+    this.showNotifPanel = false;
+    this.showUserMenu = false;
+    if (!this.showSearch) { this.searchQuery = ''; this.searchResults = []; }
+  }
   toggleNotif() {
     this.showNotifPanel = !this.showNotifPanel;
     this.showSearch = false;
@@ -281,8 +354,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
 
   @HostListener('document:keydown', ['$event'])
   onKeydown(e: KeyboardEvent) {
-    // TODO: implementar búsqueda real antes de reactivar
-    // if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); this.toggleSearch(); }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); this.toggleSearch(); }
     if (e.key === 'Escape') this.closeAll();
   }
 

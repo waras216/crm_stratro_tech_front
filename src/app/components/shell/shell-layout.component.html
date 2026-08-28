@@ -193,8 +193,8 @@
           </svg>
         </button>
 
-        <!-- Search: oculto hasta implementar búsqueda real, ver TODO en shell-layout.component.ts#onKeydown -->
-        <button *ngIf="false" (click)="toggleSearch()" class="search-hint hidden md:flex"
+        <!-- Search: busca leads/clientes/oportunidades, ver shell-layout.component.ts -->
+        <button (click)="toggleSearch()" class="search-hint hidden md:flex"
           [style]="darkMode
             ? 'background:rgba(255,255,255,.06);color:#6b7280;border:1.5px solid rgba(255,255,255,.09)'
             : 'background:rgba(0,0,0,.04);color:#94a3b8;border:1.5px solid rgba(0,0,0,.06)'">
@@ -234,13 +234,28 @@
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" [style]="'color:' + activeModule.accent">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
           </svg>
-          <input #searchInput [(ngModel)]="searchQuery" class="search-input"
+          <input #searchInput [(ngModel)]="searchQuery" (ngModelChange)="onSearchInput()" class="search-input"
             placeholder="Buscar leads, clientes, oportunidades…"
             [style]="darkMode ? 'color:#f3f4f6;background:transparent' : 'color:#1e1b4b;background:transparent'"
             autofocus />
           <kbd class="kbd" [style]="darkMode?'background:rgba(255,255,255,.08);color:#9ca3af':'background:rgba(0,0,0,.06);color:#94a3b8'">ESC</kbd>
         </div>
-        <p class="search-hint-text" [style]="darkMode?'color:#6b7280':'color:#94a3b8'">Escribe para buscar en el módulo activo</p>
+
+        <p *ngIf="searchQuery.trim().length < 2" class="search-hint-text" [style]="darkMode?'color:#6b7280':'color:#94a3b8'">Escribe al menos 2 letras para buscar</p>
+        <p *ngIf="searchQuery.trim().length >= 2 && buscando" class="search-hint-text" [style]="darkMode?'color:#6b7280':'color:#94a3b8'">Buscando…</p>
+        <p *ngIf="searchQuery.trim().length >= 2 && !buscando && searchResults.length===0" class="search-hint-text" [style]="darkMode?'color:#6b7280':'color:#94a3b8'">Sin resultados para "{{ searchQuery }}"</p>
+
+        <div *ngIf="searchResults.length > 0" class="search-results">
+          <button *ngFor="let r of searchResults" (click)="goToSearchResult(r)" class="search-result-item"
+            [style]="darkMode ? 'color:#e5e7eb' : 'color:#1e1b4b'">
+            <span class="search-result-icon">{{ r.icon }}</span>
+            <span class="search-result-body">
+              <span class="search-result-title">{{ r.titulo }}</span>
+              <span class="search-result-sub" [style]="darkMode?'color:#9ca3af':'color:#94a3b8'">{{ r.subtitulo }}</span>
+            </span>
+            <span class="search-result-tag" [style]="darkMode?'color:#6b7280':'color:#94a3b8'">{{ r.tipo }}</span>
+          </button>
+        </div>
       </div>
     </div>
 

@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { CrmService } from '../../../core/services/crm-service';
 import { NotifyService } from '../../../core/services/notify.service';
@@ -47,9 +48,13 @@ export class OportunidadesComponent implements OnInit {
   pipelineForm: { nombre: string; activo: boolean } = { nombre: '', activo: true };
   pipelineError = '';
 
-  constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService, private route: ActivatedRoute) {}
 
   ngOnInit() {
+    // Llega con ?q= desde un resultado de la búsqueda global del shell — el
+    // Kanban y la lista ya filtran por `search` en el cliente (ver `filtered`).
+    const q = this.route.snapshot.queryParamMap.get('q');
+    if (q) this.search = q;
     this.cargar();
     this.crm.cargarClientes().subscribe({ next: res => { this.clientes = res.data ?? []; this.cdr.detectChanges(); } });
     this.crm.cargarPipelines().subscribe({ next: res => { this.pipelines = res ?? []; this.cdr.detectChanges(); } });

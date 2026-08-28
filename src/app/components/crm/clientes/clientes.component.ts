@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { CrmService } from '../../../core/services/crm-service';
 import { NotifyService } from '../../../core/services/notify.service';
@@ -28,9 +29,14 @@ export class ClientesComponent implements OnInit {
   clienteDetalle: Cliente | null = null;
   detalleTab: 'leads' | 'oportunidades' | 'actividades' | 'contactos' | 'compras' = 'leads';
 
-  constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
+  constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService, private route: ActivatedRoute) {}
 
-  ngOnInit() { this.cargar(); }
+  ngOnInit() {
+    // Llega con ?q= desde un resultado de la búsqueda global del shell.
+    const q = this.route.snapshot.queryParamMap.get('q');
+    if (q) { this.search = q; this.viewMode = 'table'; }
+    this.cargar();
+  }
 
   cargar() {
     this.cargando = true;
