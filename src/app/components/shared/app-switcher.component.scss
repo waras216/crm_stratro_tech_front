@@ -16,6 +16,7 @@
   right: 28px;
   z-index: 200;
   width: 340px;
+  max-width: calc(100vw - 24px);
   background: rgba(12, 8, 35, 0.97);
   backdrop-filter: blur(24px);
   border: 1px solid rgba(129, 140, 248, 0.14);
@@ -297,4 +298,9 @@
 
   &:hover  { transform: scale(1.1); }
   &:active { transform: scale(0.94); }
+}
+
+@media (max-width: 480px) {
+  .launcher { right: 12px; left: 12px; width: auto; bottom: 92px; }
+  .fab { bottom: 20px; right: 20px; }
 }

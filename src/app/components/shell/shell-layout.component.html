@@ -7,6 +7,7 @@
   <!-- ══════════ SIDEBAR ══════════ -->
   <aside *ngIf="!isConfigRoute" class="sidebar"
     [class.collapsed]="collapsed"
+    [class.mobile-open]="mobileOpen"
     [style]="'background:' + activeModule.sidebarGradient + ';box-shadow:' + activeModule.sidebarShadow">
 
     <!-- Decorative glow -->
@@ -146,6 +147,14 @@
       [style]="darkMode
         ? 'background:rgba(17,24,39,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(75,85,99,.3)'
         : 'background:rgba(255,255,255,.84);backdrop-filter:blur(16px);border-bottom:1px solid ' + activeModule.borderColor">
+
+      <!-- Hamburger: solo visible en mobile (ver media query en el .scss) -->
+      <button class="hamburger" (click)="mobileOpen = !mobileOpen" aria-label="Abrir menú"
+        [style]="darkMode ? 'color:#e5e7eb' : 'color:#374151'">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
 
       <!-- Brand + breadcrumb -->
       <div class="breadcrumb">

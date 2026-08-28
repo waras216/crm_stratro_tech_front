@@ -458,9 +458,10 @@
   border-radius: 10px;
   background: transparent;
   color: inherit;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 
   &:hover { background: rgba(0,0,0,.05); }
 }
@@ -469,6 +470,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  flex: 1;
 }
 
 .brand-badge {
@@ -504,6 +507,10 @@
   font-size: 0.875rem;
   font-weight: 700;
   margin: 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: color 0.25s ease;
 }
 
@@ -833,4 +840,36 @@
 @keyframes sidebar-fade {
   from { opacity: 0; transform: translateX(-6px); }
   to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ══════════ Mobile (< 769px): sidebar pasa a ser un drawer ══════════ */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 256px !important; // el drawer siempre va expandido; "collapsed" no aplica en mobile
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.mobile-open { transform: translateX(0); }
+  }
+
+  // Colapsar no tiene sentido en un drawer a pantalla completa
+  .collapse-btn, .expand-btn-wrap { display: none; }
+
+  .hamburger { display: flex; }
+
+  .topbar { padding: 0 12px; gap: 10px; }
+  .brand-name, .breadcrumb-sep { display: none; }
+
+  .content { padding: 12px; padding-bottom: 96px; }
+
+  .floating-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    top: 64px;
+  }
+
+  .search-overlay { padding-top: 8vh; padding-left: 12px; padding-right: 12px; }
 }
