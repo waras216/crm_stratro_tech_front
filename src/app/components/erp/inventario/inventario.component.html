@@ -1,6 +1,6 @@
 <div class="flex flex-col gap-5 page-enter">
   <!-- KPIs -->
-  <div class="grid grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1" style="box-shadow:var(--shadow-card)">
       <p class="text-xs text-slate-500 m-0">Productos</p>
       <p class="text-2xl font-bold text-slate-800 m-0">{{ inventario.length }}</p>
@@ -16,9 +16,9 @@
   </div>
 
   <!-- Toolbar -->
-  <div class="flex items-center justify-between">
-    <input class="max-w-xs px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-amber-400" placeholder="Buscar por nombre o SKU..." [(ngModel)]="search" />
-    <div class="flex gap-2">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <input class="w-full sm:max-w-xs px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-amber-400" placeholder="Buscar por nombre o SKU..." [(ngModel)]="search" />
+    <div class="flex gap-2 flex-wrap">
       <button (click)="abrirCategorias()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Categorías</button>
       <button *appPuede="'erp_inventario.eliminar'" (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Papelera</button>
       <button *appPuede="'erp_inventario.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Producto</button>
@@ -31,6 +31,7 @@
   </div>
 
   <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
     <table class="w-full text-sm border-collapse">
       <thead>
         <tr class="bg-slate-50">
@@ -84,10 +85,19 @@
           </td>
         </tr>
         <tr *ngIf="filtrado.length === 0">
-          <td colspan="7" class="text-center py-10 text-slate-400 text-xs">{{ search ? 'Sin productos que coincidan con "' + search + '".' : 'Sin productos en el inventario todavía.' }}</td>
+          <td colspan="7">
+            <app-empty-state
+              [titulo]="search ? 'Sin productos que coincidan con &quot;' + search + '&quot;' : 'Aún no tienes productos'"
+              [subtitulo]="search ? 'Ajusta la búsqueda para ver más resultados.' : 'Da de alta tu primer producto para empezar a controlar tu inventario.'"
+              [accionLabel]="search ? '' : '+ Producto'"
+              color="amber" (accion)="openNew()">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.91 8.84L8.56 2.23a1.93 1.93 0 0 0-1.81 0L3.1 4.13a2.12 2.12 0 0 0-.06 3.69l12.35 6.61a1.93 1.93 0 0 0 1.81 0l3.65-1.9a2.12 2.12 0 0 0 .06-3.69Z"/><path d="M3.09 8.84l12.35 6.61a1.93 1.93 0 0 0 1.81 0l3.65-1.9"/><line x1="12" y1="22" x2="12" y2="13"/></svg>
+            </app-empty-state>
+          </td>
         </tr>
       </tbody>
     </table>
+    </div>
   </div>
 </div>
 

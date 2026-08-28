@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-4">
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div>
       <h3 class="m-0 text-sm font-bold text-slate-700">Gestión de Habitaciones</h3>
       <p class="text-xs text-slate-400 m-0 mt-0.5">Vista administrativa — el check-in, check-out y room service se hacen desde el POS</p>
@@ -12,7 +12,7 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-5 gap-3">
+  <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
     <div class="rounded-xl bg-emerald-50 p-3 text-center">
       <p class="text-lg font-extrabold text-emerald-600 m-0">{{ contarEstado('libre') }}</p>
       <p class="text-[10px] font-semibold text-emerald-600 m-0 mt-0.5">Libres</p>
@@ -40,6 +40,7 @@
   </div>
 
   <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
     <table class="w-full text-sm border-collapse">
       <thead><tr class="bg-slate-50">
         <th class="text-left px-4 py-3 font-medium text-slate-500">Hab.</th>
@@ -92,9 +93,10 @@
         </tr>
       </tbody>
     </table>
+    </div>
   </div>
 
-  <div class="flex items-center justify-between rounded-xl bg-slate-50 p-4">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 rounded-xl bg-slate-50 p-4">
     <p class="text-xs text-slate-500 m-0">Por cobrar (consumos pendientes en habitaciones ocupadas)</p>
     <p class="text-sm font-extrabold m-0" style="color:#f59e0b">${{ totalConsumosPendientes() }}</p>
   </div>
@@ -109,7 +111,7 @@
     </button>
   </div>
   <div class="flex flex-col gap-3">
-    <div class="grid grid-cols-3 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.numero" placeholder="Número" />
       <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="habForm.tipo">
         <option *ngFor="let t of nicho.hotelTiposHabitacion" [value]="t">{{ t }}</option>

@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-5 page-enter">
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div>
       <h2 class="m-0 text-lg font-bold text-slate-800">Órdenes de Compra</h2>
       <p class="text-xs text-slate-500 m-0 mt-1">Pendiente: ${{ totalPendiente.toLocaleString() }}</p>
@@ -15,6 +15,7 @@
   </div>
 
   <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-2">
+    <div class="overflow-x-auto">
     <table class="w-full text-sm border-collapse">
       <thead>
         <tr class="bg-slate-50">
@@ -106,10 +107,15 @@
           </tr>
         </ng-container>
         <tr *ngIf="ordenes.length === 0">
-          <td colspan="7" class="text-center py-10 text-slate-400 text-xs">Sin órdenes de compra registradas todavía.</td>
+          <td colspan="7">
+            <app-empty-state titulo="Aún no tienes órdenes de compra" subtitulo="Crea tu primera orden para empezar a reabastecer tu inventario." accionLabel="+ Nueva Orden" color="amber" (accion)="openNew()">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </app-empty-state>
+          </td>
         </tr>
       </tbody>
     </table>
+    </div>
   </div>
 </div>
 

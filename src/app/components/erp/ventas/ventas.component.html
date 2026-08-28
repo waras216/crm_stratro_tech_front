@@ -4,25 +4,25 @@
      anidado aquí (ej. "+ Hab." de reservas-hotel-admin) queda centrado
      respecto a ese contenedor transformado en vez del viewport completo —
      se ve encimado con el contenido en vez de como un diálogo normal. -->
-<div *ngIf="nicho.nicho==='restaurante'" class="h-[560px]">
+<div *ngIf="nicho.nicho==='restaurante'" class="lg:h-[560px] overflow-y-auto">
   <app-pos-terminal-restaurante></app-pos-terminal-restaurante>
 </div>
 <div *ngIf="nicho.nicho==='hotel'" class="mb-5">
   <app-erp-reservas-hotel-admin></app-erp-reservas-hotel-admin>
 </div>
-<div *ngIf="nicho.nicho==='farmacia'" class="h-[560px]">
+<div *ngIf="nicho.nicho==='farmacia'" class="lg:h-[560px] overflow-y-auto">
   <app-pos-terminal-farmacia></app-pos-terminal-farmacia>
 </div>
 
 <div class="flex flex-col gap-5 page-enter">
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div>
       <h2 class="m-0 text-lg font-bold text-slate-800">Pedidos</h2>
       <p class="text-xs text-slate-500 m-0 mt-1">Historial de pedidos, presupuestos y facturación</p>
     </div>
     <button *appPuede="'erp_ventas.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Nuevo Pedido</button>
   </div>
-  <div class="grid grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1" style="box-shadow:var(--shadow-card)">
       <p class="text-xs text-slate-500 m-0">Pedidos</p>
       <p class="text-2xl font-bold text-amber-600 m-0">{{ pedidos.length }}</p>
@@ -41,6 +41,7 @@
   </div>
 
   <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-3">
+    <div class="overflow-x-auto">
     <table class="w-full text-sm border-collapse">
       <thead><tr class="bg-slate-50">
         <th class="w-8"></th>
@@ -93,15 +94,15 @@
           </tr>
         </ng-container>
         <tr *ngIf="pedidos.length === 0">
-          <td colspan="6" class="py-10">
-            <div class="flex flex-col items-center gap-2">
-              <svg width="32" height="32" fill="none" stroke="#c7d2fe" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.91 8.84L8.56 2.23a1.93 1.93 0 0 0-1.81 0L3.1 4.13a2.12 2.12 0 0 0-.06 3.69l12.35 6.61a1.93 1.93 0 0 0 1.81 0l3.65-1.9a2.12 2.12 0 0 0 .06-3.69Z"/><path d="M3.09 8.84l12.35 6.61a1.93 1.93 0 0 0 1.81 0l3.65-1.9"/><line x1="12" y1="22" x2="12" y2="13"/></svg>
-              <p class="text-sm font-semibold text-slate-400 m-0">Sin pedidos registrados todavía.</p>
-            </div>
+          <td colspan="6">
+            <app-empty-state titulo="Aún no tienes pedidos" subtitulo="Crea tu primer pedido para empezar a registrar ventas." accionLabel="+ Nuevo Pedido" color="amber" (accion)="openNew()">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.91 8.84L8.56 2.23a1.93 1.93 0 0 0-1.81 0L3.1 4.13a2.12 2.12 0 0 0-.06 3.69l12.35 6.61a1.93 1.93 0 0 0 1.81 0l3.65-1.9a2.12 2.12 0 0 0 .06-3.69Z"/><path d="M3.09 8.84l12.35 6.61a1.93 1.93 0 0 0 1.81 0l3.65-1.9"/><line x1="12" y1="22" x2="12" y2="13"/></svg>
+            </app-empty-state>
           </td>
         </tr>
       </tbody>
     </table>
+    </div>
   </div>
 </div>
 

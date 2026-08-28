@@ -42,6 +42,7 @@
     </div>
 
     <div *ngIf="!cargandoAsientos" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="overflow-x-auto">
       <table class="w-full text-sm border-collapse">
         <thead>
           <tr class="bg-slate-50">
@@ -90,9 +91,14 @@
               </td>
             </tr>
           </ng-container>
-          <tr *ngIf="asientos.length===0"><td colspan="5" class="text-center py-10 text-slate-400 text-xs">Sin asientos registrados en este rango.</td></tr>
+          <tr *ngIf="asientos.length===0"><td colspan="5">
+            <app-empty-state titulo="Sin asientos en este rango" subtitulo="Ajusta las fechas o el origen del filtro, o registra tu primer asiento manual." accionLabel="+ Nuevo Asiento" color="amber" (accion)="openNewAsiento()">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="7" y1="15" x2="10" y2="15"/></svg>
+            </app-empty-state>
+          </td></tr>
         </tbody>
       </table>
+      </div>
     </div>
   </ng-container>
 
@@ -103,6 +109,7 @@
       <button *appPuede="'erp_finanzas.crear'" (click)="openNewCuenta()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 flex-shrink-0 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Nueva Cuenta</button>
     </div>
     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="overflow-x-auto">
       <table class="w-full text-sm border-collapse">
         <thead>
           <tr class="bg-slate-50">
@@ -132,6 +139,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
   </ng-container>
 
@@ -167,6 +175,7 @@
       <app-report-export-buttons (pdf)="exportarBalanceComprobacionPdf()" (excel)="exportarBalanceComprobacionExcel()"></app-report-export-buttons>
     </div>
     <div *ngIf="!efCargando && efVista==='comprobacion' && balanceComprobacion" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="overflow-x-auto">
       <table class="w-full text-sm border-collapse">
         <thead>
           <tr class="bg-slate-50">
@@ -195,6 +204,7 @@
           </tr>
         </tfoot>
       </table>
+      </div>
     </div>
 
     <!-- Estado de resultados -->

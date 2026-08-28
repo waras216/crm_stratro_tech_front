@@ -10,14 +10,14 @@ import { modalLeave } from '../../shared/animations';
   animations: [modalLeave],
   template: `
     <div class="flex flex-col gap-5 page-enter">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 class="m-0 text-lg font-bold text-slate-800">Fabricación</h2>
           <p class="text-xs text-slate-500 m-0 mt-1">Órdenes de producción, BOM y calidad</p>
         </div>
         <button *appPuede="'erp_fabricacion.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Orden de Producción</button>
       </div>
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1" style="box-shadow:var(--shadow-card)">
           <p class="text-xs text-slate-500 m-0">En Proceso</p><p class="text-2xl font-bold text-amber-600 m-0">{{ enProceso }}</p>
         </div>
@@ -33,6 +33,7 @@ import { modalLeave } from '../../shared/animations';
       </div>
 
       <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-4">
+        <div class="overflow-x-auto">
         <table class="w-full text-sm border-collapse">
           <thead><tr class="bg-slate-50">
             <th class="text-left px-4 py-3 font-medium text-slate-500">OF</th>
@@ -54,6 +55,7 @@ import { modalLeave } from '../../shared/animations';
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
 

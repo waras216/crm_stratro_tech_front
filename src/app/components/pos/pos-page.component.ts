@@ -59,11 +59,11 @@ import { Cliente } from '../../models/crm.models';
           </div>
         </div>
 
-        <div class="flex gap-4 flex-1 min-h-0">
-          <div class="flex-1 min-w-0">
+        <div class="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+          <div class="flex-1 min-w-0 min-h-[50vh] lg:min-h-0">
             <app-pos-catalogo (agregar)="agregarAlCarrito($event)"></app-pos-catalogo>
           </div>
-          <div class="w-80 flex-shrink-0">
+          <div class="w-full lg:w-80 lg:flex-shrink-0">
             <app-pos-carrito
               [items]="carrito"
               (cambiarCantidad)="onCambiarCantidad($event)"

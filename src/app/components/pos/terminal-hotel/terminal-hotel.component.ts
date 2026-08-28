@@ -11,10 +11,10 @@ import { modalLeave } from '../../shared/animations';
   standalone: false,
   animations: [modalLeave],
   template: `
-<div class="flex gap-4 h-full page-enter">
+<div class="flex flex-col lg:flex-row gap-4 lg:h-full page-enter">
 
   <!-- ── PANEL IZQ: Habitaciones ── -->
-  <div class="w-72 flex-shrink-0 flex flex-col gap-3">
+  <div class="w-full lg:w-72 lg:flex-shrink-0 flex flex-col gap-3">
     <!-- Leyenda -->
     <div class="bg-white rounded-2xl p-3 border border-slate-100 flex flex-wrap gap-2 items-center justify-between">
       <div class="flex flex-wrap gap-2">
@@ -27,7 +27,7 @@ import { modalLeave } from '../../shared/animations';
         style="background:#f59e0b">+ Hab.</button>
     </div>
     <!-- Grid de habitaciones -->
-    <div class="bg-white rounded-2xl border border-slate-100 flex-1 overflow-y-auto p-3">
+    <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[38vh] lg:max-h-none overflow-y-auto p-3">
       <p *ngIf="cargandoHabitaciones" class="text-center py-8 text-slate-400 text-xs">Cargando...</p>
       <p *ngIf="!cargandoHabitaciones && habitaciones.length===0" class="text-center py-8 text-slate-400 text-xs">
         Sin habitaciones — agrega la primera con "+ Hab."
@@ -157,7 +157,7 @@ import { modalLeave } from '../../shared/animations';
 <div *ngIf="habDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
   <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Habitación</h3>
   <div class="flex flex-col gap-3">
-    <div class="grid grid-cols-3 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.numero" placeholder="Número" />
       <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="habForm.tipo">
         <option *ngFor="let t of nicho.hotelTiposHabitacion" [value]="t">{{ t }}</option>

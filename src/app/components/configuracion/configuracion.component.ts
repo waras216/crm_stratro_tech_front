@@ -119,7 +119,7 @@ export class ConfiguracionComponent implements OnInit {
   // Editar usuario existente
   dialogUsuarioOpen = false;
   editandoUsuario: Usuario | null = null;
-  formUsuario = { nombre: '', email: '', password: '' };
+  formUsuario = { nombre: '', email: '', telefono: '', password: '' };
   errorDialogUsuario = '';
   guardandoUsuario = false;
 
@@ -182,6 +182,7 @@ export class ConfiguracionComponent implements OnInit {
     if (session) {
       this.nombre = session.nombre;
       this.email = session.email;
+      this.telefono = session.telefono || '';
       this.nombreEmpresa = session.empresa || '';
       this.sector = session.sector || '';
       this.idioma = session.idioma || 'es';
@@ -326,7 +327,7 @@ export class ConfiguracionComponent implements OnInit {
 
   abrirEditarUsuario(u: Usuario) {
     this.editandoUsuario = u;
-    this.formUsuario = { nombre: u.nombre, email: u.email ?? '', password: '' };
+    this.formUsuario = { nombre: u.nombre, email: u.email ?? '', telefono: u.telefono ?? '', password: '' };
     this.errorDialogUsuario = '';
     this.dialogUsuarioOpen = true;
   }
@@ -348,6 +349,7 @@ export class ConfiguracionComponent implements OnInit {
 
     const payload: Partial<Usuario> & { password?: string } = {
       nombre: this.formUsuario.nombre,
+      telefono: this.formUsuario.telefono || null,
     };
     if (!esCajero) payload.email = this.formUsuario.email;
     if (this.formUsuario.password) payload.password = this.formUsuario.password;
@@ -555,7 +557,7 @@ export class ConfiguracionComponent implements OnInit {
 
     // Cuenta (nombre/email persisten en el backend)
     this.errorCuenta = '';
-    this.auth.actualizarPerfil({ nombre: this.nombre, email: this.email }).subscribe({
+    this.auth.actualizarPerfil({ nombre: this.nombre, email: this.email, telefono: this.telefono || null }).subscribe({
       next: () => {
         this.saved = true;
         setTimeout(() => this.saved = false, 2500);

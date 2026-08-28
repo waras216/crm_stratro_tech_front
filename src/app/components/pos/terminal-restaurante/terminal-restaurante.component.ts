@@ -12,10 +12,10 @@ import { modalLeave } from '../../shared/animations';
   standalone: false,
   animations: [modalLeave],
   template: `
-<div class="flex gap-4 h-full page-enter">
+<div class="flex flex-col lg:flex-row gap-4 lg:h-full page-enter">
 
   <!-- ── PANEL IZQ: Mesas ── -->
-  <div class="w-64 flex-shrink-0 flex flex-col gap-3">
+  <div class="w-full lg:w-64 lg:flex-shrink-0 flex flex-col gap-3">
     <div class="bg-white rounded-2xl p-3 border border-slate-100 flex flex-wrap gap-2 items-center justify-between">
       <div class="flex flex-wrap gap-2">
         <span *ngFor="let e of estados" class="flex items-center gap-1.5 text-[10px] font-semibold" [ngClass]="e.text">
@@ -26,7 +26,7 @@ import { modalLeave } from '../../shared/animations';
         class="text-[10px] font-bold px-2 py-1 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 flex-shrink-0"
         style="background:#ef4444">+ Mesa</button>
     </div>
-    <div class="bg-white rounded-2xl border border-slate-100 flex-1 overflow-y-auto p-3">
+    <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[32vh] lg:max-h-none overflow-y-auto p-3">
       <p *ngIf="cargandoMesas" class="text-center py-8 text-slate-400 text-xs">Cargando...</p>
       <p *ngIf="!cargandoMesas && mesas.length===0" class="text-center py-8 text-slate-400 text-xs">
         Sin mesas — agrega la primera con "+ Mesa"
@@ -87,7 +87,7 @@ import { modalLeave } from '../../shared/animations';
       </div>
 
       <!-- Comanda -->
-      <div class="bg-white rounded-2xl border border-slate-100 flex-1 overflow-y-auto">
+      <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[40vh] lg:max-h-none overflow-y-auto">
         <div class="px-5 pt-4 pb-2 border-b border-slate-50 flex items-center justify-between">
           <p class="text-xs font-bold text-slate-700 m-0">Comanda Activa</p>
           <span class="text-xs font-bold text-red-600">Total: \${{ totalMesa(mesa) }}</span>
@@ -117,8 +117,8 @@ import { modalLeave } from '../../shared/animations';
   </div>
 
   <!-- ── PANEL DER: Menú rápido ── -->
-  <div class="w-64 flex-shrink-0 flex flex-col gap-3">
-    <div class="bg-white rounded-2xl border border-slate-100 flex-1 overflow-y-auto">
+  <div class="w-full lg:w-64 lg:flex-shrink-0 flex flex-col gap-3">
+    <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[40vh] lg:max-h-none overflow-y-auto">
       <div class="px-4 pt-4 pb-2">
         <p class="text-xs font-bold text-slate-700 m-0 mb-2">Menú Rápido</p>
         <div class="flex gap-1 flex-wrap">

@@ -1,9 +1,9 @@
 <div class="flex flex-col gap-5 page-enter">
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div><h2 class="m-0 text-lg font-bold text-slate-800">Gestión de Proyectos</h2><p class="text-xs text-slate-500 m-0 mt-1">Planificación, recursos y presupuestos</p></div>
     <button *appPuede="'erp_proyectos.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700">+ Nuevo Proyecto</button>
   </div>
-  <div class="grid grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1"><p class="text-xs text-slate-500 m-0">Activos</p><p class="text-2xl font-bold text-orange-600 m-0">{{ activos }}</p></div>
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2"><p class="text-xs text-slate-500 m-0">Horas Registradas</p><p class="text-2xl font-bold text-blue-600 m-0">{{ horasTotales.toLocaleString() }}</p></div>
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3"><p class="text-xs text-slate-500 m-0">Presupuesto Total</p><p class="text-2xl font-bold text-emerald-600 m-0">${{ presupuestoTotal.toLocaleString() }}</p></div>
@@ -13,7 +13,9 @@
     <div *ngFor="let _ of [1,2,3]" class="h-24 rounded-xl skeleton"></div>
   </div>
 
-  <p *ngIf="!cargando && proyectos.length === 0" class="text-sm text-slate-400 m-0 text-center py-10">Sin proyectos registrados todavía.</p>
+  <app-empty-state *ngIf="!cargando && proyectos.length === 0" titulo="Aún no tienes proyectos" subtitulo="Crea tu primer proyecto para empezar a planificar tareas, horas y presupuestos." accionLabel="+ Nuevo Proyecto" color="amber" (accion)="openNew()">
+    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+  </app-empty-state>
 
   <div *ngIf="!cargando" class="flex flex-col gap-4">
     <div *ngFor="let p of proyectos; let i = index" class="bg-white border border-slate-200 rounded-xl overflow-hidden hover-lift card-enter" [style.animation-delay]="(i*0.06+0.2)+'s'">
@@ -75,6 +77,7 @@
             <p class="text-xs font-semibold text-slate-600 m-0">Total: {{ totalHoras().toLocaleString() }}h</p>
             <button *appPuede="'erp_proyectos.editar'" (click)="openNuevaHora()" class="text-xs font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer bg-amber-600 text-white hover:bg-amber-700">+ Registrar Horas</button>
           </div>
+          <div class="overflow-x-auto">
           <table class="w-full text-sm border-collapse">
             <thead><tr class="bg-slate-50">
               <th class="text-left px-4 py-2 text-[11px] font-medium text-slate-500">Colaborador</th>
@@ -97,6 +100,7 @@
               </tr>
             </tbody>
           </table>
+          </div>
           <p *ngIf="!horas.length" class="text-xs text-slate-400 m-0 px-4 py-4 text-center">Sin registros de horas todavía.</p>
         </div>
 

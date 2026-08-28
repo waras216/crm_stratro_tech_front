@@ -14,17 +14,17 @@ import { modalLeave } from '../../shared/animations';
   standalone: false,
   animations: [modalLeave],
   template: `
-<div class="flex gap-4 h-full page-enter">
+<div class="flex flex-col lg:flex-row gap-4 lg:h-full page-enter">
 
   <!-- ── PANEL IZQ: Pacientes ── -->
-  <div class="w-72 flex-shrink-0 flex flex-col gap-3">
+  <div class="w-full lg:w-72 lg:flex-shrink-0 flex flex-col gap-3">
     <div class="bg-white rounded-2xl p-4 border border-slate-100">
       <p class="text-xs font-bold text-slate-700 m-0 mb-3">Buscar Paciente</p>
       <input [(ngModel)]="busqueda" (ngModelChange)="buscar$.next($event)"
         placeholder="Nombre o teléfono..."
         class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-emerald-400 transition-colors" />
     </div>
-    <div class="bg-white rounded-2xl border border-slate-100 flex-1 overflow-y-auto">
+    <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[32vh] lg:max-h-none overflow-y-auto">
       <div class="px-4 pt-4 pb-2">
         <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 m-0">Pacientes ({{ pacientes.length }})</p>
       </div>
@@ -65,7 +65,7 @@ import { modalLeave } from '../../shared/animations';
       </div>
 
       <!-- Recetas pendientes -->
-      <div class="bg-white rounded-2xl border border-slate-100 flex-1 overflow-y-auto">
+      <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[40vh] lg:max-h-none overflow-y-auto">
         <div class="px-5 pt-4 pb-2 flex items-center justify-between">
           <p class="text-xs font-bold text-slate-700 m-0">Recetas Pendientes</p>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-semibold">
@@ -95,13 +95,13 @@ import { modalLeave } from '../../shared/animations';
   </div>
 
   <!-- ── PANEL DER: Carrito dispensación ── -->
-  <div class="w-72 flex-shrink-0 flex flex-col gap-3">
-    <div class="bg-white rounded-2xl border border-slate-100 flex-1 flex flex-col">
+  <div class="w-full lg:w-72 lg:flex-shrink-0 flex flex-col gap-3">
+    <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 flex flex-col">
       <div class="px-4 pt-4 pb-2 border-b border-slate-50">
         <p class="text-xs font-bold text-slate-700 m-0">Dispensación</p>
         <p class="text-[10px] text-slate-400 m-0 mt-0.5">{{ carrito.length }} medicamentos</p>
       </div>
-      <div class="flex-1 overflow-y-auto px-3 py-2">
+      <div class="lg:flex-1 max-h-[30vh] lg:max-h-none overflow-y-auto px-3 py-2">
         <div *ngIf="carrito.length === 0" class="flex flex-col items-center justify-center h-full text-center py-8">
           <p class="text-3xl mb-2">🧾</p>
           <p class="text-xs text-slate-400 m-0">Agrega recetas para dispensar</p>

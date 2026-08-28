@@ -12,15 +12,15 @@ import { modalLeave } from '../../shared/animations';
   animations: [modalLeave],
   template: `
     <div class="flex flex-col gap-5 page-enter">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div><h2 class="m-0 text-lg font-bold text-slate-800">Recursos Humanos</h2><p class="text-xs text-slate-500 m-0 mt-1">Nómina, personal y reclutamiento</p></div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 flex-wrap">
           <button *appPuede="'erp_rrhh.eliminar'" (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Papelera</button>
           <button *appPuede="'erp_rrhh.crear'" (click)="openNomina()" class="px-4 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-amber-50">Procesar Nómina</button>
           <button *appPuede="'erp_rrhh.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Nuevo Empleado</button>
         </div>
       </div>
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1" style="box-shadow:var(--shadow-card)"><p class="text-xs text-slate-500 m-0">Empleados</p><p class="text-2xl font-bold text-purple-600 m-0">{{ empleados.length }}</p></div>
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2" style="box-shadow:var(--shadow-card)"><p class="text-xs text-slate-500 m-0">Nómina Mensual</p><p class="text-2xl font-bold text-emerald-600 m-0">\${{ nominaMensual.toLocaleString() }}</p></div>
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3" style="box-shadow:var(--shadow-card)"><p class="text-xs text-slate-500 m-0">Activos</p><p class="text-2xl font-bold text-blue-600 m-0">{{ activos }}</p></div>
@@ -30,6 +30,7 @@ import { modalLeave } from '../../shared/animations';
       </div>
 
       <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-4">
+        <div class="overflow-x-auto">
         <table class="w-full text-sm border-collapse">
           <thead><tr class="bg-slate-50">
             <th class="text-left px-4 py-3 font-medium text-slate-500">Nombre</th>
@@ -57,13 +58,19 @@ import { modalLeave } from '../../shared/animations';
                 </div>
               </td>
             </tr>
-            <tr *ngIf="empleados.length===0"><td colspan="6" class="text-center py-8 text-slate-400 text-xs">Sin empleados registrados todavía.</td></tr>
+            <tr *ngIf="empleados.length===0"><td colspan="6">
+              <app-empty-state titulo="Aún no tienes empleados" subtitulo="Registra tu primer empleado para empezar a llevar la nómina y el personal." accionLabel="+ Nuevo Empleado" color="amber" (accion)="openNew()">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </app-empty-state>
+            </td></tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div class="px-4 py-3 border-b border-slate-100"><h3 class="m-0 text-sm font-bold text-slate-800">Historial de Nómina</h3></div>
+        <div class="overflow-x-auto">
         <table class="w-full text-sm border-collapse">
           <thead><tr class="bg-slate-50">
             <th class="text-left px-4 py-3 font-medium text-slate-500">Fecha</th>
@@ -87,6 +94,7 @@ import { modalLeave } from '../../shared/animations';
             <tr *ngIf="historialNomina.length===0"><td colspan="4" class="text-center py-8 text-slate-400 text-xs">Sin pagos de nómina registrados.</td></tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
 

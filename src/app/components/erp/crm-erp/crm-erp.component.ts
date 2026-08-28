@@ -8,10 +8,10 @@ import { ErpInteraccion } from '../../../models/erp.models';
   template: `
     <div class="flex flex-col gap-5 page-enter">
       <h2 class="m-0 text-lg font-bold text-slate-800">CRM - Relaciones con Clientes</h2>
-      <div *ngIf="cargando" class="grid grid-cols-3 gap-4">
+      <div *ngIf="cargando" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div *ngFor="let _ of [1,2,3]" class="h-[68px] rounded-xl skeleton"></div>
       </div>
-      <div *ngIf="!cargando" class="grid grid-cols-3 gap-4">
+      <div *ngIf="!cargando" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1 hover-lift"><p class="text-xs text-slate-500 m-0">Contactos</p><p class="text-2xl font-bold text-indigo-600 m-0">{{ resumen.contactos }}</p></div>
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2 hover-lift"><p class="text-xs text-slate-500 m-0">Oportunidades</p><p class="text-2xl font-bold text-amber-600 m-0">{{ resumen.oportunidades }}</p></div>
         <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3 hover-lift"><p class="text-xs text-slate-500 m-0">Tickets Abiertos</p><p class="text-2xl font-bold text-red-500 m-0">{{ resumen.ticketsAbiertos }}</p></div>
@@ -24,7 +24,9 @@ import { ErpInteraccion } from '../../../models/erp.models';
             <div class="flex-1"><p class="text-sm font-medium text-slate-700 m-0">{{ i.cliente }}</p><p class="text-[10px] text-slate-400 m-0">{{ i.tipo }} - {{ i.asunto }}</p></div>
             <span class="text-[10px] text-slate-400">{{ i.fecha }}</span>
           </div>
-          <p *ngIf="!cargando && !interacciones.length" class="text-xs text-slate-400 m-0 text-center py-4">Sin interacciones registradas todavía.</p>
+          <app-empty-state *ngIf="!cargando && !interacciones.length" titulo="Sin interacciones todavía" subtitulo="Las interacciones con clientes del CRM van a aparecer aquí." color="indigo">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </app-empty-state>
         </div>
       </div>
     </div>
