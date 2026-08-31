@@ -43,6 +43,7 @@ export interface MembresiaInfo {
 export interface UserSession {
   email: string;
   nombre: string;
+  telefono?: string | null;
   empresa?: string;
   logo?: string | null;
   sector?: string;
@@ -133,6 +134,7 @@ export class AuthService {
     return {
       email:              user.email ?? fallback?.email ?? '',
       nombre:             user.nombre ?? fallback?.nombre ?? '',
+      telefono:           user.telefono ?? null,
       empresa:            user.empresa,
       logo:               user.logo ?? null,
       sector:             user.sector,
@@ -312,13 +314,14 @@ export class AuthService {
     );
   }
 
-  actualizarPerfil(data: { nombre: string; email: string }): Observable<any> {
+  actualizarPerfil(data: { nombre: string; email: string; telefono?: string | null }): Observable<any> {
     return this.http.put<any>(`${environment.apiUrl}/perfil`, data).pipe(
       tap(user => {
         const session = this.session;
         if (!session) return;
         session.nombre = user.nombre;
         session.email = user.email;
+        session.telefono = user.telefono ?? null;
         this.guardarSesion(session);
       }),
     );
