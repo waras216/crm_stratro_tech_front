@@ -185,6 +185,14 @@ export class AuthOnboardingComponent {
     this.modulos = { ...nicho.modulos };
   }
 
+  selectRestTipo(t: string) {
+    this.restTipo = t;
+    if (t === 'Dark Kitchen') {
+      this.restMesas = null;
+      this.restCanales = this.restCanales.filter(c => c !== 'comedor');
+    }
+  }
+
   toggleLista(lista: string[], valor: string) {
     const idx = lista.indexOf(valor);
     if (idx >= 0) lista.splice(idx, 1);
@@ -260,6 +268,12 @@ export class AuthOnboardingComponent {
   get nichoColor() { return this.nichoSeleccionado?.color || '#6366f1'; }
   get nichoBg() { return this.nichoSeleccionado?.colorBg || 'rgba(99,102,241,.12)'; }
   get nichoAccent() { return this.nichoSeleccionado?.colorAccent || 'rgba(99,102,241,.25)'; }
+
+  get restCanalesOpcionesFiltradas() {
+    return this.restTipo === 'Dark Kitchen'
+      ? this.restCanalesOpciones.filter(c => c.id !== 'comedor')
+      : this.restCanalesOpciones;
+  }
 
   get step2Titulo(): string {
     const m: Record<string, string> = {

@@ -22,6 +22,7 @@ export interface Producto {
   precio_compra: number;
   stock: number;
   stock_minimo: number;
+  controla_stock?: boolean;
   activo?: boolean;
 }
 
@@ -44,6 +45,7 @@ export interface ErpMovimientoStock {
   tipo: 'entrada' | 'salida' | 'ajuste';
   cantidad: number;
   motivo: string;
+  operacion?: string | null;
   referencia?: string;
   stock_resultante: number;
   created_at?: string;
@@ -106,6 +108,7 @@ export interface ErpPedido {
   cajero?: { id_usuario: number; nombre: string } | null;
   total: number;
   estado: 'pendiente' | 'enviado' | 'facturado' | 'cancelada';
+  canal?: string | null;
   items: ErpPedidoItem[];
   pagos?: PedidoPago[];
   fecha: string;

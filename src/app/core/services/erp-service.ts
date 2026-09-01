@@ -61,8 +61,8 @@ export class ErpService {
     );
   }
 
-  ajustarStockInventario(id: number, cantidad: number, motivo: string): Observable<Producto> {
-    return this.http.post<Producto>(`${API}/erp/inventario/${id}/ajuste`, { cantidad, motivo }).pipe(
+  ajustarStockInventario(id: number, cantidad: number, motivo: string, operacion?: string | null): Observable<Producto> {
+    return this.http.post<Producto>(`${API}/erp/inventario/${id}/ajuste`, { cantidad, motivo, operacion: operacion || null }).pipe(
       tap(actualizado => this._inventario.next(this.inventario.map(i => i.id_productos === id ? actualizado : i)))
     );
   }
@@ -492,8 +492,8 @@ export class ErpService {
     );
   }
 
-  dispensarLote(ids: number[], idCliente: number, pagos: PedidoPago[]): Observable<ErpPedido> {
-    return this.http.post<ErpPedido>(`${API}/erp/recetas/dispensar-lote`, { ids, id_cliente: idCliente, pagos }).pipe(
+  dispensarLote(ids: number[], idCliente: number, pagos: PedidoPago[], canal?: string | null): Observable<ErpPedido> {
+    return this.http.post<ErpPedido>(`${API}/erp/recetas/dispensar-lote`, { ids, id_cliente: idCliente, pagos, canal: canal || null }).pipe(
       tap(pedido => {
         this._recetas.next(this.recetas.map(r => ids.includes(r.id) ? { ...r, pendiente: false } : r));
         this._pedidos.next([pedido, ...this.pedidos]);

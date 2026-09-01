@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
-import { NichoService } from '../../../core/services/nicho.service';
+import { FARM_ATENCION_LABELS, NichoService, REST_CANALES_LABELS, TIENDA_CANALES_LABELS } from '../../../core/services/nicho.service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpPedido, Producto } from '../../../models/erp.models';
 import { Cliente } from '../../../models/crm.models';
@@ -38,6 +38,11 @@ export class ErpVentasComponent implements OnInit {
     public nicho: NichoService,
     private notify: NotifyService,
   ) {}
+
+  canalLabel(canal: string | null | undefined): string {
+    if (!canal) return '—';
+    return REST_CANALES_LABELS[canal] || TIENDA_CANALES_LABELS[canal] || FARM_ATENCION_LABELS[canal] || canal;
+  }
 
   ngOnInit() {
     this.erpService.cargarPedidos().subscribe();

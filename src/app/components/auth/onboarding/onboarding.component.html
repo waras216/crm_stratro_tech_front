@@ -246,7 +246,7 @@
           <div class="flex flex-col gap-1.5 slide-in stagger-1">
             <label class="text-xs font-medium" style="color:#c7d2fe">Tipo de restaurante</label>
             <div class="flex flex-col gap-2">
-              <button *ngFor="let t of restTipos" (click)="restTipo=t"
+              <button *ngFor="let t of restTipos" (click)="selectRestTipo(t)"
                 class="w-full px-4 py-3 rounded-xl text-sm font-medium border cursor-pointer transition-all text-left scale-in"
                 [ngClass]="restTipo===t ? 'text-white' : 'text-indigo-300'"
                 [style]="restTipo===t ? 'background:'+nichoAccent+';border-color:'+nichoColor : 'background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)'">
@@ -254,13 +254,14 @@
               </button>
             </div>
           </div>
-          <div class="flex flex-col gap-1.5 slide-in stagger-3">
+          <div *ngIf="restTipo!=='Dark Kitchen'" class="flex flex-col gap-1.5 slide-in stagger-3">
             <label class="text-xs font-medium" style="color:#c7d2fe">Número de mesas</label>
             <input type="number" min="1" max="200" [(ngModel)]="restMesas" placeholder="Ej. 12"
               class="w-full px-4 py-3 rounded-xl text-sm font-medium border outline-none text-white"
               style="background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)" />
             <p class="text-[11px] m-0" style="color:#a5b4fc">Vamos a crear estas mesas automáticamente en tu ERP.</p>
           </div>
+          <p *ngIf="restTipo==='Dark Kitchen'" class="text-[11px] m-0" style="color:#a5b4fc">Sin comedor — tu POS irá directo a pedidos para llevar/delivery, sin mesas.</p>
         </ng-container>
 
         <!-- ALMACÉN: tipo + SKUs -->
@@ -392,7 +393,7 @@
         <!-- RESTAURANTE: canales -->
         <ng-container *ngIf="nichoSeleccionado?.id==='restaurante'">
           <div class="flex flex-col gap-2">
-            <button *ngFor="let c of restCanalesOpciones" (click)="toggleLista(restCanales, c.id)"
+            <button *ngFor="let c of restCanalesOpcionesFiltradas" (click)="toggleLista(restCanales, c.id)"
               class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium border cursor-pointer transition-all scale-in text-left"
               [ngClass]="enLista(restCanales, c.id) ? 'text-white' : 'text-indigo-300'"
               [style]="enLista(restCanales, c.id) ? 'background:'+nichoAccent+';border-color:'+nichoColor : 'background:rgba(255,255,255,.03);border-color:rgba(129,140,248,.15)'">

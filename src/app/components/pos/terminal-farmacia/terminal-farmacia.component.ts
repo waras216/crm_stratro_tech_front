@@ -4,6 +4,7 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
+import { FARM_ATENCION_LABELS, NichoService } from '../../../core/services/nicho.service';
 import { Cliente } from '../../../models/crm.models';
 import { ErpReceta, Producto, PedidoPago } from '../../../models/erp.models';
 import { ItemCarrito } from '../carrito/carrito.component';
@@ -60,7 +61,7 @@ import { modalLeave } from '../../shared/animations';
           <p class="text-sm font-bold text-slate-800 m-0">{{ paciente.nombre }}</p>
           <p class="text-xs text-slate-400 m-0">Tel: {{ paciente.telefono || '—' }}</p>
         </div>
-        <button (click)="recetaDialogOpen=true" class="text-xs font-semibold px-4 py-2 rounded-xl border-0 cursor-pointer text-white transition-all hover:opacity-90"
+        <button *ngIf="nicho.farmAtencion.includes('recetas')" (click)="recetaDialogOpen=true" class="text-xs font-semibold px-4 py-2 rounded-xl border-0 cursor-pointer text-white transition-all hover:opacity-90"
           style="background:#10b981">+ Nueva Receta</button>
       </div>
 
@@ -117,6 +118,14 @@ import { modalLeave } from '../../shared/animations';
         </div>
       </div>
       <div class="px-4 pb-4 pt-2 border-t border-slate-100">
+        <div *ngIf="nicho.farmAtencion.length>1" class="flex flex-wrap gap-1.5 mb-3">
+          <button *ngFor="let a of nicho.farmAtencion" (click)="atencionActiva=a"
+            class="text-[10px] font-semibold px-2.5 py-1 rounded-full border-0 cursor-pointer transition-all"
+            [class.text-white]="atencionActiva===a" [class.bg-emerald-500]="atencionActiva===a"
+            [class.bg-slate-100]="atencionActiva!==a" [class.text-slate-600]="atencionActiva!==a">
+            {{ atencionLabel(a) }}
+          </button>
+        </div>
         <div class="flex justify-between mb-3">
           <span class="text-xs text-slate-500">Total</span>
           <span class="text-sm font-extrabold text-slate-800">\${{ totalCarrito() }}</span>
@@ -164,6 +173,8 @@ export class PosTerminalFarmaciaComponent implements OnInit {
   private erpService = inject(ErpService);
   private crmService = inject(CrmService);
   private cdr = inject(ChangeDetectorRef);
+  public nicho = inject(NichoService);
+  atencionActiva = '';
 
   busqueda = '';
   buscar$ = new Subject<string>();
@@ -191,7 +202,10 @@ export class PosTerminalFarmaciaComponent implements OnInit {
   private itemsTicketPendiente: ItemCarrito[] = [];
   lastTicket: ItemCarrito[] = [];
 
+  atencionLabel(id: string): string { return FARM_ATENCION_LABELS[id] || id; }
+
   ngOnInit() {
+    this.atencionActiva = this.nicho.farmAtencion[0] || '';
     this.buscar$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -303,7 +317,7 @@ export class PosTerminalFarmaciaComponent implements OnInit {
     const ids = this.idsPendientes;
     this.cobrando = true;
 
-    this.erpService.dispensarLote(ids, paciente.id_cliente, pagos).subscribe({
+    this.erpService.dispensarLote(ids, paciente.id_cliente, pagos, this.atencionActiva).subscribe({
       next: () => {
         this.lastTicket = this.itemsTicketPendiente;
         this.ticketOpen = true;

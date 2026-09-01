@@ -30,7 +30,7 @@ export class PagoModalComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['visible'] && this.visible) {
-      this.filas = [{ metodo_pago: 'efectivo', monto: this.total }];
+      this.filas = this.total > 0 ? [{ metodo_pago: 'efectivo', monto: this.total }] : [];
     }
   }
 
@@ -51,6 +51,7 @@ export class PagoModalComponent implements OnChanges {
   }
 
   get valido(): boolean {
+    if (this.total === 0) return this.filas.length === 0;
     return Math.abs(this.diferencia) < 0.01 && this.filas.every(f => Number(f.monto) > 0);
   }
 

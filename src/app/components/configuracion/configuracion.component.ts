@@ -8,6 +8,12 @@ import { RolService } from '../../core/services/rol.service';
 import { NotifyService } from '../../core/services/notify.service';
 import { Usuario, Rol } from '../../models/crm.models';
 import { REGIMENES_FISCALES_SAT } from '../../core/constants/sat.constants';
+import {
+  ALMACEN_OPS_LABELS, FARM_ATENCION_LABELS, FARM_ESPECIALIDADES_LABELS,
+  HOTEL_AMENIDADES_LABELS, REST_CANALES_LABELS, STARTUP_METRICAS_LABELS, TIENDA_CANALES_LABELS,
+} from '../../core/services/nicho.service';
+
+interface PerfilNegocioCampo { label: string; texto?: string; lista?: string[]; labelsMap?: Record<string, string>; }
 
 type TabConfiguracion = 'general' | 'cuenta' | 'notificaciones' | 'apariencia' | 'seguridad' | 'equipo' | 'negocio' | 'fiscal';
 
@@ -135,6 +141,55 @@ export class ConfiguracionComponent implements OnInit {
   confirmandoDosFa = false;
 
   get esAdmin(): boolean { return !!this.auth.session?.es_admin; }
+
+  get perfilNegocioCampos(): PerfilNegocioCampo[] {
+    const d = this.auth.session?.nichoData;
+    if (!d) return [];
+    switch (d.nicho) {
+      case 'hotel':
+        return [
+          { label: 'Tipo de propiedad', texto: d.hotelTipo || '—' },
+          { label: 'Habitaciones', texto: d.hotelHabitaciones != null ? String(d.hotelHabitaciones) : '—' },
+          { label: 'Tipos de habitación', lista: d.hotelTiposHabitacion || [] },
+          { label: 'Amenidades', lista: d.hotelAmenidades || [], labelsMap: HOTEL_AMENIDADES_LABELS },
+        ];
+      case 'restaurante':
+        return [
+          { label: 'Tipo de restaurante', texto: d.restTipo || '—' },
+          { label: 'Mesas', texto: d.restMesas != null ? String(d.restMesas) : '—' },
+          { label: 'Canales de venta', lista: d.restCanales || [], labelsMap: REST_CANALES_LABELS },
+        ];
+      case 'almacen':
+        return [
+          { label: 'Tipo de almacén', texto: d.almacenTipo || '—' },
+          { label: 'Capacidad', texto: d.almacenSkus || '—' },
+          { label: 'Operaciones', lista: d.almacenOps || [], labelsMap: ALMACEN_OPS_LABELS },
+        ];
+      case 'farmacia':
+        return [
+          { label: 'Tipo de farmacia', texto: d.farmTipo || '—' },
+          { label: 'Modos de atención', lista: d.farmAtencion || [], labelsMap: FARM_ATENCION_LABELS },
+          { label: 'Especialidades', lista: d.farmEspecialidades || [], labelsMap: FARM_ESPECIALIDADES_LABELS },
+        ];
+      case 'startup':
+        return [
+          { label: 'Etapa', texto: d.startupEtapa || '—' },
+          { label: 'Modelo de negocio', texto: d.startupModelo || '—' },
+          { label: 'Métricas clave', lista: d.startupMetricas || [], labelsMap: STARTUP_METRICAS_LABELS },
+        ];
+      case 'tienda':
+        return [
+          { label: 'Tipo de tienda', texto: d.tiendaTipo || '—' },
+          { label: 'Canales de venta', lista: d.tiendaCanales || [], labelsMap: TIENDA_CANALES_LABELS },
+        ];
+      default:
+        return [];
+    }
+  }
+
+  perfilNegocioLabel(campo: PerfilNegocioCampo, id: string): string {
+    return campo.labelsMap?.[id] || id;
+  }
   get maxUsuarios(): number | null { return this.auth.session?.plan?.max_usuarios ?? null; }
   get limiteAlcanzado(): boolean { return this.maxUsuarios !== null && this.usuarios.length >= this.maxUsuarios; }
   get miIdUsuario(): number | undefined { return this.auth.session?.id_usuario; }

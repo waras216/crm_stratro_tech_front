@@ -3,9 +3,10 @@ import { switchMap } from 'rxjs/operators';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
-import { ErpMesa, ErpComandaItem, Producto, PedidoPago } from '../../../models/erp.models';
+import { ErpMesa, ErpComandaItem, ErpPedido, Producto, PedidoPago } from '../../../models/erp.models';
 import { ItemCarrito } from '../carrito/carrito.component';
 import { modalLeave } from '../../shared/animations';
+import { NichoService, REST_CANALES_LABELS } from '../../../core/services/nicho.service';
 
 @Component({
   selector: 'app-pos-terminal-restaurante',
@@ -15,16 +16,23 @@ import { modalLeave } from '../../shared/animations';
 <div class="flex flex-col lg:flex-row gap-4 lg:h-full page-enter">
 
   <!-- ── PANEL IZQ: Mesas ── -->
-  <div class="w-full lg:w-64 lg:flex-shrink-0 flex flex-col gap-3">
+  <div *ngIf="!esDarkKitchen" class="w-full lg:w-64 lg:flex-shrink-0 flex flex-col gap-3">
     <div class="bg-white rounded-2xl p-3 border border-slate-100 flex flex-wrap gap-2 items-center justify-between">
       <div class="flex flex-wrap gap-2">
         <span *ngFor="let e of estados" class="flex items-center gap-1.5 text-[10px] font-semibold" [ngClass]="e.text">
           <span class="w-2.5 h-2.5 rounded-full inline-block" [ngClass]="e.dot"></span>{{ e.label }}
         </span>
       </div>
-      <button (click)="mesaDialogOpen=true"
-        class="text-[10px] font-bold px-2 py-1 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 flex-shrink-0"
-        style="background:#ef4444">+ Mesa</button>
+      <div class="flex gap-1.5 flex-shrink-0">
+        <button *ngIf="canalesExtra.length>0" (click)="abrirPedidoSinMesa()"
+          class="text-[10px] font-bold px-2 py-1 rounded-lg border cursor-pointer hover:opacity-90"
+          [class.border-red-400]="modoSinMesa" [class.text-red-600]="modoSinMesa"
+          [class.border-slate-200]="!modoSinMesa" [class.text-slate-600]="!modoSinMesa"
+          style="background:white">Pedido sin mesa</button>
+        <button (click)="mesaDialogOpen=true"
+          class="text-[10px] font-bold px-2 py-1 rounded-lg border-0 cursor-pointer text-white hover:opacity-90"
+          style="background:#ef4444">+ Mesa</button>
+      </div>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[32vh] lg:max-h-none overflow-y-auto p-3">
       <p *ngIf="cargandoMesas" class="text-center py-8 text-slate-400 text-xs">Cargando...</p>
@@ -49,11 +57,38 @@ import { modalLeave } from '../../shared/animations';
 
   <!-- ── PANEL CENTRO: Comanda ── -->
   <div class="flex-1 min-w-0 flex flex-col gap-3">
-    <div *ngIf="!mesaSeleccionada" class="flex-1 bg-white rounded-2xl border border-slate-100 flex flex-col items-center justify-center text-center p-8">
+    <div *ngIf="!mesaSeleccionada && !modoSinMesa" class="flex-1 bg-white rounded-2xl border border-slate-100 flex flex-col items-center justify-center text-center p-8">
       <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-3xl mb-4">🍽️</div>
       <p class="text-sm font-bold text-slate-600 m-0">Selecciona una mesa</p>
       <p class="text-xs text-slate-400 m-0 mt-1">para ver o crear su comanda</p>
     </div>
+
+    <ng-container *ngIf="modoSinMesa">
+      <div class="bg-white rounded-2xl p-4 border border-slate-100 flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <p class="text-sm font-bold text-slate-800 m-0">{{ esDarkKitchen ? 'Pedidos' : 'Pedido sin mesa' }}</p>
+          <button *ngIf="!esDarkKitchen" (click)="cerrarPedidoSinMesa()" class="text-[10px] font-semibold text-slate-400 bg-transparent border-0 cursor-pointer hover:underline">Cancelar</button>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          <button *ngFor="let c of canalesExtra" (click)="canalSinMesa=c"
+            class="text-[10px] font-semibold px-2.5 py-1.5 rounded-full border-0 cursor-pointer transition-all"
+            [class.text-white]="canalSinMesa===c" [class.bg-red-500]="canalSinMesa===c"
+            [class.bg-slate-100]="canalSinMesa!==c" [class.text-slate-600]="canalSinMesa!==c">
+            {{ canalLabel(c) }}
+          </button>
+        </div>
+      </div>
+      <div class="lg:flex-1 min-h-0">
+        <app-pos-carrito
+          [items]="carritoSinMesa"
+          (cambiarCantidad)="onCambiarCantidadSinMesa($event)"
+          (establecerCantidad)="onEstablecerCantidadSinMesa($event)"
+          (quitar)="quitarItemSinMesa($event)"
+          (cobrar)="cobrarSinMesa()"
+          (limpiar)="carritoSinMesa=[]">
+        </app-pos-carrito>
+      </div>
+    </ng-container>
 
     <ng-container *ngIf="mesaSeleccionada as mesa">
       <!-- Header mesa -->
@@ -137,13 +172,13 @@ import { modalLeave } from '../../shared/animations';
       <div class="px-3 pb-3 flex flex-col gap-1.5">
         <button *ngFor="let item of menuFiltrado"
           (click)="agregarItem(item)"
-          [disabled]="!mesaSeleccionada || mesaSeleccionada.estado==='libre'"
+          [disabled]="!modoSinMesa && (!mesaSeleccionada || mesaSeleccionada.estado==='libre')"
           class="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-slate-100 transition-all text-left w-full"
-          [class.hover:bg-red-50]="mesaSeleccionada && mesaSeleccionada.estado!=='libre'"
-          [class.hover:border-red-200]="mesaSeleccionada && mesaSeleccionada.estado!=='libre'"
-          [class.cursor-pointer]="mesaSeleccionada && mesaSeleccionada.estado!=='libre'"
-          [class.cursor-not-allowed]="!mesaSeleccionada || mesaSeleccionada.estado==='libre'"
-          [class.opacity-50]="!mesaSeleccionada || mesaSeleccionada.estado==='libre'"
+          [class.hover:bg-red-50]="modoSinMesa || (mesaSeleccionada && mesaSeleccionada.estado!=='libre')"
+          [class.hover:border-red-200]="modoSinMesa || (mesaSeleccionada && mesaSeleccionada.estado!=='libre')"
+          [class.cursor-pointer]="modoSinMesa || (mesaSeleccionada && mesaSeleccionada.estado!=='libre')"
+          [class.cursor-not-allowed]="!modoSinMesa && (!mesaSeleccionada || mesaSeleccionada.estado==='libre')"
+          [class.opacity-50]="!modoSinMesa && (!mesaSeleccionada || mesaSeleccionada.estado==='libre')"
           style="background:transparent">
           <span class="text-lg flex-shrink-0">🍽️</span>
           <div class="flex-1 min-w-0">
@@ -182,6 +217,11 @@ export class PosTerminalRestauranteComponent implements OnInit {
   private erpService = inject(ErpService);
   private crmService = inject(CrmService);
   private cdr = inject(ChangeDetectorRef);
+  public nicho = inject(NichoService);
+
+  modoSinMesa = false;
+  canalSinMesa = '';
+  carritoSinMesa: ItemCarrito[] = [];
 
   mesas: ErpMesa[] = [];
   mesaSeleccionada: ErpMesa | null = null;
@@ -201,6 +241,7 @@ export class PosTerminalRestauranteComponent implements OnInit {
   totalPago = 0;
   private mesaPendiente: ErpMesa | null = null;
   private itemsTicketPendiente: ItemCarrito[] = [];
+  cobroSinMesaPendiente = false;
 
   productos: Producto[] = [];
 
@@ -212,6 +253,10 @@ export class PosTerminalRestauranteComponent implements OnInit {
   ];
 
   ngOnInit() {
+    if (this.esDarkKitchen) {
+      this.modoSinMesa = true;
+      this.canalSinMesa = this.canalesExtra[0] || '';
+    }
     this.cargandoMesas = true;
     this.erpService.mesas$.subscribe(mesas => {
       this.mesas = mesas;
@@ -234,6 +279,52 @@ export class PosTerminalRestauranteComponent implements OnInit {
       },
       error: () => { this.cargandoMenu = false; this.cdr.detectChanges(); },
     });
+  }
+
+  get canalesExtra(): string[] {
+    return this.nicho.restCanales.filter(c => c !== 'comedor');
+  }
+
+  get esDarkKitchen(): boolean {
+    return this.nicho.restTipo === 'Dark Kitchen';
+  }
+
+  canalLabel(id: string): string { return REST_CANALES_LABELS[id] || id; }
+
+  abrirPedidoSinMesa() {
+    this.mesaSeleccionada = null;
+    this.modoSinMesa = true;
+    this.canalSinMesa = this.canalesExtra[0] || '';
+  }
+
+  cerrarPedidoSinMesa() {
+    this.modoSinMesa = false;
+    this.carritoSinMesa = [];
+  }
+
+  onCambiarCantidadSinMesa(ev: { id: number; delta: number }) {
+    this.carritoSinMesa = this.carritoSinMesa
+      .map(i => i.producto.id_productos === ev.id ? { ...i, cantidad: i.cantidad + ev.delta } : i)
+      .filter(i => i.cantidad > 0);
+  }
+
+  onEstablecerCantidadSinMesa(ev: { id: number; cantidad: number }) {
+    this.carritoSinMesa = this.carritoSinMesa.map(i => i.producto.id_productos === ev.id ? { ...i, cantidad: ev.cantidad } : i);
+  }
+
+  quitarItemSinMesa(id: number) {
+    this.carritoSinMesa = this.carritoSinMesa.filter(i => i.producto.id_productos !== id);
+  }
+
+  async cobrarSinMesa() {
+    if (this.cobrando || !this.carritoSinMesa.length) return;
+    const total = this.carritoSinMesa.reduce((s, i) => s + i.producto.precio * i.cantidad, 0);
+    const ok = await this.notify.confirm(`¿Confirmar cobro de $${total} (${this.canalLabel(this.canalSinMesa)})?`, { confirmText: 'Cobrar' });
+    if (!ok) return;
+
+    this.totalPago = total;
+    this.cobroSinMesaPendiente = true;
+    this.pagoModalOpen = true;
   }
 
   get categorias(): string[] {
@@ -265,7 +356,7 @@ export class PosTerminalRestauranteComponent implements OnInit {
     return map[m.estado] + ring;
   }
 
-  seleccionar(m: ErpMesa) { this.mesaSeleccionada = m; }
+  seleccionar(m: ErpMesa) { this.mesaSeleccionada = m; this.modoSinMesa = false; }
 
   crearMesa() {
     if (this.mesaSaving || !this.mesaForm.numero) { this.mesaError = 'El número de mesa es obligatorio.'; return; }
@@ -295,6 +386,12 @@ export class PosTerminalRestauranteComponent implements OnInit {
   }
 
   agregarItem(producto: Producto) {
+    if (this.modoSinMesa) {
+      const existing = this.carritoSinMesa.find(i => i.producto.id_productos === producto.id_productos);
+      if (existing) existing.cantidad++;
+      else this.carritoSinMesa = [...this.carritoSinMesa, { producto, cantidad: 1 }];
+      return;
+    }
     if (!this.mesaSeleccionada || this.mesaSeleccionada.estado === 'libre') return;
     this.erpService.agregarItemMesa(this.mesaSeleccionada.id, { id_producto: producto.id_productos }).subscribe({
       next: actualizada => { this.mesaSeleccionada = actualizada; this.cdr.detectChanges(); },
@@ -345,6 +442,41 @@ export class PosTerminalRestauranteComponent implements OnInit {
 
   confirmarPago(pagos: PedidoPago[]) {
     this.pagoModalOpen = false;
+
+    if (this.cobroSinMesaPendiente) {
+      this.cobrando = true;
+      this.crmService.obtenerClienteMostrador().pipe(
+        switchMap(idCliente => this.erpService.addPedido({
+          id_cliente: idCliente,
+          estado: 'facturado',
+          canal: this.canalSinMesa,
+          pagos,
+          items: this.carritoSinMesa.map(i => ({
+            id_producto: i.producto.id_productos,
+            cantidad: i.cantidad,
+            precio_unitario: i.producto.precio,
+          })),
+        } as Partial<ErpPedido>)),
+      ).subscribe({
+        next: () => {
+          this.lastTicket = this.carritoSinMesa;
+          this.ticketOpen = true;
+          this.carritoSinMesa = [];
+          this.modoSinMesa = false;
+          this.cobroSinMesaPendiente = false;
+          this.cobrando = false;
+          this.cdr.detectChanges();
+        },
+        error: err => {
+          this.notify.error(err?.error?.message || 'No se pudo procesar el pedido');
+          this.cobroSinMesaPendiente = false;
+          this.cobrando = false;
+          this.cdr.detectChanges();
+        },
+      });
+      return;
+    }
+
     const mesa = this.mesaPendiente;
     if (!mesa) return;
 

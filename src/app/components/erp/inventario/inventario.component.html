@@ -62,8 +62,11 @@
           </td>
           <td class="px-4 py-3 text-slate-500">{{ p.categoria?.nombre }}</td>
           <td class="px-4 py-3 text-right">
-            <span [ngClass]="p.stock <= p.stock_minimo ? 'text-red-600 font-bold' : 'text-slate-700'">{{ p.stock }}</span>
-            <span class="text-slate-400 text-xs"> / {{ p.stock_minimo }}</span>
+            <ng-container *ngIf="p.controla_stock !== false; else sinControlStock">
+              <span [ngClass]="p.stock <= p.stock_minimo ? 'text-red-600 font-bold' : 'text-slate-700'">{{ p.stock }}</span>
+              <span class="text-slate-400 text-xs"> / {{ p.stock_minimo }}</span>
+            </ng-container>
+            <ng-template #sinControlStock><span class="text-slate-400 text-xs">Sin control</span></ng-template>
           </td>
           <td class="px-4 py-3 text-right text-slate-600">${{ p.precio_compra.toLocaleString() }}</td>
           <td class="px-4 py-3 text-right font-medium text-amber-700">${{ p.precio.toLocaleString() }}</td>
@@ -72,12 +75,14 @@
               <button *appPuede="'erp_inventario.editar'" (click)="openEdit(p)" title="Editar" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-amber-600 p-1">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
-              <button *appPuede="'erp_inventario.editar'" (click)="openAjuste(p)" title="Ajustar stock" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-amber-600 p-1">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              </button>
-              <button (click)="openMovimientos(p)" title="Ver movimientos" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-blue-600 p-1">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-              </button>
+              <ng-container *ngIf="p.controla_stock !== false">
+                <button *appPuede="'erp_inventario.editar'" (click)="openAjuste(p)" title="Ajustar stock" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-amber-600 p-1">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <button (click)="openMovimientos(p)" title="Ver movimientos" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-blue-600 p-1">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                </button>
+              </ng-container>
               <button *appPuede="'erp_inventario.eliminar'" (click)="eliminar(p)" title="Eliminar" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
               </button>
@@ -132,7 +137,12 @@
         <option *ngFor="let c of categorias" [value]="c.id_categoria">{{ c.nombre }}</option>
       </select>
     </div>
-    <div class="grid grid-cols-2 gap-3">
+    <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+      <input type="checkbox" [(ngModel)]="form.controlaStock" />
+      Controlar stock de este producto
+    </label>
+    <p *ngIf="!form.controlaStock" class="text-[11px] text-slate-400 m-0 -mt-1">Sin límite de stock — no bloquea ventas ni pide cantidades (ideal para platillos preparados).</p>
+    <div *ngIf="form.controlaStock" class="grid grid-cols-2 gap-3">
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.stock" placeholder="Stock inicial" />
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.stockMinimo" placeholder="Stock mínimo" />
     </div>
@@ -158,6 +168,10 @@
   <div class="flex flex-col gap-3">
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="ajusteForm.cantidad" placeholder="Cantidad (+/-)" />
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="ajusteForm.motivo" placeholder="Motivo (ej. merma, conteo físico)" />
+    <select *ngIf="nicho.almacenOps.length" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="ajusteForm.operacion">
+      <option value="">Operación (opcional)</option>
+      <option *ngFor="let op of nicho.almacenOps" [value]="op">{{ operacionLabel(op) }}</option>
+    </select>
     <p *ngIf="ajusteError" class="text-xs text-red-600 m-0">{{ ajusteError }}</p>
     <button (click)="submitAjuste()" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700">Aplicar ajuste</button>
   </div>
@@ -178,6 +192,7 @@
       <div>
         <span [ngClass]="m.tipo === 'salida' ? 'text-red-600' : 'text-emerald-600'" class="font-semibold">{{ m.tipo === 'salida' ? '-' : '+' }}{{ m.cantidad }}</span>
         <span class="text-slate-500 ml-2">{{ m.motivo }}</span>
+        <span *ngIf="m.operacion" class="text-slate-400 ml-2 text-xs">· {{ operacionLabel(m.operacion) }}</span>
       </div>
       <div class="text-slate-400 text-xs">stock: {{ m.stock_resultante }}</div>
     </div>

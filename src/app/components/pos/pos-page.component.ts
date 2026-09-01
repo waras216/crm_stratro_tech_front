@@ -4,7 +4,7 @@ import { debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/o
 import { ProductoPOS } from './catalogo/catalogo.component';
 import { ItemCarrito } from './carrito/carrito.component';
 import { ModuleService, PosTab } from '../../core/services/module.service';
-import { NichoService } from '../../core/services/nicho.service';
+import { NichoService, TIENDA_CANALES_LABELS } from '../../core/services/nicho.service';
 import { ErpService } from '../../core/services/erp-service';
 import { CrmService } from '../../core/services/crm-service';
 import { NotifyService } from '../../core/services/notify.service';
@@ -56,6 +56,18 @@ import { Cliente } from '../../models/crm.models';
           <div *ngIf="clienteSeleccionado" class="flex items-center justify-between">
             <p class="text-xs font-semibold text-slate-700 m-0">{{ clienteSeleccionado.nombre }}</p>
             <button (click)="quitarCliente()" class="text-[10px] font-semibold text-blue-600 bg-transparent border-0 cursor-pointer hover:underline">Cambiar</button>
+          </div>
+        </div>
+
+        <div *ngIf="nicho.nicho==='tienda' && nicho.tiendaCanales.length>1" class="bg-white border border-slate-200 rounded-xl p-3 flex-shrink-0">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 m-0 mb-2">Canal de venta</p>
+          <div class="flex flex-wrap gap-1.5">
+            <button *ngFor="let c of nicho.tiendaCanales" (click)="canalVenta=c"
+              class="text-[10px] font-semibold px-2.5 py-1.5 rounded-full border-0 cursor-pointer transition-all"
+              [class.text-white]="canalVenta===c" [class.bg-pink-500]="canalVenta===c"
+              [class.bg-slate-100]="canalVenta!==c" [class.text-slate-600]="canalVenta!==c">
+              {{ canalLabel(c) }}
+            </button>
           </div>
         </div>
 
@@ -119,6 +131,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
   clientesEncontrados: Cliente[] = [];
   clienteSeleccionado: Cliente | null = null;
   cargandoClientes = false;
+  canalVenta: string | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -131,7 +144,10 @@ export class PosPageComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
   ) {}
 
+  canalLabel(id: string): string { return TIENDA_CANALES_LABELS[id] || id; }
+
   ngOnInit() {
+    this.canalVenta = this.nicho.tiendaCanales[0] || null;
     this.moduleService.posTab$
       .pipe(takeUntil(this.destroy$))
       .subscribe(t => {
@@ -234,6 +250,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
       switchMap(idCliente => this.erpService.addPedido({
         id_cliente: idCliente,
         estado: 'facturado',
+        canal: this.nicho.nicho === 'tienda' ? this.canalVenta : null,
         pagos,
         items: this.carrito.map(i => ({
           id_producto: i.producto.id_productos,

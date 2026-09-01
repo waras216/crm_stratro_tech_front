@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { NotifyService } from '../../../core/services/notify.service';
+import { ALMACEN_OPS_LABELS, NichoService } from '../../../core/services/nicho.service';
 import { Producto, Categoria, ErpMovimientoStock } from '../../../models/erp.models';
 import { modalLeave } from '../../shared/animations';
 
@@ -16,7 +17,7 @@ export class ErpInventarioComponent implements OnInit {
   dialogOpen = false;
   saving = false;
   error = '';
-  form = { nombre: '', sku: '', id_categorias: '', stock: '', stockMinimo: '', precioCompra: '', precio: '' };
+  form = { nombre: '', sku: '', id_categorias: '', stock: '', stockMinimo: '', precioCompra: '', precio: '', controlaStock: true };
   fotoSeleccionada: File | null = null;
   fotoPreview: string | null = null;
   subiendoFoto = false;
@@ -24,7 +25,7 @@ export class ErpInventarioComponent implements OnInit {
 
   ajusteDialogOpen = false;
   ajusteTarget: Producto | null = null;
-  ajusteForm = { cantidad: '', motivo: '' };
+  ajusteForm = { cantidad: '', motivo: '', operacion: '' };
   ajusteError = '';
 
   movimientosDialogOpen = false;
@@ -41,7 +42,9 @@ export class ErpInventarioComponent implements OnInit {
   categorias: Categoria[] = [];
   cargando = true;
 
-  constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
+  constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef, public nicho: NichoService) {}
+
+  operacionLabel(id: string): string { return ALMACEN_OPS_LABELS[id] || id; }
 
   ngOnInit() {
     this.erpService.cargarInventario().subscribe();
@@ -53,12 +56,12 @@ export class ErpInventarioComponent implements OnInit {
     const term = this.search.toLowerCase();
     return this.inventario.filter(p => p.nombre.toLowerCase().includes(term) || (p.sku ?? '').toLowerCase().includes(term));
   }
-  get valorTotal() { return this.inventario.reduce((s, p) => s + p.precio * p.stock, 0); }
-  get stockBajo() { return this.inventario.filter(p => p.stock <= p.stock_minimo).length; }
+  get valorTotal() { return this.inventario.filter(p => p.controla_stock !== false).reduce((s, p) => s + p.precio * p.stock, 0); }
+  get stockBajo() { return this.inventario.filter(p => p.controla_stock !== false && p.stock <= p.stock_minimo).length; }
 
   openNew() {
     this.editando = null;
-    this.form = { nombre: '', sku: '', id_categorias: '', stock: '', stockMinimo: '', precioCompra: '', precio: '' };
+    this.form = { nombre: '', sku: '', id_categorias: '', stock: '', stockMinimo: '', precioCompra: '', precio: '', controlaStock: this.nicho.nicho !== 'restaurante' };
     this.fotoSeleccionada = null;
     this.fotoPreview = null;
     this.error = '';
@@ -75,6 +78,7 @@ export class ErpInventarioComponent implements OnInit {
       stockMinimo: String(producto.stock_minimo),
       precioCompra: String(producto.precio_compra),
       precio: String(producto.precio),
+      controlaStock: producto.controla_stock !== false,
     };
     this.fotoSeleccionada = null;
     this.fotoPreview = producto.imagen_url ?? null;
@@ -105,6 +109,7 @@ export class ErpInventarioComponent implements OnInit {
       id_categorias: Number(this.form.id_categorias),
       stock: Number(this.form.stock) || 0,
       stock_minimo: Number(this.form.stockMinimo) || 0,
+      controla_stock: this.form.controlaStock,
       precio_compra: Number(this.form.precioCompra) || 0,
       precio: Number(this.form.precio) || 0,
     };
@@ -170,7 +175,7 @@ export class ErpInventarioComponent implements OnInit {
 
   openAjuste(producto: Producto) {
     this.ajusteTarget = producto;
-    this.ajusteForm = { cantidad: '', motivo: '' };
+    this.ajusteForm = { cantidad: '', motivo: '', operacion: '' };
     this.ajusteError = '';
     this.ajusteDialogOpen = true;
   }
@@ -182,7 +187,7 @@ export class ErpInventarioComponent implements OnInit {
     if (!this.ajusteForm.motivo) { this.ajusteError = 'Indica un motivo.'; return; }
 
     this.ajusteError = '';
-    this.erpService.ajustarStockInventario(this.ajusteTarget.id_productos, cantidad, this.ajusteForm.motivo).subscribe({
+    this.erpService.ajustarStockInventario(this.ajusteTarget.id_productos, cantidad, this.ajusteForm.motivo, this.ajusteForm.operacion).subscribe({
       next: () => { this.ajusteDialogOpen = false; this.cdr.detectChanges(); },
       error: (err) => { this.ajusteError = err?.error?.message || 'No se pudo ajustar el stock.'; this.cdr.detectChanges(); console.error(err); },
     });

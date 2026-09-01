@@ -88,7 +88,7 @@ const CONFIGS: Record<string, NichoConfig> = {
 };
 
 // Etiquetas legibles para los ids que captura el wizard de onboarding
-// (`onboarding.component.ts`) en los campos de selección múltiple de hotel.
+// (`onboarding.component.ts`) en los campos de selección múltiple por nicho.
 export const HOTEL_AMENIDADES_LABELS: Record<string, string> = {
   restaurante: 'Restaurante propio', bar: 'Bar / Lounge', spa: 'Spa & Wellness',
   piscina: 'Piscina', estacionamiento: 'Estacionamiento', eventos: 'Sala de eventos',
@@ -99,6 +99,36 @@ export const HOTEL_AMENIDADES_LABELS: Record<string, string> = {
 export const HOTEL_AMENIDAD_CATEGORIAS: Record<string, string> = {
   restaurante: 'Restaurante', bar: 'Bar', spa: 'Spa',
   piscina: 'Piscina', estacionamiento: 'Estacionamiento', eventos: 'Eventos',
+};
+
+export const REST_CANALES_LABELS: Record<string, string> = {
+  comedor: 'Comedor / Mesas', delivery_propio: 'Delivery propio', delivery_apps: 'Apps de delivery',
+  llevar: 'Para llevar', catering: 'Catering / Eventos',
+};
+
+export const FARM_ATENCION_LABELS: Record<string, string> = {
+  mostrador: 'Solo mostrador', delivery: 'Delivery a domicilio', consultas: 'Consultas con farmacéutico',
+  recetas: 'Gestión de recetas médicas',
+};
+
+export const ALMACEN_OPS_LABELS: Record<string, string> = {
+  recepcion: 'Recepción de mercancía', picking: 'Picking & Packing', despacho: 'Despacho / Entrega',
+  calidad: 'Control de calidad', crossdocking: 'Cross-docking',
+};
+
+export const TIENDA_CANALES_LABELS: Record<string, string> = {
+  fisica: 'Tienda física', ecommerce: 'E-commerce', whatsapp: 'WhatsApp / Redes',
+  delivery: 'Delivery a domicilio', mayoreo: 'Venta por mayoreo',
+};
+
+export const FARM_ESPECIALIDADES_LABELS: Record<string, string> = {
+  genericos: 'Medicamentos generales', controlados: 'Recetados / Controlados', dermocosmetica: 'Dermocosmética',
+  suplementos: 'Suplementos & Vitaminas', veterinaria: 'Veterinaria', homeopaticos: 'Homeopáticos',
+};
+
+export const STARTUP_METRICAS_LABELS: Record<string, string> = {
+  mrr: 'MRR / ARR', pipeline: 'Leads & Pipeline de ventas', cac: 'CAC / LTV',
+  churn: 'Churn Rate', nps: 'NPS & Satisfacción', usuarios: 'Usuarios activos',
 };
 
 const DEFAULT_CONFIG: NichoConfig = {
@@ -131,4 +161,23 @@ export class NichoService {
   get hotelTipo(): string { return this.auth.session?.nichoData?.hotelTipo || ''; }
 
   get hotelAmenidades(): string[] { return this.auth.session?.nichoData?.hotelAmenidades || []; }
+
+  get restTipo(): string { return this.auth.session?.nichoData?.restTipo || ''; }
+
+  get restCanales(): string[] {
+    const configurados = this.auth.session?.nichoData?.restCanales;
+    return configurados && configurados.length > 0 ? configurados : ['comedor'];
+  }
+
+  get farmAtencion(): string[] {
+    const configurados = this.auth.session?.nichoData?.farmAtencion;
+    return configurados && configurados.length > 0 ? configurados : ['mostrador'];
+  }
+
+  get almacenOps(): string[] { return this.auth.session?.nichoData?.almacenOps || []; }
+
+  get tiendaCanales(): string[] {
+    const configurados = this.auth.session?.nichoData?.tiendaCanales;
+    return configurados && configurados.length > 0 ? configurados : ['fisica'];
+  }
 }

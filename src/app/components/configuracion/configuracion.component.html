@@ -675,6 +675,23 @@
           <p *ngIf="!modulosNegocioValidos" class="text-xs m-0" style="color:#dc2626">Selecciona al menos un módulo.</p>
         </div>
 
+        <div *ngIf="perfilNegocioCampos.length" class="flex flex-col gap-3 pt-2 border-t" style="border-color:#e0e7ff">
+          <div>
+            <h3 class="text-xs font-bold m-0" style="color:#1e1b4b">Perfil de tu negocio</h3>
+            <p class="text-[10px] text-slate-400 m-0 mt-0.5">Lo que configuraste al crear tu cuenta — cámbialo desde soporte si algo ya no aplica</p>
+          </div>
+          <div *ngFor="let campo of perfilNegocioCampos" class="flex flex-col gap-1">
+            <label class="text-[10px] font-semibold text-slate-500">{{ campo.label }}</label>
+            <p *ngIf="campo.texto" class="text-sm m-0" style="color:#1e1b4b">{{ campo.texto }}</p>
+            <div *ngIf="campo.lista" class="flex flex-wrap gap-1.5">
+              <span *ngIf="campo.lista.length===0" class="text-xs text-slate-400">—</span>
+              <span *ngFor="let id of campo.lista" class="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-600">
+                {{ perfilNegocioLabel(campo, id) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <p *ngIf="errorNegocio" class="text-xs text-red-600 m-0">{{ errorNegocio }}</p>
 
         <button (click)="guardarNegocio()" [disabled]="guardandoNegocio || !modulosNegocioValidos"
