@@ -90,7 +90,11 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
     const s = this.auth.session;
     this.userName = (s as any)?.nombre ?? 'Usuario';
     this.userEmail = (s as any)?.email ?? '';
-    this.collapsed = localStorage.getItem('sidebarCompacto') === 'true';
+    // El sidebar compacto es una preferencia de escritorio: en mobile el drawer
+    // siempre va a pantalla completa (ver @media en el scss) y el botón para
+    // expandirlo está oculto, así que aplicar "compacto" ahí deja al usuario
+    // sin forma de salir de un drawer con solo íconos y medio ancho vacío.
+    this.collapsed = window.innerWidth > 768 && localStorage.getItem('sidebarCompacto') === 'true';
 
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
@@ -366,6 +370,13 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   private swipeStartX = 0;
   private swipeStartY = 0;
   private swipeTracking = false;
+
+  @HostListener('window:resize')
+  onResize() {
+    // Si la ventana cruza a ancho mobile mientras el sidebar estaba compacto
+    // (p.ej. al rotar una tablet), se expande solo — ver comentario en ngOnInit.
+    if (window.innerWidth <= 768 && this.collapsed) this.collapsed = false;
+  }
 
   @HostListener('touchstart', ['$event'])
   onTouchStart(e: TouchEvent) {
