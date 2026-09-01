@@ -87,6 +87,20 @@ const CONFIGS: Record<string, NichoConfig> = {
   },
 };
 
+// Etiquetas legibles para los ids que captura el wizard de onboarding
+// (`onboarding.component.ts`) en los campos de selección múltiple de hotel.
+export const HOTEL_AMENIDADES_LABELS: Record<string, string> = {
+  restaurante: 'Restaurante propio', bar: 'Bar / Lounge', spa: 'Spa & Wellness',
+  piscina: 'Piscina', estacionamiento: 'Estacionamiento', eventos: 'Sala de eventos',
+};
+
+// Nombre de la categoría de Inventario que se auto-crea (OnboardingService::AMENIDAD_CATEGORIAS
+// en el backend, debe coincidir) por cada amenidad marcada en el onboarding.
+export const HOTEL_AMENIDAD_CATEGORIAS: Record<string, string> = {
+  restaurante: 'Restaurante', bar: 'Bar', spa: 'Spa',
+  piscina: 'Piscina', estacionamiento: 'Estacionamiento', eventos: 'Eventos',
+};
+
 const DEFAULT_CONFIG: NichoConfig = {
   nicho: '', nombre: 'Mi Empresa', color: '#6366f1',
   leadLabel: 'Leads', clienteLabel: 'Clientes', oportunidadLabel: 'Oportunidades', actividadLabel: 'Actividades',
@@ -113,4 +127,8 @@ export class NichoService {
     const configurados = this.auth.session?.nichoData?.hotelTiposHabitacion;
     return configurados && configurados.length > 0 ? configurados : ['Individual', 'Doble', 'Suite'];
   }
+
+  get hotelTipo(): string { return this.auth.session?.nichoData?.hotelTipo || ''; }
+
+  get hotelAmenidades(): string[] { return this.auth.session?.nichoData?.hotelAmenidades || []; }
 }

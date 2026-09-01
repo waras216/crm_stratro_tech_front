@@ -138,6 +138,24 @@ export class CrmService {
     );
   }
 
+  /** Busca (o crea) un cliente por nombre exacto -- usado para atribuir una compra (ej. hospedaje de hotel)
+   *  al nombre ya registrado (huésped del check-in) en vez de al cliente genérico de mostrador, para llevar
+   *  el control de a quién corresponde cada venta. */
+  obtenerClientePorNombre(nombre: string): Observable<number> {
+    const nombreLimpio = (nombre || '').trim();
+    if (!nombreLimpio) return this.obtenerClienteMostrador();
+
+    return this.cargarClientes(1, nombreLimpio, '', 5).pipe(
+      switchMap(pagina => {
+        const existente = pagina.data.find(c => c.nombre === nombreLimpio);
+        if (existente) return of(existente.id_cliente);
+        return this.addCliente({ nombre: nombreLimpio, tipo: 'persona' }).pipe(
+          map(c => c.id_cliente),
+        );
+      }),
+    );
+  }
+
   // ════════════════════════════════════════════════════════════════════
   // CONTACTOS
   // ════════════════════════════════════════════════════════════════════

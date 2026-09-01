@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
-import { NichoService } from '../../../core/services/nicho.service';
+import { HOTEL_AMENIDAD_CATEGORIAS, NichoService } from '../../../core/services/nicho.service';
 import { ErpHabitacion, ErpPedido, Producto, PedidoPago } from '../../../models/erp.models';
 import { modalLeave } from '../../shared/animations';
 
@@ -57,21 +57,21 @@ import { modalLeave } from '../../shared/animations';
     <ng-container *ngIf="habSeleccionada as hab">
       <!-- Header habitación -->
       <div class="bg-white rounded-2xl p-4 border border-slate-100">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center gap-3">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-center gap-3 min-w-0 flex-1">
             <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-extrabold text-white flex-shrink-0"
               [ngClass]="hab.estado === 'libre' ? 'bg-emerald-400' : hab.estado === 'ocupada' ? 'bg-amber-400' : hab.estado === 'checkout' ? 'bg-blue-400' : 'bg-slate-400'">
               {{ hab.numero }}
             </div>
-            <div>
-              <p class="text-sm font-bold text-slate-800 m-0">Habitación {{ hab.numero }} — {{ hab.tipo }}</p>
+            <div class="min-w-0">
+              <p class="text-sm font-bold text-slate-800 m-0 truncate">Habitación {{ hab.numero }} — {{ hab.tipo }}</p>
               <p class="text-xs text-slate-400 m-0">Piso {{ hab.piso }}
                 <ng-container *ngIf="hab.precio !== null">· \${{ hab.precio }}/noche</ng-container>
                 <span *ngIf="hab.precio === null" class="text-amber-600 font-semibold">· Sin precio definido</span>
               </p>
             </div>
           </div>
-          <span class="text-[10px] font-bold px-3 py-1 rounded-full"
+          <span class="text-[10px] font-bold px-3 py-1 rounded-full flex-shrink-0"
             [class.bg-emerald-100]="hab.estado==='libre'" [class.text-emerald-600]="hab.estado==='libre'"
             [class.bg-amber-100]="hab.estado==='ocupada'" [class.text-amber-600]="hab.estado==='ocupada'"
             [class.bg-blue-100]="hab.estado==='checkout'" [class.text-blue-600]="hab.estado==='checkout'"
@@ -80,7 +80,7 @@ import { modalLeave } from '../../shared/animations';
           </span>
         </div>
         <!-- Huésped info -->
-        <div *ngIf="hab.huesped" class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-3 gap-3">
+        <div *ngIf="hab.huesped" class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <p class="text-[10px] text-slate-400 m-0">Huésped</p>
             <p class="text-xs font-semibold text-slate-700 m-0 mt-0.5">{{ hab.huesped }}</p>
@@ -99,6 +99,14 @@ import { modalLeave } from '../../shared/animations';
           <button *ngIf="hab.estado==='libre'" (click)="checkInDialogOpen=true"
             class="flex-1 py-2 text-xs font-bold rounded-xl border-0 cursor-pointer text-white hover:opacity-90 transition-all"
             style="background:#f59e0b">Check-in</button>
+          <button *ngIf="hab.estado==='ocupada'" (click)="toggleSalida(hab)"
+            class="flex-1 py-2 text-xs font-semibold rounded-xl border border-blue-200 cursor-pointer text-blue-600 bg-blue-50 hover:bg-blue-100 transition-all">
+            Marcar salida
+          </button>
+          <button *ngIf="hab.estado==='checkout'" (click)="toggleSalida(hab)"
+            class="flex-1 py-2 text-xs font-semibold rounded-xl border border-slate-200 cursor-pointer text-slate-500 bg-transparent hover:bg-slate-50 transition-all">
+            Volver a ocupada
+          </button>
           <button *ngIf="hab.estado==='ocupada' || hab.estado==='checkout'" (click)="checkOut()" [disabled]="cobrando"
             class="flex-1 py-2 text-xs font-bold rounded-xl border-0 cursor-pointer text-white hover:opacity-90 transition-all disabled:opacity-60"
             style="background:#3b82f6">{{ cobrando ? 'Procesando...' : 'Check-out' }}</button>
@@ -138,14 +146,59 @@ import { modalLeave } from '../../shared/animations';
       <div *ngIf="mostrarRoomService && hab.estado==='ocupada'"
         class="bg-white rounded-2xl border border-amber-200 p-4">
         <p class="text-xs font-bold text-slate-700 m-0 mb-3">Agregar Room Service</p>
-        <p *ngIf="cargandoMenu" class="text-center py-4 text-slate-400 text-xs">Cargando...</p>
-        <div class="grid grid-cols-3 gap-2">
-          <button *ngFor="let item of menuRoomService" (click)="agregarConsumo(item)"
-            class="flex flex-col items-center gap-1 p-2.5 rounded-xl border border-slate-100 bg-slate-50 hover:bg-amber-50 hover:border-amber-200 cursor-pointer transition-all text-center">
-            <span class="text-xl">🍽️</span>
-            <span class="text-[10px] font-semibold text-slate-600 leading-tight">{{ item.nombre }}</span>
-            <span class="text-[10px] font-bold text-amber-600">\${{ item.precio }}</span>
+
+        <div class="mb-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
+          <div class="flex items-center justify-between">
+            <p class="text-[10px] font-bold text-amber-700 uppercase tracking-wide m-0">Cuenta de la habitación</p>
+            <p class="text-xs font-extrabold text-amber-700 m-0">\${{ totalConsumos(hab) + totalHospedaje(hab) }}</p>
+          </div>
+          <p class="text-[10px] text-amber-600 m-0 mt-0.5">Hospedaje: \${{ totalHospedaje(hab) }} + Consumos: \${{ totalConsumos(hab) }}</p>
+          <div *ngIf="hab.consumos.length" class="flex flex-col gap-0.5 mt-2 pt-2 border-t border-amber-200/60">
+            <div *ngFor="let c of hab.consumos" class="flex items-center justify-between text-[11px] text-amber-800">
+              <span>{{ c.nombre }} × {{ c.cantidad }}</span>
+              <span class="font-semibold">\${{ c.precio_unitario * c.cantidad }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative mb-3">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </span>
+          <input class="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-amber-400"
+            [(ngModel)]="busquedaRoomService" placeholder="Buscar producto..." />
+        </div>
+
+        <div *ngIf="!busquedaRoomService && categoriasRoomService.length" class="flex flex-wrap gap-1.5 mb-3">
+          <button *ngFor="let cat of categoriasRoomService" (click)="categoriaActivaRoomService=cat"
+            class="text-[10px] font-semibold px-2.5 py-1 rounded-full border-0 cursor-pointer transition-all"
+            [class.text-white]="categoriaActivaRoomService===cat" [class.bg-amber-500]="categoriaActivaRoomService===cat"
+            [class.bg-slate-100]="categoriaActivaRoomService!==cat" [class.text-slate-600]="categoriaActivaRoomService!==cat">
+            {{ cat }}
           </button>
+        </div>
+
+        <p *ngIf="cargandoMenu" class="text-center py-4 text-slate-400 text-xs">Cargando...</p>
+        <div *ngIf="!cargandoMenu && menuRoomService.length===0" class="text-center py-4 text-slate-400 text-xs">Sin productos que coincidan</div>
+        <div class="flex flex-col gap-1.5 max-h-72 overflow-y-auto">
+          <div *ngFor="let item of menuRoomService"
+            class="flex items-center gap-2 p-2 rounded-xl border border-slate-100 bg-slate-50">
+            <span class="text-lg flex-shrink-0">🍽️</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-[11px] font-semibold text-slate-600 m-0 truncate">{{ item.nombre }}</p>
+              <p class="text-[10px] font-bold text-amber-600 m-0">\${{ item.precio }}</p>
+            </div>
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button (click)="cambiarCantidadProducto(item, -1)"
+                class="w-6 h-6 rounded-lg border border-slate-200 bg-white text-slate-500 font-bold text-sm cursor-pointer hover:bg-slate-50">-</button>
+              <span class="text-xs font-bold text-slate-700 w-5 text-center">{{ cantidadDe(item) }}</span>
+              <button (click)="cambiarCantidadProducto(item, 1)"
+                class="w-6 h-6 rounded-lg border border-slate-200 bg-white text-slate-500 font-bold text-sm cursor-pointer hover:bg-slate-50">+</button>
+            </div>
+            <button (click)="agregarConsumo(item)"
+              class="text-[10px] font-bold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 flex-shrink-0"
+              style="background:#f59e0b">Agregar</button>
+          </div>
         </div>
       </div>
     </ng-container>
@@ -253,6 +306,7 @@ export class PosTerminalHotelComponent implements OnInit {
     this.erpService.cargarInventario().subscribe({
       next: productos => {
         this.productos = productos.filter(p => p.activo !== false);
+        this.categoriaActivaRoomService = this.categoriasRoomService[0] ?? '';
         this.cargandoMenu = false;
         this.cdr.detectChanges();
       },
@@ -260,9 +314,41 @@ export class PosTerminalHotelComponent implements OnInit {
     });
   }
 
+  categoriaActivaRoomService = '';
+  busquedaRoomService = '';
+  private cantidadesRoomService: Record<number, number> = {};
+
+  cantidadDe(producto: Producto): number {
+    return this.cantidadesRoomService[producto.id_productos] ?? 1;
+  }
+
+  cambiarCantidadProducto(producto: Producto, delta: number) {
+    this.cantidadesRoomService[producto.id_productos] = Math.max(1, this.cantidadDe(producto) + delta);
+  }
+
+  /**
+   * Universo de productos que se pueden cargar a la habitación: la categoría dedicada "Room
+   * Service" más las categorías de amenidad (Bar, Spa, etc.) que el hotel configuró en el
+   * onboarding. Si el tenant no tiene nada categorizado así, cae a mostrar todo el catálogo.
+   */
+  private get baseRoomService(): Producto[] {
+    const nombresAmenidad = this.nicho.hotelAmenidades
+      .map(a => HOTEL_AMENIDAD_CATEGORIAS[a])
+      .filter((n): n is string => !!n);
+    const base = this.productos.filter(p => p.categoria?.nombre === 'Room Service' || nombresAmenidad.includes(p.categoria?.nombre ?? ''));
+    return base.length > 0 ? base : this.productos;
+  }
+
+  get categoriasRoomService(): string[] {
+    return Array.from(new Set(this.baseRoomService.map(p => p.categoria?.nombre ?? 'Otros')));
+  }
+
   get menuRoomService(): Producto[] {
-    const roomService = this.productos.filter(p => p.categoria?.nombre === 'Room Service');
-    return roomService.length > 0 ? roomService : this.productos;
+    const busqueda = this.busquedaRoomService.trim().toLowerCase();
+    if (busqueda) {
+      return this.baseRoomService.filter(p => p.nombre.toLowerCase().includes(busqueda));
+    }
+    return this.baseRoomService.filter(p => (p.categoria?.nombre ?? 'Otros') === this.categoriaActivaRoomService);
   }
 
   totalConsumos(h: ErpHabitacion): number {
@@ -333,8 +419,12 @@ export class PosTerminalHotelComponent implements OnInit {
 
   agregarConsumo(producto: Producto) {
     if (!this.habSeleccionada) return;
-    this.erpService.agregarConsumoHabitacion(this.habSeleccionada.id, { id_producto: producto.id_productos }).subscribe({
-      next: actualizada => { this.habSeleccionada = actualizada; this.cdr.detectChanges(); },
+    this.erpService.agregarConsumoHabitacion(this.habSeleccionada.id, { id_producto: producto.id_productos, cantidad: this.cantidadDe(producto) }).subscribe({
+      next: actualizada => {
+        this.habSeleccionada = actualizada;
+        delete this.cantidadesRoomService[producto.id_productos];
+        this.cdr.detectChanges();
+      },
       error: err => this.notify.error(err?.error?.message || 'No se pudo agregar el consumo'),
     });
   }
@@ -342,6 +432,11 @@ export class PosTerminalHotelComponent implements OnInit {
   toggleMantenimiento(h: ErpHabitacion) {
     const estado = h.estado === 'mantenimiento' ? 'libre' : 'mantenimiento';
     this.erpService.marcarMantenimiento(h.id, estado).subscribe(actualizada => { this.habSeleccionada = actualizada; this.cdr.detectChanges(); });
+  }
+
+  toggleSalida(h: ErpHabitacion) {
+    const estado = h.estado === 'checkout' ? 'ocupada' : 'checkout';
+    this.erpService.marcarSalidaHabitacion(h.id, estado).subscribe(actualizada => { this.habSeleccionada = actualizada; this.cdr.detectChanges(); });
   }
 
   totalHospedaje(h: ErpHabitacion): number {
@@ -371,7 +466,7 @@ export class PosTerminalHotelComponent implements OnInit {
     const hab = this.habPendiente;
     if (!hab) return;
 
-    this.crmService.obtenerClienteMostrador().subscribe(idCliente => {
+    this.crmService.obtenerClientePorNombre(hab.huesped || '').subscribe(idCliente => {
       this.ejecutarCheckOut(hab, idCliente, pagos);
     });
   }

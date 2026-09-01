@@ -1,8 +1,8 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
-import { NichoService } from '../../../core/services/nicho.service';
+import { HOTEL_AMENIDADES_LABELS, NichoService } from '../../../core/services/nicho.service';
 import { NotifyService } from '../../../core/services/notify.service';
-import { ErpHabitacion } from '../../../models/erp.models';
+import { ErpDisponibilidad, ErpEstadia, ErpHabitacion, ErpReserva } from '../../../models/erp.models';
 import { modalLeave } from '../../shared/animations';
 
 @Component({
@@ -25,6 +25,22 @@ export class ErpReservasHotelAdminComponent implements OnInit {
   papeleraOpen = false;
   papelera: ErpHabitacion[] = [];
 
+  historialOpen = false;
+  historialCargando = false;
+  historial: ErpEstadia[] = [];
+
+  reservas: ErpReserva[] = [];
+  reservaDialogOpen = false;
+  reservaForm = { id_habitacion: null as number | null, huesped: '', telefono: '', fecha_checkin: '', noches: 1, notas: '' };
+  reservaError = '';
+  reservaSaving = false;
+
+  disponibilidadOpen = false;
+  disponibilidadCargando = false;
+  disponibilidad: ErpDisponibilidad | null = null;
+  disponibilidadDesde = new Date().toISOString().slice(0, 10);
+  disponibilidadHasta = this.sumarDias(new Date(), 13);
+
   constructor(private erpService: ErpService, public nicho: NichoService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
@@ -34,7 +50,71 @@ export class ErpReservasHotelAdminComponent implements OnInit {
       next: () => { this.cargando = false; this.cdr.detectChanges(); },
       error: () => { this.cargando = false; this.cdr.detectChanges(); },
     });
+    this.erpService.reservas$.subscribe(data => { this.reservas = data; this.cdr.detectChanges(); });
+    this.erpService.cargarReservas().subscribe();
   }
+
+  get reservasPendientes(): ErpReserva[] {
+    return this.reservas.filter(r => r.estado === 'pendiente');
+  }
+
+  abrirNuevaReserva() {
+    this.reservaForm = { id_habitacion: this.habitaciones[0]?.id ?? null, huesped: '', telefono: '', fecha_checkin: new Date().toISOString().slice(0, 10), noches: 1, notas: '' };
+    this.reservaError = '';
+    this.reservaDialogOpen = true;
+  }
+
+  guardarReserva() {
+    if (this.reservaSaving) return;
+    if (!this.reservaForm.id_habitacion) { this.reservaError = 'Selecciona una habitación.'; return; }
+    if (!this.reservaForm.huesped.trim()) { this.reservaError = 'El nombre del huésped es obligatorio.'; return; }
+    if (!this.reservaForm.fecha_checkin) { this.reservaError = 'Indica la fecha de check-in.'; return; }
+
+    this.reservaSaving = true;
+    this.reservaError = '';
+
+    this.erpService.crearReserva({
+      id_habitacion: this.reservaForm.id_habitacion,
+      huesped: this.reservaForm.huesped,
+      telefono: this.reservaForm.telefono || undefined,
+      fecha_checkin: this.reservaForm.fecha_checkin,
+      noches: this.reservaForm.noches || 1,
+      notas: this.reservaForm.notas || undefined,
+    }).subscribe({
+      next: () => {
+        this.reservaSaving = false;
+        this.reservaDialogOpen = false;
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        this.reservaSaving = false;
+        this.reservaError = err?.error?.message || 'No se pudo crear la reserva';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  async cancelarReserva(r: ErpReserva) {
+    const ok = await this.notify.confirm(`¿Cancelar la reserva de ${r.huesped}?`, { danger: true, confirmText: 'Cancelar reserva' });
+    if (!ok) return;
+
+    this.erpService.cancelarReserva(r.id).subscribe({
+      next: () => { this.notify.success('Reserva cancelada'); this.cdr.detectChanges(); },
+      error: err => this.notify.error(err?.error?.message || 'No se pudo cancelar la reserva'),
+    });
+  }
+
+  async hacerCheckInReserva(r: ErpReserva) {
+    const ok = await this.notify.confirm(`¿Hacer check-in de ${r.huesped} en la Habitación ${r.habitacion?.numero}?`, { confirmText: 'Check-in' });
+    if (!ok) return;
+
+    this.erpService.checkInReserva(r.id).subscribe({
+      next: () => { this.notify.success('Check-in completado'); this.cdr.detectChanges(); },
+      error: err => this.notify.error(err?.error?.message || 'No se pudo hacer el check-in'),
+    });
+  }
+
+  amenidadLabel(id: string): string { return HOTEL_AMENIDADES_LABELS[id] || id; }
 
   contarEstado(estado: ErpHabitacion['estado']): number {
     return this.habitaciones.filter(h => h.estado === estado).length;
@@ -111,6 +191,52 @@ export class ErpReservasHotelAdminComponent implements OnInit {
   abrirPapelera() {
     this.papeleraOpen = true;
     this.erpService.cargarPapeleraHabitaciones().subscribe(data => { this.papelera = data; this.cdr.detectChanges(); });
+  }
+
+  private sumarDias(fecha: Date, dias: number): string {
+    const f = new Date(fecha);
+    f.setDate(f.getDate() + dias);
+    return f.toISOString().slice(0, 10);
+  }
+
+  abrirDisponibilidad() {
+    this.disponibilidadOpen = true;
+    this.cargarDisponibilidadRango();
+  }
+
+  cargarDisponibilidadRango() {
+    this.disponibilidadCargando = true;
+    this.erpService.cargarDisponibilidad(this.disponibilidadDesde, this.disponibilidadHasta).subscribe({
+      next: data => { this.disponibilidad = data; this.disponibilidadCargando = false; this.cdr.detectChanges(); },
+      error: () => { this.disponibilidadCargando = false; this.cdr.detectChanges(); },
+    });
+  }
+
+  claseCelda(estado: string): string {
+    switch (estado) {
+      case 'libre': return 'bg-emerald-50 hover:bg-emerald-100 cursor-pointer';
+      case 'ocupada': return 'bg-amber-100';
+      case 'reservada': return 'bg-indigo-100';
+      case 'mantenimiento': return 'bg-slate-200';
+      default: return 'bg-slate-50';
+    }
+  }
+
+  reservarDesdeCelda(idHabitacion: number, fecha: string, estado: string) {
+    if (estado !== 'libre') return;
+    this.disponibilidadOpen = false;
+    this.reservaForm = { id_habitacion: idHabitacion, huesped: '', telefono: '', fecha_checkin: fecha, noches: 1, notas: '' };
+    this.reservaError = '';
+    this.reservaDialogOpen = true;
+  }
+
+  abrirHistorial() {
+    this.historialOpen = true;
+    this.historialCargando = true;
+    this.erpService.cargarHistorialEstadias().subscribe({
+      next: data => { this.historial = data; this.historialCargando = false; this.cdr.detectChanges(); },
+      error: () => { this.historialCargando = false; this.cdr.detectChanges(); },
+    });
   }
 
   restaurar(id: number) {

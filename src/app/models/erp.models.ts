@@ -190,6 +190,51 @@ export interface ErpHabitacion {
   consumos: ErpHabitacionConsumo[];
 }
 
+export interface ErpEstadia {
+  id: number;
+  id_habitacion: number;
+  habitacion?: { id: number; numero: number; tipo: string };
+  huesped: string;
+  id_cliente: number | null;
+  cliente?: { id_cliente: number; nombre: string } | null;
+  check_in: string;
+  check_out_programado: string | null;
+  noches: number | null;
+  check_out_real: string | null;
+  total_hospedaje: number;
+  total_consumos: number;
+  total: number;
+  id_pedido: number | null;
+  estado: 'activa' | 'finalizada';
+}
+
+export type ErpDisponibilidadEstado = 'libre' | 'ocupada' | 'reservada' | 'mantenimiento';
+
+export interface ErpDisponibilidadHabitacion {
+  id: number;
+  numero: number;
+  tipo: string;
+  dias: Record<string, ErpDisponibilidadEstado>;
+}
+
+export interface ErpDisponibilidad {
+  dias: string[];
+  habitaciones: ErpDisponibilidadHabitacion[];
+}
+
+export interface ErpReserva {
+  id: number;
+  id_habitacion: number;
+  habitacion?: { id: number; numero: number; tipo: string };
+  huesped: string;
+  telefono: string | null;
+  fecha_checkin: string;
+  fecha_checkout: string;
+  noches: number;
+  notas: string | null;
+  estado: 'pendiente' | 'cancelada' | 'convertida';
+}
+
 export interface ErpReceta {
   id: number;
   id_cliente: number;

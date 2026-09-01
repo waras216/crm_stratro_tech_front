@@ -6,7 +6,7 @@ import { environment } from '../../../environments/environment';
 import {
   Producto, Categoria, Proveedor, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
   ErpOrdenProduccion, ErpEnvio, ErpProyecto, ErpProyectoTarea, ErpProyectoHora, ErpInteraccion, ErpCrmResumen,
-  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpReceta, PedidoPago, ErpFactura
+  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpEstadia, ErpReserva, ErpDisponibilidad, ErpReceta, PedidoPago, ErpFactura
 } from '../../models/erp.models';
 
 const API = environment.apiUrl;
@@ -380,6 +380,17 @@ export class ErpService {
     return this.http.get<ErpHabitacion[]>(`${API}/erp/habitaciones/papelera`);
   }
 
+  cargarHistorialEstadias(): Observable<ErpEstadia[]> {
+    return this.http.get<ErpEstadia[]>(`${API}/erp/habitaciones/historial`);
+  }
+
+  cargarDisponibilidad(desde?: string, hasta?: string): Observable<ErpDisponibilidad> {
+    let params = new HttpParams();
+    if (desde) params = params.set('desde', desde);
+    if (hasta) params = params.set('hasta', hasta);
+    return this.http.get<ErpDisponibilidad>(`${API}/erp/habitaciones/disponibilidad`, { params });
+  }
+
   restaurarHabitacion(id: number): Observable<ErpHabitacion> {
     return this.http.patch<ErpHabitacion>(`${API}/erp/habitaciones/${id}/restaurar`, {}).pipe(
       tap(item => this._habitaciones.next([...this.habitaciones, item]))
@@ -410,12 +421,52 @@ export class ErpService {
     );
   }
 
+  marcarSalidaHabitacion(id: number, estado: 'checkout' | 'ocupada'): Observable<ErpHabitacion> {
+    return this.http.patch<ErpHabitacion>(`${API}/erp/habitaciones/${id}/marcar-salida`, { estado }).pipe(
+      tap(actualizada => this.actualizarHabitacionLocal(actualizada))
+    );
+  }
+
   checkOutHabitacion(id: number, idCliente?: number, pagos?: PedidoPago[]): Observable<{ habitacion: ErpHabitacion; pedido: ErpPedido | null }> {
     const body = idCliente ? { id_cliente: idCliente, pagos } : {};
     return this.http.post<{ habitacion: ErpHabitacion; pedido: ErpPedido | null }>(`${API}/erp/habitaciones/${id}/check-out`, body).pipe(
       tap(res => {
         this.actualizarHabitacionLocal(res.habitacion);
         if (res.pedido) this._pedidos.next([res.pedido, ...this.pedidos]);
+      })
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // RESERVAS anticipadas de hotel (fecha futura, antes del check-in real)
+  // ════════════════════════════════════════════════════════════════════
+  private _reservas = new BehaviorSubject<ErpReserva[]>([]);
+  reservas$ = this._reservas.asObservable();
+  get reservas() { return this._reservas.getValue(); }
+
+  cargarReservas(): Observable<ErpReserva[]> {
+    return this.http.get<ErpReserva[]>(`${API}/erp/reservas`).pipe(
+      tap(data => this._reservas.next(data))
+    );
+  }
+
+  crearReserva(reserva: { id_habitacion: number; huesped: string; telefono?: string; fecha_checkin: string; noches: number; notas?: string }): Observable<ErpReserva> {
+    return this.http.post<ErpReserva>(`${API}/erp/reservas`, reserva).pipe(
+      tap(nueva => this._reservas.next([...this.reservas, nueva]))
+    );
+  }
+
+  cancelarReserva(id: number): Observable<ErpReserva> {
+    return this.http.patch<ErpReserva>(`${API}/erp/reservas/${id}/cancelar`, {}).pipe(
+      tap(actualizada => this._reservas.next(this.reservas.map(r => r.id === id ? actualizada : r)))
+    );
+  }
+
+  checkInReserva(id: number): Observable<{ habitacion: ErpHabitacion; reserva: ErpReserva }> {
+    return this.http.post<{ habitacion: ErpHabitacion; reserva: ErpReserva }>(`${API}/erp/reservas/${id}/check-in`, {}).pipe(
+      tap(res => {
+        this.actualizarHabitacionLocal(res.habitacion);
+        this._reservas.next(this.reservas.map(r => r.id === id ? res.reserva : r));
       })
     );
   }

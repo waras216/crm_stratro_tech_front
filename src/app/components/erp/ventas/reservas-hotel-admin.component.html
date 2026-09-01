@@ -5,11 +5,21 @@
       <p class="text-xs text-slate-400 m-0 mt-0.5">Vista administrativa — el check-in, check-out y room service se hacen desde el POS</p>
     </div>
     <div class="flex gap-2 flex-shrink-0">
+      <button (click)="abrirDisponibilidad()" class="text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-600 hover:bg-slate-50">Disponibilidad</button>
+      <button (click)="abrirHistorial()" class="text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-600 hover:bg-slate-50">Historial</button>
       <button (click)="abrirPapelera()" class="text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-600 hover:bg-slate-50">Papelera</button>
+      <button (click)="abrirNuevaReserva()" [disabled]="habitaciones.length===0"
+        class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 disabled:opacity-50"
+        style="background:#6366f1">+ Reserva</button>
       <button (click)="abrirNuevaHabitacion()"
         class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90"
         style="background:#f59e0b">+ Hab.</button>
     </div>
+  </div>
+
+  <div *ngIf="nicho.hotelTipo || nicho.hotelAmenidades.length" class="flex flex-wrap items-center gap-2">
+    <span *ngIf="nicho.hotelTipo" class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">{{ nicho.hotelTipo }}</span>
+    <span *ngFor="let a of nicho.hotelAmenidades" class="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">{{ amenidadLabel(a) }}</span>
   </div>
 
   <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -32,6 +42,39 @@
     <div class="rounded-xl bg-slate-50 p-3 text-center">
       <p class="text-lg font-extrabold m-0" style="color:#f59e0b">{{ ocupacionPct() }}%</p>
       <p class="text-[10px] font-semibold text-slate-500 m-0 mt-0.5">Ocupación</p>
+    </div>
+  </div>
+
+  <div *ngIf="reservasPendientes.length" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="px-4 py-3 border-b border-slate-100">
+      <h4 class="m-0 text-xs font-bold text-slate-600">Reservas próximas</h4>
+    </div>
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="text-left px-4 py-2 font-medium text-slate-500">Hab.</th>
+        <th class="text-left px-4 py-2 font-medium text-slate-500">Huésped</th>
+        <th class="text-left px-4 py-2 font-medium text-slate-500">Teléfono</th>
+        <th class="text-left px-4 py-2 font-medium text-slate-500">Check-in</th>
+        <th class="text-left px-4 py-2 font-medium text-slate-500">Check-out</th>
+        <th class="text-right px-4 py-2 font-medium text-slate-500">Acción</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngFor="let r of reservasPendientes" class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-2 font-bold">{{ r.habitacion?.numero ?? '—' }}</td>
+          <td class="px-4 py-2">{{ r.huesped }}</td>
+          <td class="px-4 py-2">{{ r.telefono || '—' }}</td>
+          <td class="px-4 py-2">{{ r.fecha_checkin }}</td>
+          <td class="px-4 py-2">{{ r.fecha_checkout }}</td>
+          <td class="px-4 py-2 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button (click)="hacerCheckInReserva(r)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors">Check-in</button>
+              <button (click)="cancelarReserva(r)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Cancelar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
     </div>
   </div>
 
@@ -129,6 +172,101 @@
   </div>
 </div>
 
+<!-- Modal: disponibilidad (calendario) -->
+<div *ngIf="disponibilidadOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="disponibilidadOpen=false"></div>
+<div *ngIf="disponibilidadOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[95%] max-w-4xl z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h3 class="m-0 text-lg font-semibold">Disponibilidad</h3>
+      <p class="text-xs text-slate-400 m-0 mt-0.5">Clic en una celda libre para reservarla</p>
+    </div>
+    <button (click)="disponibilidadOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="flex flex-wrap items-end gap-3 mb-4">
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-semibold text-slate-500">Desde</label>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="disponibilidadDesde" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-semibold text-slate-500">Hasta</label>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="disponibilidadHasta" />
+    </div>
+    <button (click)="cargarDisponibilidadRango()" class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90" style="background:#f59e0b">Ver</button>
+    <div class="flex items-center gap-3 ml-auto text-[10px] font-semibold">
+      <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-50 border border-emerald-200 inline-block"></span>Libre</span>
+      <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-100 inline-block"></span>Ocupada</span>
+      <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-indigo-100 inline-block"></span>Reservada</span>
+      <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-slate-200 inline-block"></span>Mantenimiento</span>
+    </div>
+  </div>
+
+  <div *ngIf="disponibilidadCargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3,4]" class="h-8 rounded-lg skeleton"></div>
+  </div>
+
+  <div *ngIf="!disponibilidadCargando && disponibilidad" class="overflow-x-auto">
+    <table class="border-collapse text-xs">
+      <thead>
+        <tr>
+          <th class="sticky left-0 bg-white text-left px-2 py-1.5 font-medium text-slate-500 z-10">Hab.</th>
+          <th *ngFor="let dia of disponibilidad.dias" class="px-1 py-1.5 font-medium text-slate-500 text-center whitespace-nowrap">{{ dia | date:'dd/MM' }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let h of disponibilidad.habitaciones">
+          <td class="sticky left-0 bg-white px-2 py-1 font-bold text-slate-700 whitespace-nowrap">{{ h.numero }}</td>
+          <td *ngFor="let dia of disponibilidad.dias" class="p-0.5">
+            <div class="w-8 h-6 rounded flex items-center justify-center"
+              [ngClass]="claseCelda(h.dias[dia])"
+              [title]="h.dias[dia]"
+              (click)="reservarDesdeCelda(h.id, dia, h.dias[dia])">
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="disponibilidad.habitaciones.length === 0">
+          <td colspan="100" class="text-center py-6 text-slate-400">Sin habitaciones registradas.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal: nueva reserva -->
+<div *ngIf="reservaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="reservaDialogOpen=false"></div>
+<div *ngIf="reservaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Nueva Reserva</h3>
+    <button (click)="reservaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="reservaForm.id_habitacion">
+      <option *ngFor="let h of habitaciones" [value]="h.id">Habitación {{ h.numero }} — {{ h.tipo }}</option>
+    </select>
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="reservaForm.huesped" placeholder="Nombre del huésped" />
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="reservaForm.telefono" placeholder="Teléfono (opcional)" />
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Fecha de check-in</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="reservaForm.fecha_checkin" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Noches</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="reservaForm.noches" placeholder="Noches" />
+      </div>
+    </div>
+    <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm" rows="2" [(ngModel)]="reservaForm.notas" placeholder="Notas (opcional)"></textarea>
+    <p *ngIf="reservaError" class="text-xs text-red-600 m-0">{{ reservaError }}</p>
+    <button (click)="guardarReserva()" [disabled]="reservaSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#6366f1">{{ reservaSaving ? 'Guardando...' : 'Crear Reserva' }}</button>
+  </div>
+</div>
+
 <!-- Modal: papelera -->
 <div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
 <div *ngIf="papeleraOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
@@ -147,5 +285,57 @@
       </div>
       <button (click)="restaurar(h.id)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Restaurar</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal: historial de estadías -->
+<div *ngIf="historialOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="historialOpen=false"></div>
+<div *ngIf="historialOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-2xl z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h3 class="m-0 text-lg font-semibold">Historial de Estadías</h3>
+      <p class="text-xs text-slate-400 m-0 mt-0.5">Registro de huéspedes por habitación, incluyendo estancias activas</p>
+    </div>
+    <button (click)="historialOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div *ngIf="historialCargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-10 rounded-lg skeleton"></div>
+  </div>
+
+  <div *ngIf="!historialCargando" class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="text-left px-3 py-2 font-medium text-slate-500">Hab.</th>
+        <th class="text-left px-3 py-2 font-medium text-slate-500">Huésped</th>
+        <th class="text-left px-3 py-2 font-medium text-slate-500">Check-in</th>
+        <th class="text-left px-3 py-2 font-medium text-slate-500">Check-out</th>
+        <th class="text-right px-3 py-2 font-medium text-slate-500">Noches</th>
+        <th class="text-right px-3 py-2 font-medium text-slate-500">Total</th>
+        <th class="text-center px-3 py-2 font-medium text-slate-500">Estado</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngIf="historial.length === 0">
+          <td colspan="7" class="text-center py-8 text-slate-400 text-xs">Sin estadías registradas todavía — se crea una en cada check-in.</td>
+        </tr>
+        <tr *ngFor="let e of historial" class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-3 py-2 font-bold">{{ e.habitacion?.numero ?? '—' }}</td>
+          <td class="px-3 py-2">{{ e.huesped }}</td>
+          <td class="px-3 py-2">{{ e.check_in }}</td>
+          <td class="px-3 py-2">{{ e.check_out_real ? (e.check_out_real | date:'short') : (e.check_out_programado || '—') }}</td>
+          <td class="px-3 py-2 text-right">{{ e.noches ?? '—' }}</td>
+          <td class="px-3 py-2 text-right font-medium">${{ e.total | number:'1.0-2' }}</td>
+          <td class="px-3 py-2 text-center">
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+              [class.bg-amber-100]="e.estado==='activa'" [class.text-amber-600]="e.estado==='activa'"
+              [class.bg-emerald-100]="e.estado==='finalizada'" [class.text-emerald-600]="e.estado==='finalizada'">
+              {{ e.estado==='activa' ? 'En curso' : 'Finalizada' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
