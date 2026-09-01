@@ -115,8 +115,8 @@ export interface MarketingCampana {
   fecha_inicio?: string;
 }
 
-export type AutomatizacionEvento = 'lead_creado' | 'oportunidad_ganada' | 'oportunidad_perdida' | 'oportunidad_etapa_cambiada' | 'actividad_vencida';
-export type AutomatizacionAccion = 'enviar_email' | 'crear_actividad' | 'cambiar_estado' | 'notificar_usuario' | 'enviar_whatsapp';
+export type AutomatizacionEvento = 'lead_creado' | 'oportunidad_ganada' | 'oportunidad_perdida' | 'oportunidad_etapa_cambiada' | 'actividad_vencida' | 'cliente_creado' | 'venta_creada';
+export type AutomatizacionAccion = 'enviar_email' | 'crear_actividad' | 'cambiar_estado' | 'notificar_usuario' | 'enviar_whatsapp' | 'enviar_webhook';
 
 export interface Automatizacion {
   id: number;

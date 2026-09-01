@@ -56,7 +56,8 @@
 <!-- Modal backdrop -->
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="closeDialog()"></div>
 <!-- Modal -->
-<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl max-h-[90vh] overflow-y-auto">
+<div *ngIf="dialogOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl overflow-hidden">
+ <div class="max-h-[90vh] overflow-y-auto">
   <div class="flex justify-between items-center px-6 pt-5">
     <h2 class="m-0 text-lg font-semibold">{{ editingAuto ? 'Editar Automatización' : 'Nueva Automatización' }}</h2>
     <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100" (click)="closeDialog()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -156,6 +157,14 @@
       </div>
     </div>
 
+    <div *ngIf="form.accion==='enviar_webhook'" class="flex flex-col gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+      <p class="text-[11px] text-slate-400 m-0">Envía una petición POST con el detalle del evento a la URL indicada.</p>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-600">URL del webhook</label>
+        <input type="url" class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" [(ngModel)]="form.p_webhook_url" placeholder="https://..." />
+      </div>
+    </div>
+
     <div *ngIf="editingAuto" class="flex items-center gap-2">
       <input type="checkbox" [(ngModel)]="form.activa" class="rounded" id="activa" />
       <label for="activa" class="text-sm text-slate-600 cursor-pointer">Activa</label>
@@ -164,4 +173,5 @@
       {{ editingAuto ? 'Guardar Cambios' : 'Crear Automatización' }}
     </button>
   </div>
+ </div>
 </div>

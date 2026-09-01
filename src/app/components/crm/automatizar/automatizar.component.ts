@@ -10,6 +10,8 @@ const EVENTO_OPTIONS: { value: AutomatizacionEvento; label: string }[] = [
   { value: 'oportunidad_perdida', label: 'Una oportunidad se marca como perdida' },
   { value: 'oportunidad_etapa_cambiada', label: 'Una oportunidad cambia de etapa' },
   { value: 'actividad_vencida', label: 'Una actividad vence sin completarse' },
+  { value: 'cliente_creado', label: 'Se crea un cliente nuevo' },
+  { value: 'venta_creada', label: 'Se registra una venta nueva' },
 ];
 
 const ACCION_OPTIONS: { value: AutomatizacionAccion; label: string }[] = [
@@ -18,7 +20,11 @@ const ACCION_OPTIONS: { value: AutomatizacionAccion; label: string }[] = [
   { value: 'cambiar_estado', label: 'Cambiar automáticamente el estado/etapa' },
   { value: 'notificar_usuario', label: 'Notificar a un usuario del equipo' },
   { value: 'enviar_whatsapp', label: 'Enviar un WhatsApp' },
+  { value: 'enviar_webhook', label: 'Llamar a un webhook' },
 ];
+
+/** "cambiar_estado" solo sabe tocar Lead.estado u Oportunidad.etapa — no aplica a estos eventos. */
+const EVENTOS_SIN_CAMBIAR_ESTADO: AutomatizacionEvento[] = ['actividad_vencida', 'cliente_creado', 'venta_creada'];
 
 const TIPO_ACTIVIDAD_OPTIONS = ['llamada', 'reunion', 'email', 'tarea', 'nota'];
 
@@ -63,6 +69,7 @@ export class AutomatizarComponent implements OnInit {
     p_id_usuario_asignado: null as number | null,
     p_valor: '',
     p_id_usuario: null as number | null,
+    p_webhook_url: '',
   };
 
   constructor(private crm: CrmService, private usuarioService: UsuarioService, private cdr: ChangeDetectorRef, private notify: NotifyService) {}
@@ -91,9 +98,9 @@ export class AutomatizarComponent implements OnInit {
   eventoLabel(evento: string): string { return EVENTO_OPTIONS.find(e => e.value === evento)?.label ?? evento; }
   accionLabel(accion: string): string { return ACCION_OPTIONS.find(a => a.value === accion)?.label ?? accion; }
 
-  /** "cambiar_estado" no aplica a actividad_vencida: el motor solo sabe tocar Lead.estado u Oportunidad.etapa. */
+  /** "cambiar_estado" no aplica a eventos sin un Lead/Oportunidad de por medio (ver EVENTOS_SIN_CAMBIAR_ESTADO). */
   get accionOptions(): { value: AutomatizacionAccion; label: string }[] {
-    return ACCION_OPTIONS.filter(a => a.value !== 'cambiar_estado' || this.form.evento !== 'actividad_vencida');
+    return ACCION_OPTIONS.filter(a => a.value !== 'cambiar_estado' || !EVENTOS_SIN_CAMBIAR_ESTADO.includes(this.form.evento));
   }
 
   get valoresDestino(): { value: string; label: string }[] {
@@ -101,7 +108,7 @@ export class AutomatizarComponent implements OnInit {
   }
 
   onEventoChange() {
-    if (this.form.accion === 'cambiar_estado' && this.form.evento === 'actividad_vencida') {
+    if (this.form.accion === 'cambiar_estado' && EVENTOS_SIN_CAMBIAR_ESTADO.includes(this.form.evento)) {
       this.form.accion = 'enviar_email';
     }
     this.form.p_valor = '';
@@ -111,7 +118,7 @@ export class AutomatizarComponent implements OnInit {
     this.form = {
       nombre_automatizacion: '', evento: 'lead_creado', accion: 'enviar_email', activa: true,
       p_destinatario: 'contacto', p_asunto: '', p_mensaje: '', p_titulo: '', p_tipo_actividad: 'tarea',
-      p_dias_vencimiento: 1, p_id_usuario_asignado: null, p_valor: '', p_id_usuario: null,
+      p_dias_vencimiento: 1, p_id_usuario_asignado: null, p_valor: '', p_id_usuario: null, p_webhook_url: '',
     };
     this.editingAuto = null;
   }
@@ -135,6 +142,7 @@ export class AutomatizarComponent implements OnInit {
       p_id_usuario_asignado: p['id_usuario_asignado'] ?? null,
       p_valor: p['valor'] ?? '',
       p_id_usuario: p['id_usuario'] ?? null,
+      p_webhook_url: p['url'] ?? '',
     };
     this.dialogOpen = true;
   }
@@ -151,6 +159,8 @@ export class AutomatizarComponent implements OnInit {
         return { id_usuario: this.form.p_id_usuario, mensaje: this.form.p_mensaje };
       case 'enviar_whatsapp':
         return { mensaje: this.form.p_mensaje };
+      case 'enviar_webhook':
+        return { url: this.form.p_webhook_url };
     }
   }
 
