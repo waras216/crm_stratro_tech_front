@@ -96,7 +96,8 @@
 <!-- Config dialog backdrop -->
 <div *ngIf="selected" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="closeConfig()"></div>
 <!-- Config dialog -->
-<div *ngIf="selected" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl max-h-[90vh] overflow-y-auto">
+<div *ngIf="selected" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl overflow-hidden">
+ <div class="max-h-[90vh] overflow-y-auto">
   <div class="flex justify-between items-center px-6 pt-5">
     <h2 class="m-0 text-lg font-semibold">Configuración: {{ selected.nombre }}</h2>
     <button class="bg-transparent border-0 cursor-pointer p-1.5 rounded text-slate-500 hover:bg-slate-100" (click)="closeConfig()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -126,6 +127,7 @@
       </button>
     </ng-container>
   </div>
+ </div>
 </div>
 
 <!-- Modal: código QR de WhatsApp (Baileys) -->
@@ -162,7 +164,8 @@
 
 <!-- Modal: Sitio Web (formulario web-to-lead) -->
 <div *ngIf="dialogSitioWebOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="cerrarSitioWeb()"></div>
-<div *ngIf="dialogSitioWebOpen && sitioWebIntegracion" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-xl z-[101] shadow-2xl max-h-[90vh] overflow-y-auto">
+<div *ngIf="dialogSitioWebOpen && sitioWebIntegracion" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-xl z-[101] shadow-2xl overflow-hidden">
+ <div class="max-h-[90vh] overflow-y-auto">
   <div class="flex justify-between items-center px-6 pt-5">
     <div>
       <h2 class="m-0 text-lg font-semibold">Sitio Web</h2>
@@ -221,4 +224,5 @@
       </button>
     </div>
   </div>
+ </div>
 </div>

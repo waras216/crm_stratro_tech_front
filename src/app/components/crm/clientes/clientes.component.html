@@ -214,8 +214,9 @@
 
 <!-- Modal: kept outside the page-enter wrapper so position:fixed anchors to the viewport, not to the animated (transformed) container -->
 <div *ngIf="dialogOpen" class="fixed inset-0 z-[100]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="closeDialog()"></div>
-<div *ngIf="dialogOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] max-h-[90vh] overflow-y-auto"
+<div *ngIf="dialogOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md z-[101] overflow-hidden"
   style="background:var(--bg-card);border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
+ <div class="max-h-[90vh] overflow-y-auto">
   <div class="px-6 pt-6 pb-4" style="background:var(--bg-card-hover);border-radius:24px 24px 0 0">
     <div class="flex items-center justify-between">
       <div>
@@ -267,6 +268,7 @@
       {{ editingCliente ? 'Guardar Cambios' : 'Crear Cliente' }}
     </button>
   </div>
+ </div>
 </div>
 
 <!-- Modal: detalle de cliente -->
@@ -391,8 +393,9 @@
 
 <!-- Modal: nuevo/editar contacto (sobre el detalle de cliente) -->
 <div *ngIf="contactoDialogOpen" class="fixed inset-0 z-[110]" style="background:rgba(30,27,75,.5);backdrop-filter:blur(6px)" (click)="closeContactoDialog()"></div>
-<div *ngIf="contactoDialogOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm z-[111] max-h-[90vh] overflow-y-auto"
+<div *ngIf="contactoDialogOpen" class="modal-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm z-[111] overflow-hidden"
   style="background:var(--bg-card);border-radius:24px;box-shadow:0 24px 64px rgba(30,27,75,.24)">
+ <div class="max-h-[90vh] overflow-y-auto">
   <div class="px-6 pt-6 pb-4" style="background:var(--bg-card-hover);border-radius:24px 24px 0 0">
     <div class="flex items-center justify-between">
       <div>
@@ -438,4 +441,5 @@
       {{ editingContacto ? 'Guardar Cambios' : 'Crear Contacto' }}
     </button>
   </div>
+ </div>
 </div>
