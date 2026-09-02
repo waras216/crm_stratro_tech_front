@@ -225,6 +225,20 @@ export interface ErpReporteOcupacion {
   por_dia: { fecha: string; ocupadas: number; total_habitaciones: number }[];
 }
 
+export interface ErpSolicitudHuesped {
+  id: number;
+  id_habitacion: number;
+  habitacion?: { id: number; numero: number; tipo: string };
+  huesped: string | null;
+  titulo: string;
+  descripcion: string | null;
+  categoria: 'queja' | 'solicitud' | 'otro';
+  prioridad: 'baja' | 'media' | 'alta';
+  estado: 'abierta' | 'en_progreso' | 'resuelta';
+  resuelta_at: string | null;
+  created_at: string;
+}
+
 export interface ErpEstadia {
   id: number;
   id_habitacion: number;

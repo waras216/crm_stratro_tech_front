@@ -6,7 +6,7 @@ import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
 import { StockAlertService } from '../../../core/services/stock-alert.service';
 import { HOTEL_AMENIDAD_CATEGORIAS, NichoService } from '../../../core/services/nicho.service';
-import { ErpEstimadoHospedaje, ErpHabitacion, ErpHabitacionConsumo, ErpHistorialCliente, ErpPedido, Producto, PedidoPago } from '../../../models/erp.models';
+import { ErpEstimadoHospedaje, ErpHabitacion, ErpHabitacionConsumo, ErpHistorialCliente, ErpPedido, ErpTarifaTemporada, Producto, PedidoPago } from '../../../models/erp.models';
 import { Cliente } from '../../../models/crm.models';
 import { modalLeave } from '../../shared/animations';
 
@@ -170,14 +170,21 @@ import { modalLeave } from '../../shared/animations';
             class="flex-1 py-2 text-xs font-semibold rounded-xl border border-orange-200 cursor-pointer text-orange-600 bg-orange-50 hover:bg-orange-100 transition-all">
             Reportar
           </button>
+          <button *ngIf="hab.estado==='ocupada'" (click)="abrirReportarSolicitud(hab)"
+            class="flex-1 py-2 text-xs font-semibold rounded-xl border border-indigo-200 cursor-pointer text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all">
+            Solicitud
+          </button>
         </div>
       </div>
 
       <!-- Consumos -->
       <div class="bg-white rounded-2xl border border-slate-100 flex-1 overflow-y-auto">
         <div *ngIf="hab.estado==='ocupada' || hab.estado==='checkout'" class="flex items-center justify-between px-5 py-2.5 border-b border-slate-50 bg-amber-50/50">
-          <p class="text-xs text-slate-700 m-0">Hospedaje — {{ hab.noches }} noche(s) × \${{ hab.precio ?? 0 }}</p>
-          <p class="text-xs font-bold text-slate-700 m-0">\${{ totalHospedaje(hab) }}</p>
+          <p class="text-xs text-slate-700 m-0">
+            Hospedaje — {{ hab.noches }} noche(s) × \${{ hab.precio ?? 0 }}
+            <span *ngIf="hayTemporadaEnHospedaje(hab)" class="text-amber-600 font-semibold"> · incluye tarifa de temporada</span>
+          </p>
+          <p class="text-xs font-bold text-slate-700 m-0">\${{ totalHospedaje(hab) | number:'1.0-2' }}</p>
         </div>
         <div class="px-5 pt-4 pb-2 flex items-center justify-between">
           <p class="text-xs font-bold text-slate-700 m-0">Consumos Room Service</p>
@@ -274,15 +281,27 @@ import { modalLeave } from '../../shared/animations';
   <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Habitación</h3>
   <div class="flex flex-col gap-3">
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.numero" placeholder="Número" />
-      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="habForm.tipo">
-        <option *ngFor="let t of nicho.hotelTiposHabitacion" [value]="t">{{ t }}</option>
-      </select>
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.piso" placeholder="Piso" />
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Número</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.numero" placeholder="Ej. 101" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Tipo</label>
+        <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="habForm.tipo">
+          <option *ngFor="let t of nicho.hotelTiposHabitacion" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Piso</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="habForm.piso" placeholder="Ej. 1" />
+      </div>
     </div>
-    <div class="relative">
-      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
-      <input class="w-full pl-6 pr-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="0" step="0.01" [(ngModel)]="habForm.precio" placeholder="Precio por noche" />
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-semibold text-slate-500">Precio por noche</label>
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+        <input class="w-full pl-6 pr-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="0" step="0.01" [(ngModel)]="habForm.precio" placeholder="0.00" />
+      </div>
     </div>
     <p *ngIf="habError" class="text-xs text-red-600 m-0">{{ habError }}</p>
     <button (click)="crearHabitacion()" [disabled]="habSaving"
@@ -356,6 +375,30 @@ import { modalLeave } from '../../shared/animations';
     <button (click)="guardarIncidencia()" [disabled]="incidenciaSaving"
       class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
       style="background:#f97316">{{ incidenciaSaving ? 'Guardando...' : 'Reportar' }}</button>
+  </div>
+</div>
+
+<!-- Modal: nueva solicitud de huésped -->
+<div *ngIf="solicitudDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="solicitudDialogOpen=false"></div>
+<div *ngIf="solicitudDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Solicitud — Hab. {{ habSeleccionada?.numero }}</h3>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="solicitudForm.titulo" placeholder="Ej. Pide toallas extra / Ruido en el pasillo" />
+    <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm" rows="2" [(ngModel)]="solicitudForm.descripcion" placeholder="Detalles (opcional)"></textarea>
+    <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="solicitudForm.categoria">
+      <option value="solicitud">Solicitud</option>
+      <option value="queja">Queja</option>
+      <option value="otro">Otro</option>
+    </select>
+    <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="solicitudForm.prioridad">
+      <option value="baja">Prioridad baja</option>
+      <option value="media">Prioridad media</option>
+      <option value="alta">Prioridad alta</option>
+    </select>
+    <p *ngIf="solicitudError" class="text-xs text-red-600 m-0">{{ solicitudError }}</p>
+    <button (click)="guardarSolicitud()" [disabled]="solicitudSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#6366f1">{{ solicitudSaving ? 'Guardando...' : 'Registrar Solicitud' }}</button>
   </div>
 </div>
 
@@ -439,6 +482,8 @@ export class PosTerminalHotelComponent implements OnInit {
   estimadoCheckIn: ErpEstimadoHospedaje | null = null;
   estimandoCheckIn = false;
 
+  private tarifasTemporada: ErpTarifaTemporada[] = [];
+
   @ViewChild('firmaCanvas') firmaCanvasRef?: ElementRef<HTMLCanvasElement>;
   registroDialogOpen = false;
   registroForm = { documento_tipo: '', documento_numero: '' };
@@ -459,6 +504,11 @@ export class PosTerminalHotelComponent implements OnInit {
   incidenciaForm = { titulo: '', descripcion: '', prioridad: 'media' as 'baja' | 'media' | 'alta', fuera_de_servicio: false };
   incidenciaError = '';
   incidenciaSaving = false;
+
+  solicitudDialogOpen = false;
+  solicitudForm = { titulo: '', descripcion: '', categoria: 'solicitud' as 'queja' | 'solicitud' | 'otro', prioridad: 'media' as 'baja' | 'media' | 'alta' };
+  solicitudError = '';
+  solicitudSaving = false;
 
   ticketOpen = false;
   pagoModalOpen = false;
@@ -488,6 +538,9 @@ export class PosTerminalHotelComponent implements OnInit {
       next: () => { this.cargandoHabitaciones = false; this.cdr.detectChanges(); },
       error: () => { this.cargandoHabitaciones = false; this.cdr.detectChanges(); },
     });
+
+    this.erpService.tarifasTemporada$.subscribe(tarifas => { this.tarifasTemporada = tarifas; this.cdr.detectChanges(); });
+    this.erpService.cargarTarifasTemporada().subscribe();
 
     this.cargandoMenu = true;
     this.erpService.cargarInventario().subscribe({
@@ -845,13 +898,83 @@ export class PosTerminalHotelComponent implements OnInit {
     });
   }
 
+  abrirReportarSolicitud(h: ErpHabitacion) {
+    this.habSeleccionada = h;
+    this.solicitudForm = { titulo: '', descripcion: '', categoria: 'solicitud', prioridad: 'media' };
+    this.solicitudError = '';
+    this.solicitudDialogOpen = true;
+  }
+
+  guardarSolicitud() {
+    if (!this.habSeleccionada || this.solicitudSaving) return;
+    if (!this.solicitudForm.titulo.trim()) { this.solicitudError = 'Describe brevemente la solicitud.'; return; }
+
+    this.solicitudSaving = true;
+    this.solicitudError = '';
+
+    this.erpService.reportarSolicitudHuesped(this.habSeleccionada.id, {
+      titulo: this.solicitudForm.titulo,
+      descripcion: this.solicitudForm.descripcion || undefined,
+      categoria: this.solicitudForm.categoria,
+      prioridad: this.solicitudForm.prioridad,
+    }).subscribe({
+      next: () => {
+        this.solicitudSaving = false;
+        this.solicitudDialogOpen = false;
+        this.notify.success('Solicitud registrada');
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        this.solicitudSaving = false;
+        this.solicitudError = err?.error?.message || 'No se pudo registrar la solicitud';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   toggleSalida(h: ErpHabitacion) {
     const estado = h.estado === 'checkout' ? 'ocupada' : 'checkout';
     this.erpService.marcarSalidaHabitacion(h.id, estado).subscribe(actualizada => { this.habSeleccionada = actualizada; this.cdr.detectChanges(); });
   }
 
   totalHospedaje(h: ErpHabitacion): number {
-    return (h.precio ?? 0) * (h.noches ?? 0);
+    return this.calcularCargoHospedaje(h).total;
+  }
+
+  hayTemporadaEnHospedaje(h: ErpHabitacion): boolean {
+    return this.calcularCargoHospedaje(h).huboTemporada;
+  }
+
+  /** Réplica en el front de TarifaTemporadaService::calcularCargoHospedaje() del backend, noche por noche. */
+  private calcularCargoHospedaje(h: ErpHabitacion): { total: number; huboTemporada: boolean } {
+    const precioBase = h.precio ?? 0;
+    const noches = h.noches ?? 0;
+    if (!h.check_in || noches <= 0) {
+      return { total: precioBase * noches, huboTemporada: false };
+    }
+
+    let total = 0;
+    let huboTemporada = false;
+    const fecha = new Date(`${h.check_in}T00:00:00`);
+
+    for (let i = 0; i < noches; i++) {
+      const fechaStr = fecha.toISOString().slice(0, 10);
+      const temporada = this.tarifasTemporada.find(t => fechaStr >= t.fecha_inicio && fechaStr <= t.fecha_fin);
+
+      let tarifaNoche = precioBase;
+      if (temporada) {
+        tarifaNoche = temporada.tipo_ajuste === 'porcentaje'
+          ? precioBase * (1 + temporada.valor / 100)
+          : precioBase + temporada.valor;
+        tarifaNoche = Math.max(0, tarifaNoche);
+        huboTemporada = true;
+      }
+
+      total += tarifaNoche;
+      fecha.setDate(fecha.getDate() + 1);
+    }
+
+    return { total: Math.round(total * 100) / 100, huboTemporada };
   }
 
   async checkOut() {

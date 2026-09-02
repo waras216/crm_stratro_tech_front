@@ -5,7 +5,7 @@ import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
 import { HOTEL_AMENIDADES_LABELS, NichoService } from '../../../core/services/nicho.service';
 import { NotifyService } from '../../../core/services/notify.service';
-import { ErpDisponibilidad, ErpEstadia, ErpHabitacion, ErpHabitacionIncidencia, ErpHistorialCliente, ErpReporteOcupacion, ErpReserva, ErpTarifaTemporada } from '../../../models/erp.models';
+import { ErpDisponibilidad, ErpHabitacion, ErpHabitacionIncidencia, ErpSolicitudHuesped, ErpHistorialCliente, ErpReserva, ErpTarifaTemporada } from '../../../models/erp.models';
 import { Cliente } from '../../../models/crm.models';
 import { modalLeave } from '../../shared/animations';
 
@@ -20,6 +20,13 @@ export class ErpReservasHotelAdminComponent implements OnInit {
   habitaciones: ErpHabitacion[] = [];
   cargando = false;
 
+  tabActiva: 'habitaciones' | 'reservas' | 'tarifas' | 'mantenimiento' | 'solicitudes' = 'habitaciones';
+  vistaReservas: 'lista' | 'disponibilidad' = 'lista';
+  private tarifasCargadas = false;
+  private incidenciasCargadas = false;
+  private disponibilidadCargada = false;
+  private solicitudesCargadas = false;
+
   habDialogOpen = false;
   habEditando: ErpHabitacion | null = null;
   habForm = { numero: null as number | null, tipo: '', precio: null as number | null, piso: 1 };
@@ -28,10 +35,6 @@ export class ErpReservasHotelAdminComponent implements OnInit {
 
   papeleraOpen = false;
   papelera: ErpHabitacion[] = [];
-
-  historialOpen = false;
-  historialCargando = false;
-  historial: ErpEstadia[] = [];
 
   reservas: ErpReserva[] = [];
   reservaDialogOpen = false;
@@ -46,13 +49,11 @@ export class ErpReservasHotelAdminComponent implements OnInit {
   cargandoClientes = false;
   historialHuesped: ErpHistorialCliente | null = null;
 
-  disponibilidadOpen = false;
   disponibilidadCargando = false;
   disponibilidad: ErpDisponibilidad | null = null;
   disponibilidadDesde = new Date().toISOString().slice(0, 10);
   disponibilidadHasta = this.sumarDias(new Date(), 13);
 
-  incidenciasOpen = false;
   incidenciasCargando = false;
   incidencias: ErpHabitacionIncidencia[] = [];
 
@@ -61,13 +62,14 @@ export class ErpReservasHotelAdminComponent implements OnInit {
   incidenciaError = '';
   incidenciaSaving = false;
 
-  reportesOpen = false;
-  reportesCargando = false;
-  reporte: ErpReporteOcupacion | null = null;
-  reportesDesde = this.sumarDias(new Date(), -29);
-  reportesHasta = new Date().toISOString().slice(0, 10);
+  solicitudesCargando = false;
+  solicitudes: ErpSolicitudHuesped[] = [];
 
-  tarifasOpen = false;
+  solicitudDialogOpen = false;
+  solicitudForm = { id_habitacion: null as number | null, titulo: '', descripcion: '', categoria: 'solicitud' as 'queja' | 'solicitud' | 'otro', prioridad: 'media' as 'baja' | 'media' | 'alta' };
+  solicitudError = '';
+  solicitudSaving = false;
+
   tarifasCargando = false;
   tarifas: ErpTarifaTemporada[] = [];
   tarifaDialogOpen = false;
@@ -100,6 +102,19 @@ export class ErpReservasHotelAdminComponent implements OnInit {
       next: pagina => { this.clientesEncontrados = pagina.data; this.cargandoClientes = false; this.cdr.detectChanges(); },
       error: () => { this.cargandoClientes = false; this.cdr.detectChanges(); },
     });
+  }
+
+  cambiarTab(tab: 'habitaciones' | 'reservas' | 'tarifas' | 'mantenimiento' | 'solicitudes') {
+    this.tabActiva = tab;
+    if (tab === 'tarifas' && !this.tarifasCargadas) { this.tarifasCargadas = true; this.cargarTarifas(); }
+    if (tab === 'mantenimiento' && !this.incidenciasCargadas) { this.incidenciasCargadas = true; this.cargarIncidenciasCompletas(); }
+    if (tab === 'solicitudes' && !this.solicitudesCargadas) { this.solicitudesCargadas = true; this.cargarSolicitudesCompletas(); }
+    if (tab === 'reservas') this.cambiarVistaReservas(this.vistaReservas);
+  }
+
+  cambiarVistaReservas(vista: 'lista' | 'disponibilidad') {
+    this.vistaReservas = vista;
+    if (vista === 'disponibilidad' && !this.disponibilidadCargada) { this.disponibilidadCargada = true; this.cargarDisponibilidadRango(); }
   }
 
   seleccionarClienteReserva(c: Cliente) {
@@ -233,8 +248,7 @@ export class ErpReservasHotelAdminComponent implements OnInit {
     return this.incidencias.filter(i => i.estado === 'abierta').length;
   }
 
-  abrirIncidencias() {
-    this.incidenciasOpen = true;
+  cargarIncidenciasCompletas() {
     this.incidenciasCargando = true;
     this.erpService.cargarIncidencias().subscribe({
       next: data => { this.incidencias = data; this.incidenciasCargando = false; this.cdr.detectChanges(); },
@@ -277,21 +291,7 @@ export class ErpReservasHotelAdminComponent implements OnInit {
     });
   }
 
-  abrirReportes() {
-    this.reportesOpen = true;
-    this.cargarReporteRango();
-  }
-
-  cargarReporteRango() {
-    this.reportesCargando = true;
-    this.erpService.cargarReporteOcupacion(this.reportesDesde, this.reportesHasta).subscribe({
-      next: data => { this.reporte = data; this.reportesCargando = false; this.cdr.detectChanges(); },
-      error: () => { this.reportesCargando = false; this.cdr.detectChanges(); },
-    });
-  }
-
-  abrirTarifas() {
-    this.tarifasOpen = true;
+  cargarTarifas() {
     this.tarifasCargando = true;
     this.erpService.cargarTarifasTemporada().subscribe({
       next: data => { this.tarifas = data; this.tarifasCargando = false; this.cdr.detectChanges(); },
@@ -337,7 +337,7 @@ export class ErpReservasHotelAdminComponent implements OnInit {
       next: () => {
         this.tarifaSaving = false;
         this.tarifaDialogOpen = false;
-        this.abrirTarifas();
+        this.cargarTarifas();
       },
       error: err => {
         this.tarifaSaving = false;
@@ -366,6 +366,80 @@ export class ErpReservasHotelAdminComponent implements OnInit {
       },
       error: err => this.notify.error(err?.error?.message || 'No se pudo resolver la incidencia'),
     });
+  }
+
+  get solicitudesAbiertasCount(): number {
+    return this.solicitudes.filter(s => s.estado !== 'resuelta').length;
+  }
+
+  cargarSolicitudesCompletas() {
+    this.solicitudesCargando = true;
+    this.erpService.cargarSolicitudesHuesped().subscribe({
+      next: data => { this.solicitudes = data; this.solicitudesCargando = false; this.cdr.detectChanges(); },
+      error: () => { this.solicitudesCargando = false; this.cdr.detectChanges(); },
+    });
+  }
+
+  abrirReportarSolicitud(h?: ErpHabitacion) {
+    this.solicitudForm = { id_habitacion: h?.id ?? this.habitaciones[0]?.id ?? null, titulo: '', descripcion: '', categoria: 'solicitud', prioridad: 'media' };
+    this.solicitudError = '';
+    this.solicitudDialogOpen = true;
+  }
+
+  guardarSolicitud() {
+    if (this.solicitudSaving) return;
+    if (!this.solicitudForm.id_habitacion) { this.solicitudError = 'Selecciona una habitación.'; return; }
+    if (!this.solicitudForm.titulo.trim()) { this.solicitudError = 'Describe brevemente la solicitud.'; return; }
+
+    this.solicitudSaving = true;
+    this.solicitudError = '';
+
+    this.erpService.reportarSolicitudHuesped(this.solicitudForm.id_habitacion, {
+      titulo: this.solicitudForm.titulo,
+      descripcion: this.solicitudForm.descripcion || undefined,
+      categoria: this.solicitudForm.categoria,
+      prioridad: this.solicitudForm.prioridad,
+    }).subscribe({
+      next: nueva => {
+        this.solicitudes = [nueva, ...this.solicitudes];
+        this.solicitudSaving = false;
+        this.solicitudDialogOpen = false;
+        this.notify.success('Solicitud registrada');
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        this.solicitudSaving = false;
+        this.solicitudError = err?.error?.message || 'No se pudo registrar la solicitud';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private ordenEstadoSolicitud: ErpSolicitudHuesped['estado'][] = ['abierta', 'en_progreso', 'resuelta'];
+
+  siguienteEstadoSolicitud(s: ErpSolicitudHuesped): ErpSolicitudHuesped['estado'] {
+    const idx = this.ordenEstadoSolicitud.indexOf(s.estado);
+    return this.ordenEstadoSolicitud[(idx + 1) % this.ordenEstadoSolicitud.length];
+  }
+
+  cambiarEstadoSolicitudAccion(s: ErpSolicitudHuesped) {
+    this.erpService.cambiarEstadoSolicitud(s.id, this.siguienteEstadoSolicitud(s)).subscribe({
+      next: actualizada => {
+        this.solicitudes = this.solicitudes.map(x => x.id === actualizada.id ? actualizada : x);
+        this.cdr.detectChanges();
+      },
+      error: err => this.notify.error(err?.error?.message || 'No se pudo actualizar la solicitud'),
+    });
+  }
+
+  solicitudEstadoLabel(estado: ErpSolicitudHuesped['estado']): string {
+    const labels: Record<ErpSolicitudHuesped['estado'], string> = { abierta: 'Abierta', en_progreso: 'En progreso', resuelta: 'Resuelta' };
+    return labels[estado];
+  }
+
+  solicitudCategoriaLabel(categoria: ErpSolicitudHuesped['categoria']): string {
+    const labels: Record<ErpSolicitudHuesped['categoria'], string> = { queja: 'Queja', solicitud: 'Solicitud', otro: 'Otro' };
+    return labels[categoria];
   }
 
   abrirNuevaHabitacion() {
@@ -429,11 +503,6 @@ export class ErpReservasHotelAdminComponent implements OnInit {
     return f.toISOString().slice(0, 10);
   }
 
-  abrirDisponibilidad() {
-    this.disponibilidadOpen = true;
-    this.cargarDisponibilidadRango();
-  }
-
   cargarDisponibilidadRango() {
     this.disponibilidadCargando = true;
     this.erpService.cargarDisponibilidad(this.disponibilidadDesde, this.disponibilidadHasta).subscribe({
@@ -454,7 +523,6 @@ export class ErpReservasHotelAdminComponent implements OnInit {
 
   reservarDesdeCelda(idHabitacion: number, fecha: string, estado: string) {
     if (estado !== 'libre') return;
-    this.disponibilidadOpen = false;
     this.reservaForm = { id_habitacion: idHabitacion, huesped: '', id_cliente: null, telefono: '', fecha_checkin: fecha, noches: 1, notas: '' };
     this.reservaError = '';
     this.buscandoCliente = false;
@@ -462,15 +530,6 @@ export class ErpReservasHotelAdminComponent implements OnInit {
     this.clientesEncontrados = [];
     this.historialHuesped = null;
     this.reservaDialogOpen = true;
-  }
-
-  abrirHistorial() {
-    this.historialOpen = true;
-    this.historialCargando = true;
-    this.erpService.cargarHistorialEstadias().subscribe({
-      next: data => { this.historial = data; this.historialCargando = false; this.cdr.detectChanges(); },
-      error: () => { this.historialCargando = false; this.cdr.detectChanges(); },
-    });
   }
 
   restaurar(id: number) {

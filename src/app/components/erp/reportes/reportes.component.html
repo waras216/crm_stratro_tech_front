@@ -261,4 +261,87 @@
     </div>
     <p *ngIf="!r.movimientosPorMes.length" class="text-xs text-slate-400 m-0">Sin movimientos en el rango seleccionado.</p>
   </div>
+
+  <!-- ══════════════ Sección: Hotel (ocupación, ADR/RevPAR, historial de estadías) ══════════════ -->
+  <ng-container *ngIf="seccion==='hotel'">
+    <div *ngIf="cargandoHotel" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div *ngFor="let _ of [1,2,3]" class="h-40 rounded-xl skeleton"></div>
+    </div>
+
+    <ng-container *ngIf="!cargandoHotel && reporteOcupacion as rep">
+      <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 hover-lift">
+          <p class="text-xl font-bold text-amber-600 m-0">{{ rep.ocupacion_pct }}%</p>
+          <p class="text-xs text-slate-500 m-0">Ocupación</p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 hover-lift">
+          <p class="text-xl font-bold text-emerald-600 m-0">${{ rep.adr | number:'1.0-2' }}</p>
+          <p class="text-xs text-slate-500 m-0">ADR (tarifa promedio)</p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 hover-lift">
+          <p class="text-xl font-bold text-blue-600 m-0">${{ rep.revpar | number:'1.0-2' }}</p>
+          <p class="text-xs text-slate-500 m-0">RevPAR</p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 hover-lift">
+          <p class="text-xl font-bold text-slate-700 m-0">${{ rep.ingresos_hospedaje | number:'1.0-2' }}</p>
+          <p class="text-xs text-slate-500 m-0">Ingresos hospedaje</p>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-4 hover-lift">
+        <h3 class="text-sm font-semibold text-slate-700 mb-1">Ocupación diaria</h3>
+        <p class="text-xs text-slate-400 m-0 mb-4">{{ rep.noches_vendidas }} de {{ rep.noches_disponibles }} noches-habitación vendidas · {{ rep.total_habitaciones }} habitaciones</p>
+        <div class="flex flex-col gap-1">
+          <div *ngFor="let dia of rep.por_dia" class="flex items-center gap-2">
+            <span class="text-[10px] text-slate-400 w-14 flex-shrink-0">{{ dia.fecha | date:'dd/MM' }}</span>
+            <div class="flex-1 h-4 rounded bg-slate-100 overflow-hidden">
+              <div class="h-full bg-amber-400" [style.width.%]="dia.total_habitaciones > 0 ? (dia.ocupadas / dia.total_habitaciones * 100) : 0"></div>
+            </div>
+            <span class="text-[10px] text-slate-500 w-10 flex-shrink-0 text-right">{{ dia.ocupadas }}/{{ dia.total_habitaciones }}</span>
+          </div>
+          <p *ngIf="!rep.por_dia.length" class="text-xs text-slate-400 m-0">Sin datos en el rango seleccionado.</p>
+        </div>
+      </div>
+    </ng-container>
+
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden hover-lift">
+      <h3 class="text-sm font-semibold text-slate-700 m-0 p-4 pb-0">Historial de Estadías</h3>
+      <div class="overflow-x-auto">
+      <table class="w-full text-sm border-collapse mt-3">
+        <thead>
+          <tr class="bg-slate-50">
+            <th class="text-left px-4 py-2 font-medium text-slate-500 text-xs">Hab.</th>
+            <th class="text-left px-4 py-2 font-medium text-slate-500 text-xs">Huésped</th>
+            <th class="text-left px-4 py-2 font-medium text-slate-500 text-xs">Check-in</th>
+            <th class="text-left px-4 py-2 font-medium text-slate-500 text-xs">Check-out</th>
+            <th class="text-right px-4 py-2 font-medium text-slate-500 text-xs">Noches</th>
+            <th class="text-right px-4 py-2 font-medium text-slate-500 text-xs">Total</th>
+            <th class="text-center px-4 py-2 font-medium text-slate-500 text-xs">Estado</th>
+            <th class="text-center px-4 py-2 font-medium text-slate-500 text-xs">Registro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of historialEstadias" class="border-b border-slate-50 last:border-0 fade-up">
+            <td class="px-4 py-2 font-bold text-xs">{{ e.habitacion?.numero ?? '—' }}</td>
+            <td class="px-4 py-2 text-xs font-medium">{{ e.huesped }}</td>
+            <td class="px-4 py-2 text-xs text-slate-500">{{ e.check_in }}</td>
+            <td class="px-4 py-2 text-xs text-slate-500">{{ e.check_out_real ? (e.check_out_real | date:'short') : (e.check_out_programado || '—') }}</td>
+            <td class="px-4 py-2 text-right text-xs">{{ e.noches ?? '—' }}</td>
+            <td class="px-4 py-2 text-right text-xs font-semibold">${{ e.total | number:'1.0-2' }}</td>
+            <td class="px-4 py-2 text-center">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="e.estado==='activa' ? 'badge-amber' : 'badge-green'">{{ e.estado==='activa' ? 'En curso' : 'Finalizada' }}</span>
+            </td>
+            <td class="px-4 py-2 text-center">
+              <span *ngIf="e.firma_url" class="text-emerald-600 text-xs font-semibold">✓ Firmado</span>
+              <span *ngIf="!e.firma_url" class="text-slate-300 text-xs">—</span>
+            </td>
+          </tr>
+          <tr *ngIf="!historialEstadias.length">
+            <td colspan="8" class="text-center py-6 text-slate-400 text-xs">Sin estadías registradas todavía — se crea una en cada check-in.</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </ng-container>
 </div>

@@ -6,7 +6,7 @@ import { environment } from '../../../environments/environment';
 import {
   Producto, Categoria, Proveedor, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
   ErpOrdenProduccion, ErpEnvio, ErpProyecto, ErpProyectoTarea, ErpProyectoHora, ErpInteraccion, ErpCrmResumen,
-  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpHabitacionIncidencia, ErpEstadia, ErpReserva, ErpHistorialCliente, ErpDisponibilidad, ErpReporteOcupacion, ErpTarifaTemporada, ErpEstimadoHospedaje, ErpReceta, PedidoPago, ErpFactura
+  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpHabitacionIncidencia, ErpSolicitudHuesped, ErpEstadia, ErpReserva, ErpHistorialCliente, ErpDisponibilidad, ErpReporteOcupacion, ErpTarifaTemporada, ErpEstimadoHospedaje, ErpReceta, PedidoPago, ErpFactura
 } from '../../models/erp.models';
 
 const API = environment.apiUrl;
@@ -503,6 +503,20 @@ export class ErpService {
     return this.http.patch<ErpHabitacionIncidencia>(`${API}/erp/habitaciones/incidencias/${id}/resolver`, {}).pipe(
       tap(() => this.cargarHabitaciones().subscribe())
     );
+  }
+
+  cargarSolicitudesHuesped(estado?: 'abierta' | 'en_progreso' | 'resuelta'): Observable<ErpSolicitudHuesped[]> {
+    let params = new HttpParams();
+    if (estado) params = params.set('estado', estado);
+    return this.http.get<ErpSolicitudHuesped[]>(`${API}/erp/habitaciones/solicitudes`, { params });
+  }
+
+  reportarSolicitudHuesped(id: number, solicitud: { titulo: string; descripcion?: string; categoria?: 'queja' | 'solicitud' | 'otro'; prioridad?: 'baja' | 'media' | 'alta' }): Observable<ErpSolicitudHuesped> {
+    return this.http.post<ErpSolicitudHuesped>(`${API}/erp/habitaciones/${id}/solicitudes`, solicitud);
+  }
+
+  cambiarEstadoSolicitud(id: number, estado: ErpSolicitudHuesped['estado']): Observable<ErpSolicitudHuesped> {
+    return this.http.patch<ErpSolicitudHuesped>(`${API}/erp/habitaciones/solicitudes/${id}/estado`, { estado });
   }
 
   marcarSalidaHabitacion(id: number, estado: 'checkout' | 'ocupada'): Observable<ErpHabitacion> {

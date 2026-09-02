@@ -1,9 +1,10 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { ReportExportService } from '../../../core/services/report-export.service';
-import { ErpReportesResumen } from '../../../models/erp.models';
+import { NichoService } from '../../../core/services/nicho.service';
+import { ErpEstadia, ErpReportesResumen, ErpReporteOcupacion } from '../../../models/erp.models';
 
-export type SeccionReporte = 'todo' | 'inventario' | 'compras' | 'ventas' | 'finanzas';
+export type SeccionReporte = 'todo' | 'inventario' | 'compras' | 'ventas' | 'finanzas' | 'hotel';
 
 const SECCION_LABEL: Record<SeccionReporte, string> = {
   todo: 'Reporte Completo',
@@ -11,6 +12,7 @@ const SECCION_LABEL: Record<SeccionReporte, string> = {
   compras: 'Reporte de Compras',
   ventas: 'Reporte de Ventas',
   finanzas: 'Reporte de Finanzas',
+  hotel: 'Reporte de Hotel',
 };
 
 @Component({
@@ -24,13 +26,7 @@ export class ErpReportesComponent implements OnInit {
   cargando = true;
 
   seccion: SeccionReporte = 'todo';
-  secciones: { id: SeccionReporte; label: string }[] = [
-    { id: 'todo', label: 'Todo' },
-    { id: 'inventario', label: 'Inventario' },
-    { id: 'compras', label: 'Compras' },
-    { id: 'ventas', label: 'Ventas' },
-    { id: 'finanzas', label: 'Finanzas' },
-  ];
+  secciones: { id: SeccionReporte; label: string }[] = [];
 
   desde = '';
   hasta = '';
@@ -41,24 +37,50 @@ export class ErpReportesComponent implements OnInit {
   ventasPorEstado: { key: string; val: number }[] = [];
   movimientosPorCategoria: { key: string; val: number }[] = [];
 
-  constructor(private erp: ErpService, private cdr: ChangeDetectorRef, private exportSvc: ReportExportService) {}
+  cargandoHotel = false;
+  reporteOcupacion: ErpReporteOcupacion | null = null;
+  historialEstadias: ErpEstadia[] = [];
+
+  constructor(private erp: ErpService, private cdr: ChangeDetectorRef, private exportSvc: ReportExportService, public nicho: NichoService) {}
 
   ngOnInit() {
+    this.secciones = [
+      { id: 'todo', label: 'Todo' },
+      { id: 'inventario', label: 'Inventario' },
+      { id: 'compras', label: 'Compras' },
+      { id: 'ventas', label: 'Ventas' },
+      { id: 'finanzas', label: 'Finanzas' },
+    ];
+    if (this.nicho.nicho === 'hotel') {
+      this.secciones.push({ id: 'hotel', label: 'Hotel' });
+    }
     this.cargar();
   }
 
   cambiarSeccion(s: SeccionReporte) {
     this.seccion = s;
+    if (s === 'hotel') this.cargarHotel();
   }
 
   aplicarFiltro() {
     this.cargar();
+    if (this.seccion === 'hotel') this.cargarHotel();
   }
 
   limpiarFiltro() {
     this.desde = '';
     this.hasta = '';
     this.cargar();
+    if (this.seccion === 'hotel') this.cargarHotel();
+  }
+
+  private cargarHotel() {
+    this.cargandoHotel = true;
+    this.erp.cargarReporteOcupacion(this.desde || undefined, this.hasta || undefined).subscribe({
+      next: rep => { this.reporteOcupacion = rep; this.cargandoHotel = false; this.cdr.detectChanges(); },
+      error: () => { this.cargandoHotel = false; this.cdr.detectChanges(); },
+    });
+    this.erp.cargarHistorialEstadias().subscribe(hist => { this.historialEstadias = hist; this.cdr.detectChanges(); });
   }
 
   private cargar() {
@@ -146,6 +168,22 @@ export class ErpReportesComponent implements OnInit {
     if (incluye('finanzas')) {
       sections.push({ heading: 'Movimientos por Categoría', rows: toRows(this.movimientosPorCategoria) });
       sections.push({ heading: 'Tendencia Mensual', rows: tendenciaRows });
+    }
+    if (incluye('hotel') && this.reporteOcupacion) {
+      const rep = this.reporteOcupacion;
+      kpiRows.push(
+        { label: 'Ocupación %', value: rep.ocupacion_pct },
+        { label: 'ADR', value: rep.adr },
+        { label: 'RevPAR', value: rep.revpar },
+        { label: 'Ingresos Hospedaje', value: rep.ingresos_hospedaje },
+      );
+      tables.push({
+        heading: 'Historial de Estadías',
+        columns: ['Habitación', 'Huésped', 'Check-in', 'Check-out', 'Noches', 'Total', 'Estado'],
+        rows: this.historialEstadias.map(e => [
+          e.habitacion?.numero ?? '—', e.huesped, e.check_in, e.check_out_real ?? e.check_out_programado ?? '—', e.noches ?? '—', e.total, e.estado,
+        ]),
+      });
     }
 
     return {
