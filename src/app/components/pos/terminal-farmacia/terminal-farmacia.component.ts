@@ -4,6 +4,7 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
+import { StockAlertService } from '../../../core/services/stock-alert.service';
 import { FARM_ATENCION_LABELS, NichoService } from '../../../core/services/nicho.service';
 import { Cliente } from '../../../models/crm.models';
 import { ErpReceta, Producto, PedidoPago } from '../../../models/erp.models';
@@ -83,11 +84,13 @@ import { modalLeave } from '../../shared/animations';
           <div class="flex-1 min-w-0">
             <p class="text-xs font-semibold text-slate-700 m-0">{{ r.producto?.nombre }}</p>
             <p class="text-[10px] text-slate-400 m-0">{{ r.dosis || 'Sin indicación' }} · Cant: {{ r.cantidad }}</p>
+            <p *ngIf="esPendiente(r) && recetaSinStock(r)" class="text-[9px] font-bold text-red-500 m-0 mt-0.5">⚠ Sin stock disponible</p>
+            <p *ngIf="esPendiente(r) && !recetaSinStock(r) && r.producto && stockBajo(r.producto)" class="text-[9px] font-bold text-amber-500 m-0 mt-0.5">⚠ Quedan {{ r.producto.stock }}</p>
           </div>
           <p class="text-xs font-bold text-slate-700 m-0">\${{ (r.producto?.precio || 0) * r.cantidad }}</p>
-          <button *ngIf="esPendiente(r)" (click)="dispensar(r)"
-            class="text-[10px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer text-white transition-all hover:opacity-90 flex-shrink-0"
-            style="background:#10b981">Dispensar</button>
+          <button *ngIf="esPendiente(r)" (click)="dispensar(r)" [disabled]="recetaSinStock(r)"
+            class="text-[10px] font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer text-white transition-all hover:opacity-90 flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+            style="background:#10b981">{{ recetaSinStock(r) ? 'Sin stock' : 'Dispensar' }}</button>
           <span *ngIf="!esPendiente(r) && !enCarrito(r)"
             class="text-[10px] font-semibold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-400 flex-shrink-0">Entregado</span>
         </div>
@@ -152,7 +155,7 @@ import { modalLeave } from '../../shared/animations';
   <div class="flex flex-col gap-3">
     <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="recetaForm.id_producto">
       <option [ngValue]="null" disabled>Selecciona un medicamento</option>
-      <option *ngFor="let p of productos" [ngValue]="p.id_productos">{{ p.nombre }} — \${{ p.precio }}</option>
+      <option *ngFor="let p of productos" [ngValue]="p.id_productos" [disabled]="sinStock(p)">{{ p.nombre }} — \${{ p.precio }}{{ sinStock(p) ? ' (Sin stock)' : '' }}</option>
     </select>
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="recetaForm.dosis" placeholder="Dosis (ej. Cada 8h × 7 días)" />
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="recetaForm.cantidad" placeholder="Cantidad" />
@@ -173,6 +176,7 @@ export class PosTerminalFarmaciaComponent implements OnInit {
   private erpService = inject(ErpService);
   private crmService = inject(CrmService);
   private cdr = inject(ChangeDetectorRef);
+  private stockAlert = inject(StockAlertService);
   public nicho = inject(NichoService);
   atencionActiva = '';
 
@@ -237,6 +241,18 @@ export class PosTerminalFarmaciaComponent implements OnInit {
     return this.carrito.some(c => c.id === r.id);
   }
 
+  sinStock(p: Producto): boolean {
+    return this.stockAlert.sinStock(p);
+  }
+
+  stockBajo(p: Producto): boolean {
+    return this.stockAlert.stockBajo(p);
+  }
+
+  recetaSinStock(r: ErpReceta): boolean {
+    return !!r.producto && this.sinStock(r.producto);
+  }
+
   seleccionar(p: Cliente) {
     this.pacienteSeleccionado = p;
     this.carrito = [];
@@ -250,6 +266,8 @@ export class PosTerminalFarmaciaComponent implements OnInit {
   crearReceta() {
     if (this.recetaSaving || !this.pacienteSeleccionado) return;
     if (!this.recetaForm.id_producto) { this.recetaError = 'Selecciona un medicamento.'; return; }
+    const producto = this.productos.find(p => p.id_productos === this.recetaForm.id_producto);
+    if (producto && this.sinStock(producto)) { this.recetaError = `"${producto.nombre}" no tiene stock disponible.`; return; }
     this.recetaSaving = true;
     this.recetaError = '';
     this.erpService.addReceta({
@@ -274,6 +292,10 @@ export class PosTerminalFarmaciaComponent implements OnInit {
   }
 
   dispensar(r: ErpReceta) {
+    if (this.recetaSinStock(r)) {
+      this.notify.error(`"${r.producto?.nombre}" no tiene stock disponible`);
+      return;
+    }
     this.carrito.push(r);
   }
 

@@ -3,6 +3,7 @@ import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
 import { FARM_ATENCION_LABELS, NichoService, REST_CANALES_LABELS, TIENDA_CANALES_LABELS } from '../../../core/services/nicho.service';
 import { NotifyService } from '../../../core/services/notify.service';
+import { StockAlertService } from '../../../core/services/stock-alert.service';
 import { ErpPedido, Producto } from '../../../models/erp.models';
 import { Cliente } from '../../../models/crm.models';
 import { modalLeave } from '../../shared/animations';
@@ -37,6 +38,7 @@ export class ErpVentasComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     public nicho: NichoService,
     private notify: NotifyService,
+    public stockAlert: StockAlertService,
   ) {}
 
   canalLabel(canal: string | null | undefined): string {
@@ -57,6 +59,16 @@ export class ErpVentasComponent implements OnInit {
 
   get facturado() { return this.pedidos.filter(p => p.estado === 'facturado').reduce((s, p) => s + Number(p.total), 0); }
   get porCobrar() { return this.pedidos.filter(p => p.estado !== 'facturado' && p.estado !== 'cancelada').reduce((s, p) => s + Number(p.total), 0); }
+
+  /** Desglose por sección del hotel (Bar, Spa, Hospedaje...) de un pedido que vino de un check-out de habitación. */
+  desgloseSecciones(p: ErpPedido): { seccion: string; total: number }[] {
+    const totales = new Map<string, number>();
+    for (const item of p.items ?? []) {
+      if (!item.seccion) continue;
+      totales.set(item.seccion, (totales.get(item.seccion) ?? 0) + (item.subtotal ?? item.cantidad * item.precio_unitario));
+    }
+    return Array.from(totales, ([seccion, total]) => ({ seccion, total }));
+  }
 
   get totalFormulario() {
     return this.form.items.reduce((s, i) => s + (Number(i.cantidad) || 0) * (Number(i.precio_unitario) || 0), 0);
@@ -99,6 +111,16 @@ export class ErpVentasComponent implements OnInit {
     if (producto) row.precio_unitario = String(producto.precio);
   }
 
+  productoDe(row: ItemRow): Producto | undefined {
+    return this.productos.find(p => p.id_productos === Number(row.id_producto));
+  }
+
+  filaExcedeStock(row: ItemRow): boolean {
+    const producto = this.productoDe(row);
+    if (!producto) return false;
+    return Number(row.cantidad) > this.stockAlert.disponible(producto);
+  }
+
   submit() {
     if (this.saving) return;
     if (!this.form.id_cliente) { this.error = 'Selecciona un cliente.'; return; }
@@ -112,6 +134,13 @@ export class ErpVentasComponent implements OnInit {
       }));
 
     if (items.length === 0) { this.error = 'Agrega al menos una línea con producto y cantidad.'; return; }
+
+    const filaSinStock = this.form.items.find(r => r.id_producto && this.filaExcedeStock(r));
+    if (filaSinStock) {
+      const producto = this.productoDe(filaSinStock);
+      this.error = `"${producto?.nombre}" no tiene stock suficiente (disponible: ${producto ? this.stockAlert.disponible(producto) : 0}).`;
+      return;
+    }
 
     this.saving = true;
     this.error = '';

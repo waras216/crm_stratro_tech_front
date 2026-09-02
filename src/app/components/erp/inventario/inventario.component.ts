@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { NotifyService } from '../../../core/services/notify.service';
+import { StockAlertService } from '../../../core/services/stock-alert.service';
 import { ALMACEN_OPS_LABELS, NichoService } from '../../../core/services/nicho.service';
 import { Producto, Categoria, ErpMovimientoStock } from '../../../models/erp.models';
 import { modalLeave } from '../../shared/animations';
@@ -14,6 +15,7 @@ import { modalLeave } from '../../shared/animations';
 })
 export class ErpInventarioComponent implements OnInit {
   search = '';
+  categoriaActiva = 'Todos';
   dialogOpen = false;
   saving = false;
   error = '';
@@ -42,7 +44,13 @@ export class ErpInventarioComponent implements OnInit {
   categorias: Categoria[] = [];
   cargando = true;
 
-  constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef, public nicho: NichoService) {}
+  constructor(
+    private erpService: ErpService,
+    private notify: NotifyService,
+    private cdr: ChangeDetectorRef,
+    public nicho: NichoService,
+    public stockAlert: StockAlertService,
+  ) {}
 
   operacionLabel(id: string): string { return ALMACEN_OPS_LABELS[id] || id; }
 
@@ -52,12 +60,24 @@ export class ErpInventarioComponent implements OnInit {
     this.erpService.cargarCategorias().subscribe(data => { this.categorias = data; this.cdr.detectChanges(); });
   }
 
+  /** Nombres de categoría con al menos un producto, en el orden en que se crearon (p.ej. Bar, Spa, Piscina... del nicho hotel). */
+  get categoriasConProductos(): string[] {
+    const nombres = new Set(this.categorias.map(c => c.nombre).filter(nombre => this.inventario.some(p => p.categoria?.nombre === nombre)));
+    return ['Todos', ...nombres];
+  }
+
+  /** Inventario acotado a la sección/categoría activa — de aquí salen tanto la tabla como los KPIs, para que "Bar" muestre su propio stock. */
+  get inventarioEnCategoria(): Producto[] {
+    return this.categoriaActiva === 'Todos' ? this.inventario : this.inventario.filter(p => p.categoria?.nombre === this.categoriaActiva);
+  }
+
   get filtrado() {
     const term = this.search.toLowerCase();
-    return this.inventario.filter(p => p.nombre.toLowerCase().includes(term) || (p.sku ?? '').toLowerCase().includes(term));
+    return this.inventarioEnCategoria.filter(p => p.nombre.toLowerCase().includes(term) || (p.sku ?? '').toLowerCase().includes(term));
   }
-  get valorTotal() { return this.inventario.filter(p => p.controla_stock !== false).reduce((s, p) => s + p.precio * p.stock, 0); }
-  get stockBajo() { return this.inventario.filter(p => p.controla_stock !== false && p.stock <= p.stock_minimo).length; }
+  get valorTotal() { return this.inventarioEnCategoria.filter(p => p.controla_stock !== false).reduce((s, p) => s + p.precio * p.stock, 0); }
+  get sinStockCount() { return this.inventarioEnCategoria.filter(p => this.stockAlert.sinStock(p)).length; }
+  get stockBajoCount() { return this.inventarioEnCategoria.filter(p => this.stockAlert.stockBajo(p)).length; }
 
   openNew() {
     this.editando = null;

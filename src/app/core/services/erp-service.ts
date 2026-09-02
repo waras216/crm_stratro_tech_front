@@ -409,8 +409,8 @@ export class ErpService {
     );
   }
 
-  quitarConsumoHabitacion(id: number, consumoId: number): Observable<ErpHabitacion> {
-    return this.http.delete<ErpHabitacion>(`${API}/erp/habitaciones/${id}/consumos/${consumoId}`).pipe(
+  quitarConsumoHabitacion(id: number, consumoId: number, cantidad: number = 1): Observable<ErpHabitacion> {
+    return this.http.delete<ErpHabitacion>(`${API}/erp/habitaciones/${id}/consumos/${consumoId}`, { body: { cantidad } }).pipe(
       tap(actualizada => this.actualizarHabitacionLocal(actualizada))
     );
   }

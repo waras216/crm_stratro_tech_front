@@ -2,8 +2,9 @@ import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
+import { StockAlertService } from '../../../core/services/stock-alert.service';
 import { HOTEL_AMENIDAD_CATEGORIAS, NichoService } from '../../../core/services/nicho.service';
-import { ErpHabitacion, ErpPedido, Producto, PedidoPago } from '../../../models/erp.models';
+import { ErpHabitacion, ErpHabitacionConsumo, ErpPedido, Producto, PedidoPago } from '../../../models/erp.models';
 import { modalLeave } from '../../shared/animations';
 
 @Component({
@@ -11,7 +12,25 @@ import { modalLeave } from '../../shared/animations';
   standalone: false,
   animations: [modalLeave],
   template: `
-<div class="flex flex-col lg:flex-row gap-4 lg:h-full page-enter">
+<div class="flex flex-col gap-3 lg:h-full">
+
+  <!-- ── Selector de sección ── -->
+  <div *ngIf="secciones.length" class="flex gap-2 overflow-x-auto pb-1 flex-shrink-0">
+    <button (click)="seccionActiva='recepcion'"
+      class="px-3 py-1.5 rounded-full text-xs font-semibold border-0 cursor-pointer whitespace-nowrap transition-all"
+      [ngClass]="seccionActiva==='recepcion' ? 'bg-amber-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'">
+      Recepción
+    </button>
+    <button *ngFor="let s of secciones" (click)="seccionActiva=s"
+      class="px-3 py-1.5 rounded-full text-xs font-semibold border-0 cursor-pointer whitespace-nowrap transition-all"
+      [ngClass]="seccionActiva===s ? 'bg-violet-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'">
+      {{ s }}
+    </button>
+  </div>
+
+  <app-pos-terminal-hotel-seccion *ngIf="seccionActiva !== 'recepcion'" class="flex-1 min-h-0" [seccion]="seccionActiva"></app-pos-terminal-hotel-seccion>
+
+<div *ngIf="seccionActiva === 'recepcion'" class="flex flex-col lg:flex-row gap-4 lg:flex-1 lg:min-h-0 page-enter">
 
   <!-- ── PANEL IZQ: Habitaciones ── -->
   <div class="w-full lg:w-72 lg:flex-shrink-0 flex flex-col gap-3">
@@ -135,10 +154,24 @@ import { modalLeave } from '../../shared/animations';
           <p class="text-xs font-bold text-slate-700 m-0">Consumos Room Service</p>
           <span class="text-xs font-bold text-amber-600">Total a cobrar: \${{ totalConsumos(hab) + totalHospedaje(hab) }}</span>
         </div>
-        <div *ngIf="hab.consumos.length === 0" class="text-center py-8 text-slate-400 text-xs">Sin consumos registrados</div>
-        <div *ngFor="let c of hab.consumos" class="flex items-center justify-between px-5 py-2.5 border-b border-slate-50 last:border-0">
-          <p class="text-xs text-slate-700 m-0">{{ c.nombre }} × {{ c.cantidad }}</p>
-          <p class="text-xs font-bold text-slate-700 m-0">\${{ c.precio_unitario * c.cantidad }}</p>
+        <div *ngIf="hab.consumos.length === 0" class="flex flex-col items-center py-8 text-slate-300 gap-1">
+          <span class="text-2xl">🛎️</span>
+          <p class="text-xs text-slate-400 m-0">Sin consumos registrados</p>
+        </div>
+        <div *ngFor="let c of hab.consumos" class="flex items-center gap-3 px-5 py-3 border-b border-slate-50 last:border-0">
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-semibold text-slate-700 m-0 truncate">{{ c.nombre }}</p>
+            <p class="text-[10px] text-slate-400 m-0">\${{ c.precio_unitario }} c/u</p>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button (click)="quitarConsumo(hab, c)" title="Quitar una unidad"
+              class="w-8 h-8 flex items-center justify-center rounded-lg border-0 bg-red-50 text-red-500 text-base font-bold cursor-pointer hover:bg-red-100 active:scale-95 transition-transform">−</button>
+            <span class="text-sm font-bold text-slate-700 w-6 text-center">{{ c.cantidad }}</span>
+            <button *ngIf="c.id_producto" (click)="incrementarConsumo(hab, c)" [disabled]="productoSinStock(c.id_producto)"
+              title="Agregar una unidad más"
+              class="w-8 h-8 flex items-center justify-center rounded-lg border-0 bg-emerald-50 text-emerald-600 text-base font-bold cursor-pointer hover:bg-emerald-100 active:scale-95 transition-transform disabled:opacity-40 disabled:cursor-not-allowed">+</button>
+          </div>
+          <p class="text-xs font-bold text-slate-700 m-0 w-16 text-right flex-shrink-0">\${{ c.precio_unitario * c.cantidad }}</p>
         </div>
       </div>
 
@@ -153,12 +186,7 @@ import { modalLeave } from '../../shared/animations';
             <p class="text-xs font-extrabold text-amber-700 m-0">\${{ totalConsumos(hab) + totalHospedaje(hab) }}</p>
           </div>
           <p class="text-[10px] text-amber-600 m-0 mt-0.5">Hospedaje: \${{ totalHospedaje(hab) }} + Consumos: \${{ totalConsumos(hab) }}</p>
-          <div *ngIf="hab.consumos.length" class="flex flex-col gap-0.5 mt-2 pt-2 border-t border-amber-200/60">
-            <div *ngFor="let c of hab.consumos" class="flex items-center justify-between text-[11px] text-amber-800">
-              <span>{{ c.nombre }} × {{ c.cantidad }}</span>
-              <span class="font-semibold">\${{ c.precio_unitario * c.cantidad }}</span>
-            </div>
-          </div>
+          <p *ngIf="hab.consumos.length" class="text-[10px] text-amber-500 m-0 mt-1.5 italic">Ajusta cantidades en "Consumos Room Service" arriba ↑</p>
         </div>
 
         <div class="relative mb-3">
@@ -182,27 +210,33 @@ import { modalLeave } from '../../shared/animations';
         <div *ngIf="!cargandoMenu && menuRoomService.length===0" class="text-center py-4 text-slate-400 text-xs">Sin productos que coincidan</div>
         <div class="flex flex-col gap-1.5 max-h-72 overflow-y-auto">
           <div *ngFor="let item of menuRoomService"
-            class="flex items-center gap-2 p-2 rounded-xl border border-slate-100 bg-slate-50">
+            class="flex items-center gap-2 p-2 rounded-xl border bg-slate-50 transition-colors"
+            [class.border-slate-100]="!sinStock(item)"
+            [class.border-red-200]="sinStock(item)"
+            [class.opacity-60]="sinStock(item)">
             <span class="text-lg flex-shrink-0">🍽️</span>
             <div class="flex-1 min-w-0">
               <p class="text-[11px] font-semibold text-slate-600 m-0 truncate">{{ item.nombre }}</p>
               <p class="text-[10px] font-bold text-amber-600 m-0">\${{ item.precio }}</p>
+              <p *ngIf="sinStock(item)" class="text-[9px] font-bold text-red-500 m-0 mt-0.5">⚠ Sin stock</p>
+              <p *ngIf="!sinStock(item) && stockBajo(item)" class="text-[9px] font-bold text-amber-500 m-0 mt-0.5">⚠ Quedan {{ item.stock }}</p>
             </div>
             <div class="flex items-center gap-1 flex-shrink-0">
-              <button (click)="cambiarCantidadProducto(item, -1)"
-                class="w-6 h-6 rounded-lg border border-slate-200 bg-white text-slate-500 font-bold text-sm cursor-pointer hover:bg-slate-50">-</button>
+              <button (click)="cambiarCantidadProducto(item, -1)" [disabled]="sinStock(item)"
+                class="w-6 h-6 rounded-lg border border-slate-200 bg-white text-slate-500 font-bold text-sm cursor-pointer hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">-</button>
               <span class="text-xs font-bold text-slate-700 w-5 text-center">{{ cantidadDe(item) }}</span>
-              <button (click)="cambiarCantidadProducto(item, 1)"
-                class="w-6 h-6 rounded-lg border border-slate-200 bg-white text-slate-500 font-bold text-sm cursor-pointer hover:bg-slate-50">+</button>
+              <button (click)="cambiarCantidadProducto(item, 1)" [disabled]="sinStock(item)"
+                class="w-6 h-6 rounded-lg border border-slate-200 bg-white text-slate-500 font-bold text-sm cursor-pointer hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">+</button>
             </div>
-            <button (click)="agregarConsumo(item)"
-              class="text-[10px] font-bold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 flex-shrink-0"
-              style="background:#f59e0b">Agregar</button>
+            <button (click)="agregarConsumo(item)" [disabled]="sinStock(item)"
+              class="text-[10px] font-bold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+              style="background:#f59e0b">{{ sinStock(item) ? 'Sin stock' : 'Agregar' }}</button>
           </div>
         </div>
       </div>
     </ng-container>
   </div>
+</div>
 </div>
 
 <!-- Modal: nueva habitación -->
@@ -254,7 +288,19 @@ export class PosTerminalHotelComponent implements OnInit {
   private erpService = inject(ErpService);
   private crmService = inject(CrmService);
   private cdr = inject(ChangeDetectorRef);
+  private stockAlert = inject(StockAlertService);
   nicho = inject(NichoService);
+
+  /** 'recepcion' muestra la gestión completa de habitaciones; cualquier otro valor es el nombre
+   *  de una categoría de amenidad (Bar, Spa...) y renderiza el terminal dedicado de esa sección. */
+  seccionActiva = 'recepcion';
+
+  /** Secciones/amenidades que el hotel configuró en el onboarding, con su propio terminal. */
+  get secciones(): string[] {
+    return Array.from(new Set(
+      this.nicho.hotelAmenidades.map(a => HOTEL_AMENIDAD_CATEGORIAS[a]).filter((n): n is string => !!n)
+    ));
+  }
 
   habitaciones: ErpHabitacion[] = [];
   habSeleccionada: ErpHabitacion | null = null;
@@ -323,7 +369,23 @@ export class PosTerminalHotelComponent implements OnInit {
   }
 
   cambiarCantidadProducto(producto: Producto, delta: number) {
-    this.cantidadesRoomService[producto.id_productos] = Math.max(1, this.cantidadDe(producto) + delta);
+    const nueva = Math.max(1, this.cantidadDe(producto) + delta);
+    const max = producto.controla_stock === false ? nueva : Math.max(1, producto.stock);
+    this.cantidadesRoomService[producto.id_productos] = Math.min(nueva, max);
+  }
+
+  sinStock(p: Producto): boolean {
+    return this.stockAlert.sinStock(p);
+  }
+
+  stockBajo(p: Producto): boolean {
+    return this.stockAlert.stockBajo(p);
+  }
+
+  productoSinStock(idProducto: number | null): boolean {
+    if (!idProducto) return false;
+    const producto = this.productos.find(p => p.id_productos === idProducto);
+    return !!producto && this.sinStock(producto);
   }
 
   /**
@@ -419,10 +481,39 @@ export class PosTerminalHotelComponent implements OnInit {
 
   agregarConsumo(producto: Producto) {
     if (!this.habSeleccionada) return;
+    if (this.sinStock(producto)) {
+      this.notify.error(`"${producto.nombre}" no tiene stock disponible`);
+      return;
+    }
     this.erpService.agregarConsumoHabitacion(this.habSeleccionada.id, { id_producto: producto.id_productos, cantidad: this.cantidadDe(producto) }).subscribe({
       next: actualizada => {
         this.habSeleccionada = actualizada;
         delete this.cantidadesRoomService[producto.id_productos];
+        this.cdr.detectChanges();
+      },
+      error: err => this.notify.error(err?.error?.message || 'No se pudo agregar el consumo'),
+    });
+  }
+
+  quitarConsumo(hab: ErpHabitacion, consumo: ErpHabitacionConsumo) {
+    this.erpService.quitarConsumoHabitacion(hab.id, consumo.id, 1).subscribe({
+      next: actualizada => {
+        this.habSeleccionada = actualizada;
+        this.cdr.detectChanges();
+      },
+      error: err => this.notify.error(err?.error?.message || 'No se pudo quitar el consumo'),
+    });
+  }
+
+  incrementarConsumo(hab: ErpHabitacion, consumo: ErpHabitacionConsumo) {
+    if (!consumo.id_producto) return;
+    if (this.productoSinStock(consumo.id_producto)) {
+      this.notify.error(`"${consumo.nombre}" no tiene stock disponible`);
+      return;
+    }
+    this.erpService.agregarConsumoHabitacion(hab.id, { id_producto: consumo.id_producto, cantidad: 1 }).subscribe({
+      next: actualizada => {
+        this.habSeleccionada = actualizada;
         this.cdr.detectChanges();
       },
       error: err => this.notify.error(err?.error?.message || 'No se pudo agregar el consumo'),

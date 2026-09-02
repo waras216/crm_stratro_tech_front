@@ -7,6 +7,7 @@ import { ErpMesa, ErpComandaItem, ErpPedido, Producto, PedidoPago } from '../../
 import { ItemCarrito } from '../carrito/carrito.component';
 import { modalLeave } from '../../shared/animations';
 import { NichoService, REST_CANALES_LABELS } from '../../../core/services/nicho.service';
+import { StockAlertService } from '../../../core/services/stock-alert.service';
 
 @Component({
   selector: 'app-pos-terminal-restaurante',
@@ -142,8 +143,9 @@ import { NichoService, REST_CANALES_LABELS } from '../../../core/services/nicho.
             <button (click)="cambiarCantidad(item,-1)"
               class="w-6 h-6 rounded-lg bg-slate-100 border-0 cursor-pointer text-slate-600 font-bold hover:bg-slate-200 text-xs">−</button>
             <span class="text-xs font-bold text-slate-700 w-4 text-center">{{ item.cantidad }}</span>
-            <button (click)="cambiarCantidad(item,1)"
-              class="w-6 h-6 rounded-lg bg-emerald-50 border-0 cursor-pointer text-emerald-600 font-bold hover:bg-emerald-100 text-xs">+</button>
+            <button (click)="cambiarCantidad(item,1)" [disabled]="productoSinStock(item.id_producto)"
+              title="Agregar una unidad más"
+              class="w-6 h-6 rounded-lg bg-emerald-50 border-0 cursor-pointer text-emerald-600 font-bold hover:bg-emerald-100 text-xs disabled:opacity-40 disabled:cursor-not-allowed">+</button>
           </div>
           <p class="text-xs font-bold text-slate-800 m-0 w-14 text-right">\${{ item.precio_unitario * item.cantidad }}</p>
         </div>
@@ -172,17 +174,21 @@ import { NichoService, REST_CANALES_LABELS } from '../../../core/services/nicho.
       <div class="px-3 pb-3 flex flex-col gap-1.5">
         <button *ngFor="let item of menuFiltrado"
           (click)="agregarItem(item)"
-          [disabled]="!modoSinMesa && (!mesaSeleccionada || mesaSeleccionada.estado==='libre')"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-slate-100 transition-all text-left w-full"
-          [class.hover:bg-red-50]="modoSinMesa || (mesaSeleccionada && mesaSeleccionada.estado!=='libre')"
-          [class.hover:border-red-200]="modoSinMesa || (mesaSeleccionada && mesaSeleccionada.estado!=='libre')"
-          [class.cursor-pointer]="modoSinMesa || (mesaSeleccionada && mesaSeleccionada.estado!=='libre')"
-          [class.cursor-not-allowed]="!modoSinMesa && (!mesaSeleccionada || mesaSeleccionada.estado==='libre')"
-          [class.opacity-50]="!modoSinMesa && (!mesaSeleccionada || mesaSeleccionada.estado==='libre')"
+          [disabled]="sinStock(item) || (!modoSinMesa && (!mesaSeleccionada || mesaSeleccionada.estado==='libre'))"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all text-left w-full"
+          [class.border-slate-100]="!sinStock(item)"
+          [class.border-red-200]="sinStock(item)"
+          [class.hover:bg-red-50]="!sinStock(item) && (modoSinMesa || (mesaSeleccionada && mesaSeleccionada.estado!=='libre'))"
+          [class.hover:border-red-200]="!sinStock(item) && (modoSinMesa || (mesaSeleccionada && mesaSeleccionada.estado!=='libre'))"
+          [class.cursor-pointer]="!sinStock(item) && (modoSinMesa || (mesaSeleccionada && mesaSeleccionada.estado!=='libre'))"
+          [class.cursor-not-allowed]="sinStock(item) || (!modoSinMesa && (!mesaSeleccionada || mesaSeleccionada.estado==='libre'))"
+          [class.opacity-50]="sinStock(item) || (!modoSinMesa && (!mesaSeleccionada || mesaSeleccionada.estado==='libre'))"
           style="background:transparent">
           <span class="text-lg flex-shrink-0">🍽️</span>
           <div class="flex-1 min-w-0">
             <p class="text-[11px] font-semibold text-slate-700 m-0 truncate">{{ item.nombre }}</p>
+            <p *ngIf="sinStock(item)" class="text-[9px] font-bold text-red-500 m-0 mt-0.5">⚠ Sin stock</p>
+            <p *ngIf="!sinStock(item) && stockBajo(item)" class="text-[9px] font-bold text-amber-500 m-0 mt-0.5">⚠ Quedan {{ item.stock }}</p>
           </div>
           <span class="text-[11px] font-bold text-red-500 flex-shrink-0">\${{ item.precio }}</span>
         </button>
@@ -217,6 +223,7 @@ export class PosTerminalRestauranteComponent implements OnInit {
   private erpService = inject(ErpService);
   private crmService = inject(CrmService);
   private cdr = inject(ChangeDetectorRef);
+  private stockAlert = inject(StockAlertService);
   public nicho = inject(NichoService);
 
   modoSinMesa = false;
@@ -385,11 +392,36 @@ export class PosTerminalRestauranteComponent implements OnInit {
     });
   }
 
+  sinStock(p: Producto): boolean {
+    return this.stockAlert.sinStock(p);
+  }
+
+  stockBajo(p: Producto): boolean {
+    return this.stockAlert.stockBajo(p);
+  }
+
+  productoSinStock(idProducto: number | null): boolean {
+    if (!idProducto) return false;
+    const producto = this.productos.find(p => p.id_productos === idProducto);
+    return !!producto && this.sinStock(producto);
+  }
+
   agregarItem(producto: Producto) {
+    if (this.sinStock(producto)) {
+      this.notify.error(`"${producto.nombre}" no tiene stock disponible`);
+      return;
+    }
     if (this.modoSinMesa) {
       const existing = this.carritoSinMesa.find(i => i.producto.id_productos === producto.id_productos);
-      if (existing) existing.cantidad++;
-      else this.carritoSinMesa = [...this.carritoSinMesa, { producto, cantidad: 1 }];
+      if (existing) {
+        if (existing.cantidad >= this.stockAlert.disponible(producto)) {
+          this.notify.error(`"${producto.nombre}" no tiene más stock disponible`);
+          return;
+        }
+        existing.cantidad++;
+      } else {
+        this.carritoSinMesa = [...this.carritoSinMesa, { producto, cantidad: 1 }];
+      }
       return;
     }
     if (!this.mesaSeleccionada || this.mesaSeleccionada.estado === 'libre') return;
@@ -401,6 +433,10 @@ export class PosTerminalRestauranteComponent implements OnInit {
 
   cambiarCantidad(item: ErpComandaItem, delta: number) {
     if (!this.mesaSeleccionada) return;
+    if (delta > 0 && this.productoSinStock(item.id_producto)) {
+      this.notify.error(`"${item.nombre}" no tiene stock disponible`);
+      return;
+    }
     this.erpService.actualizarItemMesa(this.mesaSeleccionada.id, item.id, item.cantidad + delta).subscribe({
       next: actualizada => { this.mesaSeleccionada = actualizada; this.cdr.detectChanges(); },
     });

@@ -1,5 +1,6 @@
-import { ChangeDetectorRef, Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, Output, EventEmitter, inject } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
+import { StockAlertService } from '../../../core/services/stock-alert.service';
 import { Producto } from '../../../models/erp.models';
 
 /** Alias histórico: el catálogo del POS usa el inventario real (Producto). */
@@ -12,6 +13,8 @@ export type ProductoPOS = Producto;
   styleUrls: ['./catalogo.component.scss'],
 })
 export class PosCatalogoComponent implements OnInit {
+  private stockAlert = inject(StockAlertService);
+
   @Output() agregar = new EventEmitter<ProductoPOS>();
 
   categoriaActiva = 'Todos';
@@ -43,5 +46,13 @@ export class PosCatalogoComponent implements OnInit {
       (this.categoriaActiva === 'Todos' || p.categoria?.nombre === this.categoriaActiva) &&
       p.nombre.toLowerCase().includes(this.search.toLowerCase())
     );
+  }
+
+  sinStock(p: Producto): boolean {
+    return this.stockAlert.sinStock(p);
+  }
+
+  stockBajo(p: Producto): boolean {
+    return this.stockAlert.stockBajo(p);
   }
 }

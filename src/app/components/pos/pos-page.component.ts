@@ -8,6 +8,7 @@ import { NichoService, TIENDA_CANALES_LABELS } from '../../core/services/nicho.s
 import { ErpService } from '../../core/services/erp-service';
 import { CrmService } from '../../core/services/crm-service';
 import { NotifyService } from '../../core/services/notify.service';
+import { StockAlertService } from '../../core/services/stock-alert.service';
 import { ErpPedido, PedidoPago } from '../../models/erp.models';
 import { Cliente } from '../../models/crm.models';
 
@@ -142,6 +143,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
     private crmService: CrmService,
     private notify: NotifyService,
     private cdr: ChangeDetectorRef,
+    private stockAlert: StockAlertService,
   ) {}
 
   canalLabel(id: string): string { return TIENDA_CANALES_LABELS[id] || id; }
@@ -202,22 +204,29 @@ export class PosPageComponent implements OnInit, OnDestroy {
   }
 
   agregarAlCarrito(producto: ProductoPOS) {
+    const max = this.stockAlert.disponible(producto);
     const existing = this.carrito.find(i => i.producto.id_productos === producto.id_productos);
     if (existing) {
+      if (existing.cantidad >= max) { this.notify.error(`"${producto.nombre}" no tiene más stock disponible`); return; }
       existing.cantidad++;
     } else {
+      if (max <= 0) { this.notify.error(`"${producto.nombre}" no tiene stock disponible`); return; }
       this.carrito = [...this.carrito, { producto, cantidad: 1 }];
     }
   }
 
   onCambiarCantidad(ev: { id: number; delta: number }) {
     this.carrito = this.carrito
-      .map(i => i.producto.id_productos === ev.id ? { ...i, cantidad: i.cantidad + ev.delta } : i)
+      .map(i => i.producto.id_productos === ev.id
+        ? { ...i, cantidad: Math.min(i.cantidad + ev.delta, this.stockAlert.disponible(i.producto)) }
+        : i)
       .filter(i => i.cantidad > 0);
   }
 
   onEstablecerCantidad(ev: { id: number; cantidad: number }) {
-    this.carrito = this.carrito.map(i => i.producto.id_productos === ev.id ? { ...i, cantidad: ev.cantidad } : i);
+    this.carrito = this.carrito.map(i => i.producto.id_productos === ev.id
+      ? { ...i, cantidad: Math.min(ev.cantidad, this.stockAlert.disponible(i.producto)) }
+      : i);
   }
 
   quitarItem(id: number)  { this.carrito = this.carrito.filter(i => i.producto.id_productos !== id); }

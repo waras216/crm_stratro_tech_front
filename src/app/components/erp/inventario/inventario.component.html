@@ -1,17 +1,21 @@
 <div class="flex flex-col gap-5 page-enter">
   <!-- KPIs -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1" style="box-shadow:var(--shadow-card)">
       <p class="text-xs text-slate-500 m-0">Productos</p>
-      <p class="text-2xl font-bold text-slate-800 m-0">{{ inventario.length }}</p>
+      <p class="text-2xl font-bold text-slate-800 m-0">{{ inventarioEnCategoria.length }}</p>
     </div>
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-2" style="box-shadow:var(--shadow-card)">
       <p class="text-xs text-slate-500 m-0">Valor Inventario</p>
       <p class="text-2xl font-bold text-amber-600 m-0">${{ valorTotal.toLocaleString() }}</p>
     </div>
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-3" style="box-shadow:var(--shadow-card)">
+      <p class="text-xs text-slate-500 m-0">Sin Stock</p>
+      <p class="text-2xl font-bold m-0" [ngClass]="sinStockCount > 0 ? 'text-red-600' : 'text-emerald-600'">{{ sinStockCount }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-4" style="box-shadow:var(--shadow-card)">
       <p class="text-xs text-slate-500 m-0">Stock Bajo</p>
-      <p class="text-2xl font-bold m-0" [ngClass]="stockBajo > 0 ? 'text-red-600' : 'text-emerald-600'">{{ stockBajo }}</p>
+      <p class="text-2xl font-bold m-0" [ngClass]="stockBajoCount > 0 ? 'text-amber-600' : 'text-emerald-600'">{{ stockBajoCount }}</p>
     </div>
   </div>
 
@@ -23,6 +27,15 @@
       <button *appPuede="'erp_inventario.eliminar'" (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">Papelera</button>
       <button *appPuede="'erp_inventario.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Producto</button>
     </div>
+  </div>
+
+  <!-- Secciones (categorías) -->
+  <div *ngIf="categoriasConProductos.length > 2" class="flex gap-2 overflow-x-auto pb-1">
+    <button *ngFor="let cat of categoriasConProductos" (click)="categoriaActiva = cat"
+      class="px-3 py-1.5 rounded-full text-xs font-semibold border-0 cursor-pointer whitespace-nowrap transition-all"
+      [ngClass]="categoriaActiva===cat ? 'bg-amber-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'">
+      {{ cat }}
+    </button>
   </div>
 
   <!-- Table -->
@@ -63,8 +76,10 @@
           <td class="px-4 py-3 text-slate-500">{{ p.categoria?.nombre }}</td>
           <td class="px-4 py-3 text-right">
             <ng-container *ngIf="p.controla_stock !== false; else sinControlStock">
-              <span [ngClass]="p.stock <= p.stock_minimo ? 'text-red-600 font-bold' : 'text-slate-700'">{{ p.stock }}</span>
+              <span [ngClass]="stockAlert.sinStock(p) ? 'text-red-600 font-bold' : (stockAlert.stockBajo(p) ? 'text-amber-600 font-bold' : 'text-slate-700')">{{ p.stock }}</span>
               <span class="text-slate-400 text-xs"> / {{ p.stock_minimo }}</span>
+              <span *ngIf="stockAlert.sinStock(p)" class="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-50 text-red-600">Sin stock</span>
+              <span *ngIf="stockAlert.stockBajo(p)" class="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">Bajo</span>
             </ng-container>
             <ng-template #sinControlStock><span class="text-slate-400 text-xs">Sin control</span></ng-template>
           </td>

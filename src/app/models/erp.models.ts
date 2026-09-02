@@ -89,6 +89,8 @@ export interface ErpPedidoItem {
   id_producto: number | null;
   producto?: Producto;
   descripcion?: string | null;
+  /** Sección del hotel que originó el item (Bar, Spa, Hospedaje...), si el pedido vino de un check-out. */
+  seccion?: string | null;
   cantidad: number;
   precio_unitario: number;
   subtotal?: number;
@@ -174,6 +176,8 @@ export interface ErpHabitacionConsumo {
   id_producto: number | null;
   producto?: Producto;
   nombre: string;
+  /** Categoría del producto al momento de cargarlo (Bar, Spa...): la sección del hotel que lo vendió. */
+  seccion?: string | null;
   precio_unitario: number;
   cantidad: number;
 }

@@ -73,6 +73,12 @@
           </tr>
           <tr *ngIf="expandidoId === p.id" class="border-b border-slate-100 bg-slate-50/60 dark:bg-white/5">
             <td colspan="7" class="px-4 py-3">
+              <div *ngIf="desgloseSecciones(p).length > 1" class="flex flex-wrap gap-1.5 mb-3">
+                <span *ngFor="let d of desgloseSecciones(p)"
+                  class="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-violet-50 text-violet-700 border border-violet-100">
+                  {{ d.seccion }}: ${{ d.total.toLocaleString() }}
+                </span>
+              </div>
               <table class="w-full text-xs border-collapse" *ngIf="p.items && p.items.length > 0; else sinItems">
                 <thead><tr class="text-slate-400">
                   <th class="text-left py-1.5 font-medium">Producto</th>
@@ -82,7 +88,10 @@
                 </tr></thead>
                 <tbody>
                   <tr *ngFor="let it of p.items" class="border-t border-slate-200">
-                    <td class="py-1.5">{{ it.producto?.nombre || it.descripcion || 'Producto #' + it.id_producto }}</td>
+                    <td class="py-1.5">
+                      {{ it.producto?.nombre || it.descripcion || 'Producto #' + it.id_producto }}
+                      <span *ngIf="it.seccion" class="ml-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-600">{{ it.seccion }}</span>
+                    </td>
                     <td class="py-1.5 text-right">{{ it.cantidad }}</td>
                     <td class="py-1.5 text-right">${{ it.precio_unitario.toLocaleString() }}</td>
                     <td class="py-1.5 text-right font-medium">${{ (it.subtotal ?? (it.cantidad * it.precio_unitario)).toLocaleString() }}</td>
@@ -126,15 +135,20 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      <div *ngFor="let row of form.items; let i = index" class="grid grid-cols-[1fr_70px_90px_auto] gap-2 items-center">
-        <select class="px-2 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="row.id_producto" (ngModelChange)="onProductoChange(row)">
-          <option value="">Producto...</option>
-          <option *ngFor="let p of productos" [value]="p.id_productos">{{ p.nombre }} (stock: {{ p.stock }})</option>
-        </select>
-        <input class="px-2 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="row.cantidad" placeholder="Cant." />
-        <input class="px-2 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="row.precio_unitario" placeholder="P. Unit" />
-        <button (click)="removeItemRow(i)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">✕</button>
-      </div>
+      <ng-container *ngFor="let row of form.items; let i = index">
+        <div class="grid grid-cols-[1fr_70px_90px_auto] gap-2 items-center">
+          <select class="px-2 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="row.id_producto" (ngModelChange)="onProductoChange(row)">
+            <option value="">Producto...</option>
+            <option *ngFor="let p of productos" [value]="p.id_productos" [disabled]="stockAlert.sinStock(p)">
+              {{ p.nombre }} ({{ p.controla_stock === false ? 'sin límite' : (stockAlert.sinStock(p) ? 'sin stock' : 'stock: ' + p.stock) }})
+            </option>
+          </select>
+          <input class="px-2 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="row.cantidad" placeholder="Cant." />
+          <input class="px-2 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="row.precio_unitario" placeholder="P. Unit" />
+          <button (click)="removeItemRow(i)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">✕</button>
+        </div>
+        <p *ngIf="filaExcedeStock(row)" class="text-[10px] font-bold text-red-500 m-0 -mt-1.5">⚠ Solo hay {{ stockAlert.disponible(productoDe(row)!) }} disponibles</p>
+      </ng-container>
       <button (click)="addItemRow()" class="text-xs text-amber-600 font-medium bg-transparent border-0 cursor-pointer hover:underline text-left">+ Agregar línea</button>
     </div>
 

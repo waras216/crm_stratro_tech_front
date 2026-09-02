@@ -22,15 +22,18 @@
 
   <div *ngIf="!cargando" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 overflow-y-auto flex-1 content-start">
     <button *ngFor="let p of filtrados; let i = index"
-      (click)="agregar.emit(p)" [disabled]="p.controla_stock !== false && p.stock <= 0"
-      class="flex flex-col items-center gap-1 p-2 bg-white border border-slate-100 rounded-xl cursor-pointer hover:shadow-md hover:border-emerald-200 transition-all group text-center hover-scale card-enter disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-emerald-300"
+      (click)="agregar.emit(p)" [disabled]="sinStock(p)"
+      class="flex flex-col items-center gap-1 p-2 bg-white border rounded-xl cursor-pointer hover:shadow-md hover:border-emerald-200 transition-all group text-center hover-scale card-enter disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-emerald-300"
+      [class.border-red-200]="sinStock(p)"
       [style.animation-delay]="(i * 0.03) + 's'"
-      style="border:1px solid #e2e8f0">
+      [style.border]="sinStock(p) ? null : '1px solid #e2e8f0'">
       <img *ngIf="p.imagen_url" [src]="p.imagen_url" class="w-8 h-8 rounded-lg object-cover group-hover:scale-110 transition-transform" />
       <span *ngIf="!p.imagen_url" class="text-lg group-hover:scale-110 transition-transform">📦</span>
       <span class="text-[11px] font-semibold text-slate-700 leading-tight">{{ p.nombre }}</span>
       <span class="text-sm font-bold text-emerald-600">${{ p.precio }}</span>
-      <span class="text-[10px] text-slate-400">{{ p.controla_stock === false ? 'Disponible' : (p.stock > 0 ? p.stock + ' en stock' : 'Sin stock') }}</span>
+      <span class="text-[10px]" [ngClass]="sinStock(p) ? 'text-red-500 font-bold' : (stockBajo(p) ? 'text-amber-500 font-bold' : 'text-slate-400')">
+        {{ p.controla_stock === false ? 'Disponible' : (sinStock(p) ? 'Sin stock' : p.stock + ' en stock') }}
+      </span>
     </button>
   </div>
 </div>

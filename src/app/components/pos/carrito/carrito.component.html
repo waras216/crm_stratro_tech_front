@@ -23,6 +23,8 @@
       <div class="flex-1 min-w-0">
         <p class="text-xs font-medium text-slate-700 m-0 truncate">{{ item.producto.nombre }}</p>
         <p class="text-xs text-emerald-600 font-semibold m-0">${{ (item.producto.precio * item.cantidad).toLocaleString() }}</p>
+        <p *ngIf="alcanzoMaximo(item)" class="text-[9px] font-bold text-red-500 m-0 mt-0.5">⚠ Máximo stock disponible</p>
+        <p *ngIf="!alcanzoMaximo(item) && stockBajo(item)" class="text-[9px] font-bold text-amber-500 m-0 mt-0.5">⚠ Quedan {{ item.producto.stock }}</p>
       </div>
       <div class="flex items-center h-6 flex-shrink-0 rounded-md border border-slate-200 overflow-hidden bg-white focus-within:ring-2 focus-within:ring-emerald-200 focus-within:border-emerald-400">
         <button (click)="cambiarCantidad.emit({id: item.producto.id_productos, delta: -1})"
@@ -31,8 +33,8 @@
           (change)="onCantidadInput(item.producto.id_productos, cantidadInput.value, cantidadInput)"
           (click)="cantidadInput.select()" #cantidadInput
           class="cantidad-input w-11 h-full text-center text-xs font-bold border-0 border-x border-slate-200 py-0 focus:outline-none focus:ring-0" />
-        <button (click)="cambiarCantidad.emit({id: item.producto.id_productos, delta: 1})"
-          class="w-6 h-full flex-shrink-0 bg-slate-100 border-0 cursor-pointer text-slate-600 hover:bg-slate-200 flex items-center justify-center text-sm font-bold leading-none">+</button>
+        <button (click)="cambiarCantidad.emit({id: item.producto.id_productos, delta: 1})" [disabled]="alcanzoMaximo(item)"
+          class="w-6 h-full flex-shrink-0 bg-slate-100 border-0 cursor-pointer text-slate-600 hover:bg-slate-200 flex items-center justify-center text-sm font-bold leading-none disabled:opacity-40 disabled:cursor-not-allowed">+</button>
       </div>
       <button (click)="quitar.emit(item.producto.id_productos)" class="p-1 bg-transparent border-0 cursor-pointer text-slate-300 hover:text-red-500">
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
