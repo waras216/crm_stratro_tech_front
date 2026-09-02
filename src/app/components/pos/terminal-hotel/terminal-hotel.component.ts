@@ -1,10 +1,13 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
 import { StockAlertService } from '../../../core/services/stock-alert.service';
 import { HOTEL_AMENIDAD_CATEGORIAS, NichoService } from '../../../core/services/nicho.service';
-import { ErpHabitacion, ErpHabitacionConsumo, ErpPedido, Producto, PedidoPago } from '../../../models/erp.models';
+import { ErpEstimadoHospedaje, ErpHabitacion, ErpHabitacionConsumo, ErpHistorialCliente, ErpPedido, Producto, PedidoPago } from '../../../models/erp.models';
+import { Cliente } from '../../../models/crm.models';
 import { modalLeave } from '../../shared/animations';
 
 @Component({
@@ -54,10 +57,11 @@ import { modalLeave } from '../../shared/animations';
       <div class="grid grid-cols-4 gap-2">
         <button *ngFor="let h of habitaciones"
           (click)="seleccionar(h)"
-          class="aspect-square rounded-xl flex flex-col items-center justify-center border-2 cursor-pointer transition-all text-center p-1"
+          class="relative aspect-square rounded-xl flex flex-col items-center justify-center border-2 cursor-pointer transition-all text-center p-1"
           [ngClass]="estadoClases(h)"
           [class.ring-2]="habSeleccionada?.id === h.id"
           [style.ring-color]="'#f59e0b'">
+          <span *ngIf="h.estado_limpieza !== 'limpia'" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" title="Necesita limpieza"></span>
           <span class="text-[11px] font-extrabold leading-none">{{ h.numero }}</span>
           <span class="text-[8px] mt-0.5 leading-none opacity-70">{{ h.tipo }}</span>
         </button>
@@ -90,16 +94,26 @@ import { modalLeave } from '../../shared/animations';
               </p>
             </div>
           </div>
-          <span class="text-[10px] font-bold px-3 py-1 rounded-full flex-shrink-0"
-            [class.bg-emerald-100]="hab.estado==='libre'" [class.text-emerald-600]="hab.estado==='libre'"
-            [class.bg-amber-100]="hab.estado==='ocupada'" [class.text-amber-600]="hab.estado==='ocupada'"
-            [class.bg-blue-100]="hab.estado==='checkout'" [class.text-blue-600]="hab.estado==='checkout'"
-            [class.bg-slate-100]="hab.estado==='mantenimiento'" [class.text-slate-500]="hab.estado==='mantenimiento'">
-            {{ hab.estado | titlecase }}
-          </span>
+          <div class="flex flex-col items-end gap-1 flex-shrink-0">
+            <span class="text-[10px] font-bold px-3 py-1 rounded-full"
+              [class.bg-emerald-100]="hab.estado==='libre'" [class.text-emerald-600]="hab.estado==='libre'"
+              [class.bg-amber-100]="hab.estado==='ocupada'" [class.text-amber-600]="hab.estado==='ocupada'"
+              [class.bg-blue-100]="hab.estado==='checkout'" [class.text-blue-600]="hab.estado==='checkout'"
+              [class.bg-slate-100]="hab.estado==='mantenimiento'" [class.text-slate-500]="hab.estado==='mantenimiento'">
+              {{ hab.estado | titlecase }}
+            </span>
+            <button *ngIf="hab.estado==='libre'" (click)="siguienteEstadoLimpieza(hab)"
+              class="text-[10px] font-bold px-3 py-1 rounded-full border-0 cursor-pointer"
+              [class.bg-red-100]="hab.estado_limpieza==='sucia'" [class.text-red-600]="hab.estado_limpieza==='sucia'"
+              [class.bg-amber-100]="hab.estado_limpieza==='en_limpieza'" [class.text-amber-600]="hab.estado_limpieza==='en_limpieza'"
+              [class.bg-indigo-100]="hab.estado_limpieza==='inspeccion'" [class.text-indigo-600]="hab.estado_limpieza==='inspeccion'"
+              [class.bg-emerald-100]="hab.estado_limpieza==='limpia'" [class.text-emerald-600]="hab.estado_limpieza==='limpia'">
+              {{ limpiezaLabel(hab.estado_limpieza) }}
+            </button>
+          </div>
         </div>
         <!-- Huésped info -->
-        <div *ngIf="hab.huesped" class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div *ngIf="hab.huesped" class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
             <p class="text-[10px] text-slate-400 m-0">Huésped</p>
             <p class="text-xs font-semibold text-slate-700 m-0 mt-0.5">{{ hab.huesped }}</p>
@@ -112,11 +126,18 @@ import { modalLeave } from '../../shared/animations';
             <p class="text-[10px] text-slate-400 m-0">Check-out</p>
             <p class="text-xs font-semibold text-slate-700 m-0 mt-0.5">{{ hab.check_out }}</p>
           </div>
+          <div>
+            <p class="text-[10px] text-slate-400 m-0">Registro</p>
+            <p class="text-xs font-semibold m-0 mt-0.5" [class.text-emerald-600]="hab.estadia_activa?.firma_url" [class.text-amber-600]="!hab.estadia_activa?.firma_url">
+              {{ hab.estadia_activa?.firma_url ? '✓ Firmado' : 'Pendiente' }}
+            </p>
+          </div>
         </div>
         <!-- Acciones -->
         <div class="mt-3 flex gap-2">
-          <button *ngIf="hab.estado==='libre'" (click)="checkInDialogOpen=true"
-            class="flex-1 py-2 text-xs font-bold rounded-xl border-0 cursor-pointer text-white hover:opacity-90 transition-all"
+          <button *ngIf="hab.estado==='libre'" (click)="abrirCheckIn()" [disabled]="hab.estado_limpieza !== 'limpia'"
+            [title]="hab.estado_limpieza !== 'limpia' ? 'La habitación necesita limpieza antes del check-in' : ''"
+            class="flex-1 py-2 text-xs font-bold rounded-xl border-0 cursor-pointer text-white hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             style="background:#f59e0b">Check-in</button>
           <button *ngIf="hab.estado==='ocupada'" (click)="toggleSalida(hab)"
             class="flex-1 py-2 text-xs font-semibold rounded-xl border border-blue-200 cursor-pointer text-blue-600 bg-blue-50 hover:bg-blue-100 transition-all">
@@ -133,6 +154,10 @@ import { modalLeave } from '../../shared/animations';
             class="flex-1 py-2 text-xs font-bold rounded-xl border border-amber-300 cursor-pointer text-amber-600 bg-amber-50 hover:bg-amber-100 transition-all">
             Room Service
           </button>
+          <button *ngIf="hab.estado==='ocupada'" (click)="abrirRegistro(hab)"
+            class="flex-1 py-2 text-xs font-semibold rounded-xl border border-slate-200 cursor-pointer text-slate-600 bg-transparent hover:bg-slate-50 transition-all">
+            Registro
+          </button>
           <button *ngIf="hab.estado==='libre'" (click)="toggleMantenimiento(hab)"
             class="flex-1 py-2 text-xs font-semibold rounded-xl border border-slate-200 cursor-pointer text-slate-500 bg-transparent hover:bg-slate-50 transition-all">
             Mantenimiento
@@ -140,6 +165,10 @@ import { modalLeave } from '../../shared/animations';
           <button *ngIf="hab.estado==='mantenimiento'" (click)="toggleMantenimiento(hab)"
             class="flex-1 py-2 text-xs font-semibold rounded-xl border border-slate-200 cursor-pointer text-slate-500 bg-transparent hover:bg-slate-50 transition-all">
             Reactivar
+          </button>
+          <button (click)="abrirReportarIncidencia(hab)"
+            class="flex-1 py-2 text-xs font-semibold rounded-xl border border-orange-200 cursor-pointer text-orange-600 bg-orange-50 hover:bg-orange-100 transition-all">
+            Reportar
           </button>
         </div>
       </div>
@@ -267,14 +296,101 @@ import { modalLeave } from '../../shared/animations';
 <div *ngIf="checkInDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
   <h3 class="m-0 mb-4 text-lg font-semibold">Check-in — Habitación {{ habSeleccionada?.numero }}</h3>
   <div class="flex flex-col gap-3">
-    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="checkInForm.huesped" placeholder="Nombre del huésped" />
-    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="checkInForm.noches" placeholder="Noches" />
-    <p *ngIf="habSeleccionada?.precio !== null" class="text-xs text-slate-500 m-0">Estimado: <span class="font-semibold text-slate-700">\${{ (habSeleccionada!.precio ?? 0) * (checkInForm.noches || 0) }}</span> ({{ checkInForm.noches || 0 }} noche(s) × \${{ habSeleccionada?.precio }})</p>
+    <div *ngIf="!checkInForm.id_cliente" class="flex flex-col gap-1.5">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="checkInForm.huesped" placeholder="Nombre del huésped" />
+      <button *ngIf="!buscandoClienteCheckIn" (click)="buscandoClienteCheckIn=true" class="text-[11px] font-semibold text-amber-600 bg-transparent border-0 cursor-pointer hover:underline text-left">Vincular a un cliente existente</button>
+      <div *ngIf="buscandoClienteCheckIn" class="flex flex-col gap-1.5">
+        <input [(ngModel)]="busquedaClienteCheckIn" (ngModelChange)="buscarClienteCheckIn$.next($event)" autofocus
+          placeholder="Buscar cliente por nombre..."
+          class="px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:border-amber-400" />
+        <p *ngIf="cargandoClientesCheckIn" class="text-xs text-slate-400 m-0">Buscando...</p>
+        <div *ngIf="!cargandoClientesCheckIn && clientesEncontradosCheckIn.length>0" class="flex flex-col gap-1 max-h-28 overflow-y-auto">
+          <button *ngFor="let c of clientesEncontradosCheckIn" (click)="seleccionarClienteCheckIn(c)"
+            class="text-left text-xs px-3 py-2 rounded-lg border border-slate-100 hover:bg-amber-50 hover:border-amber-200 cursor-pointer transition-all">
+            {{ c.nombre }} <span class="text-slate-400" *ngIf="c.telefono">· {{ c.telefono }}</span>
+          </button>
+        </div>
+        <button (click)="buscandoClienteCheckIn=false; busquedaClienteCheckIn=''; clientesEncontradosCheckIn=[]" class="text-[10px] font-semibold text-slate-400 bg-transparent border-0 cursor-pointer hover:underline text-left">Cancelar</button>
+      </div>
+    </div>
+    <div *ngIf="checkInForm.id_cliente" class="flex items-center justify-between px-3 py-2 bg-amber-50 rounded-lg">
+      <div>
+        <p class="text-xs font-semibold text-slate-700 m-0">{{ checkInForm.huesped }}</p>
+        <p *ngIf="historialHuespedCheckIn as h" class="text-[10px] m-0 mt-0.5" [class.text-amber-600]="h.total_estadias>0" [class.font-bold]="h.total_estadias>0" [class.text-slate-400]="h.total_estadias===0">
+          {{ h.total_estadias>0 ? '⭐ Huésped frecuente — ' + h.total_estadias + ' estadía(s) previa(s)' : 'Primera estadía' }}
+        </p>
+      </div>
+      <button (click)="checkInForm.id_cliente=null; historialHuespedCheckIn=null" class="text-[10px] font-semibold text-amber-600 bg-transparent border-0 cursor-pointer hover:underline flex-shrink-0">Cambiar</button>
+    </div>
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="checkInForm.noches" (ngModelChange)="estimarNoches$.next($event)" placeholder="Noches" />
+    <p *ngIf="estimandoCheckIn" class="text-xs text-slate-400 m-0">Calculando tarifa...</p>
+    <p *ngIf="!estimandoCheckIn && estimadoCheckIn" class="text-xs text-slate-500 m-0">
+      Estimado: <span class="font-semibold text-slate-700">\${{ estimadoCheckIn.total | number:'1.0-2' }}</span> ({{ checkInForm.noches || 0 }} noche(s))
+      <span *ngIf="hayTemporadaEnEstimado(estimadoCheckIn)" class="text-amber-600 font-semibold"> · incluye tarifa de temporada</span>
+    </p>
     <p *ngIf="habSeleccionada?.precio === null" class="text-xs text-amber-600 m-0">Esta habitación no tiene precio definido — se cobrará $0 por hospedaje. Edítala desde el panel de ERP.</p>
     <p *ngIf="checkInError" class="text-xs text-red-600 m-0">{{ checkInError }}</p>
     <button (click)="confirmarCheckIn()" [disabled]="checkInSaving"
       class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
       style="background:#f59e0b">{{ checkInSaving ? 'Guardando...' : 'Confirmar Check-in' }}</button>
+  </div>
+</div>
+
+<!-- Modal: reportar incidencia -->
+<div *ngIf="incidenciaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="incidenciaDialogOpen=false"></div>
+<div *ngIf="incidenciaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Reportar Incidencia — Hab. {{ habSeleccionada?.numero }}</h3>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="incidenciaForm.titulo" placeholder="Ej. Aire acondicionado no enfría" />
+    <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm" rows="2" [(ngModel)]="incidenciaForm.descripcion" placeholder="Detalles (opcional)"></textarea>
+    <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="incidenciaForm.prioridad">
+      <option value="baja">Prioridad baja</option>
+      <option value="media">Prioridad media</option>
+      <option value="alta">Prioridad alta</option>
+    </select>
+    <label *ngIf="habSeleccionada?.estado==='libre'" class="flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer">
+      <input type="checkbox" [(ngModel)]="incidenciaForm.fuera_de_servicio" />
+      Poner fuera de servicio hasta resolver
+    </label>
+    <p *ngIf="incidenciaError" class="text-xs text-red-600 m-0">{{ incidenciaError }}</p>
+    <button (click)="guardarIncidencia()" [disabled]="incidenciaSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#f97316">{{ incidenciaSaving ? 'Guardando...' : 'Reportar' }}</button>
+  </div>
+</div>
+
+<!-- Modal: registro formal (documento + firma) -->
+<div *ngIf="registroDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="registroDialogOpen=false"></div>
+<div *ngIf="registroDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <h3 class="m-0 mb-4 text-lg font-semibold">Registro — Habitación {{ habSeleccionada?.numero }}</h3>
+  <div class="flex flex-col gap-3">
+    <div class="grid grid-cols-2 gap-3">
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="registroForm.documento_tipo">
+        <option value="">Tipo de documento</option>
+        <option value="INE">INE</option>
+        <option value="Pasaporte">Pasaporte</option>
+        <option value="Otro">Otro</option>
+      </select>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="registroForm.documento_numero" placeholder="Número de documento" />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <div class="flex items-center justify-between">
+        <label class="text-[11px] font-semibold text-slate-500">Firma del huésped</label>
+        <button (click)="limpiarFirma()" class="text-[10px] font-semibold text-slate-400 bg-transparent border-0 cursor-pointer hover:underline">Limpiar</button>
+      </div>
+      <canvas #firmaCanvas width="300" height="140"
+        class="border border-slate-200 rounded-lg bg-white touch-none w-full"
+        style="touch-action: none;"
+        (pointerdown)="iniciarFirma($event)" (pointermove)="dibujarFirma($event)" (pointerup)="terminarFirma()" (pointerleave)="terminarFirma()">
+      </canvas>
+      <p *ngIf="habSeleccionada?.estadia_activa?.firma_url && firmaVacia" class="text-[10px] text-emerald-600 m-0">Ya hay una firma guardada — dibuja aquí solo si quieres reemplazarla.</p>
+    </div>
+
+    <p *ngIf="registroError" class="text-xs text-red-600 m-0">{{ registroError }}</p>
+    <button (click)="guardarRegistro()" [disabled]="registroSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#f59e0b">{{ registroSaving ? 'Guardando...' : 'Guardar Registro' }}</button>
   </div>
 </div>
 
@@ -315,9 +431,34 @@ export class PosTerminalHotelComponent implements OnInit {
   habSaving = false;
 
   checkInDialogOpen = false;
-  checkInForm = { huesped: '', noches: 1 };
+  checkInForm = { huesped: '', noches: 1, id_cliente: null as number | null };
   checkInError = '';
   checkInSaving = false;
+
+  estimarNoches$ = new Subject<number>();
+  estimadoCheckIn: ErpEstimadoHospedaje | null = null;
+  estimandoCheckIn = false;
+
+  @ViewChild('firmaCanvas') firmaCanvasRef?: ElementRef<HTMLCanvasElement>;
+  registroDialogOpen = false;
+  registroForm = { documento_tipo: '', documento_numero: '' };
+  registroError = '';
+  registroSaving = false;
+  firmaVacia = true;
+  private dibujandoFirma = false;
+  private ctxFirma: CanvasRenderingContext2D | null = null;
+
+  buscandoClienteCheckIn = false;
+  busquedaClienteCheckIn = '';
+  buscarClienteCheckIn$ = new Subject<string>();
+  clientesEncontradosCheckIn: Cliente[] = [];
+  cargandoClientesCheckIn = false;
+  historialHuespedCheckIn: ErpHistorialCliente | null = null;
+
+  incidenciaDialogOpen = false;
+  incidenciaForm = { titulo: '', descripcion: '', prioridad: 'media' as 'baja' | 'media' | 'alta', fuera_de_servicio: false };
+  incidenciaError = '';
+  incidenciaSaving = false;
 
   ticketOpen = false;
   pagoModalOpen = false;
@@ -358,6 +499,136 @@ export class PosTerminalHotelComponent implements OnInit {
       },
       error: () => { this.cargandoMenu = false; this.cdr.detectChanges(); },
     });
+
+    this.buscarClienteCheckIn$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(search => {
+        this.cargandoClientesCheckIn = true;
+        return this.crmService.cargarClientes(1, search, '', 6);
+      }),
+    ).subscribe({
+      next: pagina => { this.clientesEncontradosCheckIn = pagina.data; this.cargandoClientesCheckIn = false; this.cdr.detectChanges(); },
+      error: () => { this.cargandoClientesCheckIn = false; this.cdr.detectChanges(); },
+    });
+
+    this.estimarNoches$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(noches => {
+        this.estimandoCheckIn = true;
+        return this.erpService.cargarEstimadoHospedaje(this.habSeleccionada!.id, noches || 1);
+      }),
+    ).subscribe({
+      next: estimado => { this.estimadoCheckIn = estimado; this.estimandoCheckIn = false; this.cdr.detectChanges(); },
+      error: () => { this.estimandoCheckIn = false; this.cdr.detectChanges(); },
+    });
+  }
+
+  hayTemporadaEnEstimado(estimado: ErpEstimadoHospedaje): boolean {
+    return estimado.detalle.some(d => !!d.temporada);
+  }
+
+  abrirRegistro(h: ErpHabitacion) {
+    this.habSeleccionada = h;
+    const activa = h.estadia_activa;
+    this.registroForm = { documento_tipo: activa?.documento_tipo || '', documento_numero: activa?.documento_numero || '' };
+    this.registroError = '';
+    this.firmaVacia = true;
+    this.ctxFirma = null;
+    this.registroDialogOpen = true;
+    setTimeout(() => this.limpiarFirma(), 0);
+  }
+
+  iniciarFirma(e: PointerEvent) {
+    const canvas = this.firmaCanvasRef?.nativeElement;
+    if (!canvas) return;
+    this.ctxFirma = canvas.getContext('2d');
+    if (!this.ctxFirma) return;
+    this.dibujandoFirma = true;
+    this.firmaVacia = false;
+    const rect = canvas.getBoundingClientRect();
+    this.ctxFirma.beginPath();
+    this.ctxFirma.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+  }
+
+  dibujarFirma(e: PointerEvent) {
+    if (!this.dibujandoFirma || !this.ctxFirma) return;
+    const canvas = this.firmaCanvasRef!.nativeElement;
+    const rect = canvas.getBoundingClientRect();
+    this.ctxFirma.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    this.ctxFirma.strokeStyle = '#1e293b';
+    this.ctxFirma.lineWidth = 2;
+    this.ctxFirma.lineCap = 'round';
+    this.ctxFirma.stroke();
+  }
+
+  terminarFirma() {
+    this.dibujandoFirma = false;
+  }
+
+  limpiarFirma() {
+    const canvas = this.firmaCanvasRef?.nativeElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx?.clearRect(0, 0, canvas.width, canvas.height);
+    this.firmaVacia = true;
+  }
+
+  guardarRegistro() {
+    if (!this.habSeleccionada || this.registroSaving) return;
+    this.registroSaving = true;
+    this.registroError = '';
+
+    const enviar = (firma: Blob | null) => {
+      this.erpService.registrarDocumentoHabitacion(this.habSeleccionada!.id, {
+        documento_tipo: this.registroForm.documento_tipo || undefined,
+        documento_numero: this.registroForm.documento_numero || undefined,
+        firma: firma ?? undefined,
+      }).subscribe({
+        next: actualizada => {
+          this.habSeleccionada = actualizada;
+          this.registroSaving = false;
+          this.registroDialogOpen = false;
+          this.notify.success('Registro guardado');
+          this.cdr.detectChanges();
+        },
+        error: err => {
+          this.registroSaving = false;
+          this.registroError = err?.error?.message || 'No se pudo guardar el registro';
+          this.cdr.detectChanges();
+        },
+      });
+    };
+
+    const canvas = this.firmaCanvasRef?.nativeElement;
+    if (canvas && !this.firmaVacia) {
+      canvas.toBlob(blob => enviar(blob), 'image/png');
+    } else {
+      enviar(null);
+    }
+  }
+
+  abrirCheckIn() {
+    this.checkInForm = { huesped: '', noches: 1, id_cliente: null };
+    this.checkInError = '';
+    this.buscandoClienteCheckIn = false;
+    this.busquedaClienteCheckIn = '';
+    this.clientesEncontradosCheckIn = [];
+    this.historialHuespedCheckIn = null;
+    this.estimadoCheckIn = null;
+    this.checkInDialogOpen = true;
+    this.estimarNoches$.next(1);
+  }
+
+  seleccionarClienteCheckIn(c: Cliente) {
+    this.checkInForm.id_cliente = c.id_cliente;
+    this.checkInForm.huesped = c.nombre;
+    this.buscandoClienteCheckIn = false;
+    this.busquedaClienteCheckIn = '';
+    this.clientesEncontradosCheckIn = [];
+    this.historialHuespedCheckIn = null;
+    this.erpService.cargarHistorialCliente(c.id_cliente).subscribe(h => { this.historialHuespedCheckIn = h; this.cdr.detectChanges(); });
   }
 
   categoriaActivaRoomService = '';
@@ -463,12 +734,12 @@ export class PosTerminalHotelComponent implements OnInit {
     if (!this.checkInForm.huesped.trim()) { this.checkInError = 'El nombre del huésped es obligatorio.'; return; }
     this.checkInSaving = true;
     this.checkInError = '';
-    this.erpService.checkInHabitacion(this.habSeleccionada.id, this.checkInForm.huesped, this.checkInForm.noches || 1).subscribe({
+    this.erpService.checkInHabitacion(this.habSeleccionada.id, this.checkInForm.huesped, this.checkInForm.noches || 1, this.checkInForm.id_cliente ?? undefined).subscribe({
       next: actualizada => {
         this.habSeleccionada = actualizada;
         this.checkInSaving = false;
         this.checkInDialogOpen = false;
-        this.checkInForm = { huesped: '', noches: 1 };
+        this.checkInForm = { huesped: '', noches: 1, id_cliente: null };
         this.cdr.detectChanges();
       },
       error: err => {
@@ -523,6 +794,55 @@ export class PosTerminalHotelComponent implements OnInit {
   toggleMantenimiento(h: ErpHabitacion) {
     const estado = h.estado === 'mantenimiento' ? 'libre' : 'mantenimiento';
     this.erpService.marcarMantenimiento(h.id, estado).subscribe(actualizada => { this.habSeleccionada = actualizada; this.cdr.detectChanges(); });
+  }
+
+  private ordenLimpieza: ErpHabitacion['estado_limpieza'][] = ['sucia', 'en_limpieza', 'inspeccion', 'limpia'];
+
+  siguienteEstadoLimpieza(h: ErpHabitacion) {
+    const idx = this.ordenLimpieza.indexOf(h.estado_limpieza);
+    const siguiente = this.ordenLimpieza[(idx + 1) % this.ordenLimpieza.length];
+    this.erpService.marcarLimpieza(h.id, siguiente).subscribe(actualizada => { this.habSeleccionada = actualizada; this.cdr.detectChanges(); });
+  }
+
+  limpiezaLabel(estado: ErpHabitacion['estado_limpieza']): string {
+    const labels: Record<ErpHabitacion['estado_limpieza'], string> = {
+      limpia: 'Limpia', sucia: 'Sucia', en_limpieza: 'En limpieza', inspeccion: 'Inspección',
+    };
+    return labels[estado];
+  }
+
+  abrirReportarIncidencia(h: ErpHabitacion) {
+    this.habSeleccionada = h;
+    this.incidenciaForm = { titulo: '', descripcion: '', prioridad: 'media', fuera_de_servicio: false };
+    this.incidenciaError = '';
+    this.incidenciaDialogOpen = true;
+  }
+
+  guardarIncidencia() {
+    if (!this.habSeleccionada || this.incidenciaSaving) return;
+    if (!this.incidenciaForm.titulo.trim()) { this.incidenciaError = 'Describe brevemente el problema.'; return; }
+
+    this.incidenciaSaving = true;
+    this.incidenciaError = '';
+
+    this.erpService.reportarIncidencia(this.habSeleccionada.id, {
+      titulo: this.incidenciaForm.titulo,
+      descripcion: this.incidenciaForm.descripcion || undefined,
+      prioridad: this.incidenciaForm.prioridad,
+      fuera_de_servicio: this.incidenciaForm.fuera_de_servicio,
+    }).subscribe({
+      next: () => {
+        this.incidenciaSaving = false;
+        this.incidenciaDialogOpen = false;
+        this.notify.success('Incidencia reportada');
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        this.incidenciaSaving = false;
+        this.incidenciaError = err?.error?.message || 'No se pudo reportar la incidencia';
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   toggleSalida(h: ErpHabitacion) {

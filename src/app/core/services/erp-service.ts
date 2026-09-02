@@ -6,7 +6,7 @@ import { environment } from '../../../environments/environment';
 import {
   Producto, Categoria, Proveedor, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
   ErpOrdenProduccion, ErpEnvio, ErpProyecto, ErpProyectoTarea, ErpProyectoHora, ErpInteraccion, ErpCrmResumen,
-  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpEstadia, ErpReserva, ErpDisponibilidad, ErpReceta, PedidoPago, ErpFactura
+  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpHabitacionIncidencia, ErpEstadia, ErpReserva, ErpHistorialCliente, ErpDisponibilidad, ErpReporteOcupacion, ErpTarifaTemporada, ErpEstimadoHospedaje, ErpReceta, PedidoPago, ErpFactura
 } from '../../models/erp.models';
 
 const API = environment.apiUrl;
@@ -391,16 +391,76 @@ export class ErpService {
     return this.http.get<ErpDisponibilidad>(`${API}/erp/habitaciones/disponibilidad`, { params });
   }
 
+  cargarReporteOcupacion(desde?: string, hasta?: string): Observable<ErpReporteOcupacion> {
+    let params = new HttpParams();
+    if (desde) params = params.set('desde', desde);
+    if (hasta) params = params.set('hasta', hasta);
+    return this.http.get<ErpReporteOcupacion>(`${API}/erp/habitaciones/reportes/ocupacion`, { params });
+  }
+
+  cargarEstimadoHospedaje(idHabitacion: number, noches: number, fechaCheckin?: string): Observable<ErpEstimadoHospedaje> {
+    let params = new HttpParams().set('noches', noches);
+    if (fechaCheckin) params = params.set('fecha_checkin', fechaCheckin);
+    return this.http.get<ErpEstimadoHospedaje>(`${API}/erp/habitaciones/${idHabitacion}/estimado`, { params });
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // TARIFAS POR TEMPORADA (hotel)
+  // ════════════════════════════════════════════════════════════════════
+  private _tarifasTemporada = new BehaviorSubject<ErpTarifaTemporada[]>([]);
+  tarifasTemporada$ = this._tarifasTemporada.asObservable();
+  get tarifasTemporada() { return this._tarifasTemporada.getValue(); }
+
+  cargarTarifasTemporada(): Observable<ErpTarifaTemporada[]> {
+    return this.http.get<ErpTarifaTemporada[]>(`${API}/erp/tarifas-temporada`).pipe(
+      tap(data => this._tarifasTemporada.next(data))
+    );
+  }
+
+  crearTarifaTemporada(tarifa: { nombre: string; fecha_inicio: string; fecha_fin: string; tipo_ajuste: 'porcentaje' | 'monto_fijo'; valor: number }): Observable<ErpTarifaTemporada> {
+    return this.http.post<ErpTarifaTemporada>(`${API}/erp/tarifas-temporada`, tarifa).pipe(
+      tap(nueva => this._tarifasTemporada.next([...this.tarifasTemporada, nueva]))
+    );
+  }
+
+  actualizarTarifaTemporada(id: number, cambios: Partial<{ nombre: string; fecha_inicio: string; fecha_fin: string; tipo_ajuste: 'porcentaje' | 'monto_fijo'; valor: number }>): Observable<ErpTarifaTemporada> {
+    return this.http.patch<ErpTarifaTemporada>(`${API}/erp/tarifas-temporada/${id}`, cambios).pipe(
+      tap(actualizada => this._tarifasTemporada.next(this.tarifasTemporada.map(t => t.id === id ? actualizada : t)))
+    );
+  }
+
+  eliminarTarifaTemporada(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/tarifas-temporada/${id}`).pipe(
+      tap(() => this._tarifasTemporada.next(this.tarifasTemporada.filter(t => t.id !== id)))
+    );
+  }
+
   restaurarHabitacion(id: number): Observable<ErpHabitacion> {
     return this.http.patch<ErpHabitacion>(`${API}/erp/habitaciones/${id}/restaurar`, {}).pipe(
       tap(item => this._habitaciones.next([...this.habitaciones, item]))
     );
   }
 
-  checkInHabitacion(id: number, huesped: string, noches: number): Observable<ErpHabitacion> {
-    return this.http.patch<ErpHabitacion>(`${API}/erp/habitaciones/${id}/check-in`, { huesped, noches }).pipe(
+  checkInHabitacion(id: number, huesped: string, noches: number, idCliente?: number): Observable<ErpHabitacion> {
+    const body: any = { huesped, noches };
+    if (idCliente) body.id_cliente = idCliente;
+    return this.http.patch<ErpHabitacion>(`${API}/erp/habitaciones/${id}/check-in`, body).pipe(
       tap(actualizada => this.actualizarHabitacionLocal(actualizada))
     );
+  }
+
+  registrarDocumentoHabitacion(id: number, registro: { documento_tipo?: string; documento_numero?: string; firma?: Blob }): Observable<ErpHabitacion> {
+    const form = new FormData();
+    if (registro.documento_tipo) form.append('documento_tipo', registro.documento_tipo);
+    if (registro.documento_numero) form.append('documento_numero', registro.documento_numero);
+    if (registro.firma) form.append('firma', registro.firma, 'firma.png');
+    return this.http.post<ErpHabitacion>(`${API}/erp/habitaciones/${id}/registro`, form).pipe(
+      tap(actualizada => this.actualizarHabitacionLocal(actualizada))
+    );
+  }
+
+  cargarHistorialCliente(idCliente: number): Observable<ErpHistorialCliente> {
+    return this.http.get<ErpHistorialCliente>(`${API}/erp/habitaciones/huespedes/${idCliente}/historial`);
   }
 
   agregarConsumoHabitacion(id: number, item: { id_producto: number; cantidad?: number }): Observable<ErpHabitacion> {
@@ -418,6 +478,30 @@ export class ErpService {
   marcarMantenimiento(id: number, estado: 'mantenimiento' | 'libre'): Observable<ErpHabitacion> {
     return this.http.patch<ErpHabitacion>(`${API}/erp/habitaciones/${id}/mantenimiento`, { estado }).pipe(
       tap(actualizada => this.actualizarHabitacionLocal(actualizada))
+    );
+  }
+
+  marcarLimpieza(id: number, estado: ErpHabitacion['estado_limpieza']): Observable<ErpHabitacion> {
+    return this.http.patch<ErpHabitacion>(`${API}/erp/habitaciones/${id}/limpieza`, { estado }).pipe(
+      tap(actualizada => this.actualizarHabitacionLocal(actualizada))
+    );
+  }
+
+  cargarIncidencias(estado?: 'abierta' | 'resuelta'): Observable<ErpHabitacionIncidencia[]> {
+    let params = new HttpParams();
+    if (estado) params = params.set('estado', estado);
+    return this.http.get<ErpHabitacionIncidencia[]>(`${API}/erp/habitaciones/incidencias`, { params });
+  }
+
+  reportarIncidencia(id: number, incidencia: { titulo: string; descripcion?: string; prioridad?: 'baja' | 'media' | 'alta'; fuera_de_servicio?: boolean }): Observable<ErpHabitacionIncidencia> {
+    return this.http.post<ErpHabitacionIncidencia>(`${API}/erp/habitaciones/${id}/incidencias`, incidencia).pipe(
+      tap(nueva => { if (nueva.habitacion) this.cargarHabitaciones().subscribe(); })
+    );
+  }
+
+  resolverIncidencia(id: number): Observable<ErpHabitacionIncidencia> {
+    return this.http.patch<ErpHabitacionIncidencia>(`${API}/erp/habitaciones/incidencias/${id}/resolver`, {}).pipe(
+      tap(() => this.cargarHabitaciones().subscribe())
     );
   }
 
@@ -450,7 +534,7 @@ export class ErpService {
     );
   }
 
-  crearReserva(reserva: { id_habitacion: number; huesped: string; telefono?: string; fecha_checkin: string; noches: number; notas?: string }): Observable<ErpReserva> {
+  crearReserva(reserva: { id_habitacion: number; huesped: string; id_cliente?: number; telefono?: string; fecha_checkin: string; noches: number; notas?: string }): Observable<ErpReserva> {
     return this.http.post<ErpReserva>(`${API}/erp/reservas`, reserva).pipe(
       tap(nueva => this._reservas.next([...this.reservas, nueva]))
     );

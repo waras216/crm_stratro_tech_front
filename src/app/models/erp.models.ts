@@ -190,11 +190,39 @@ export interface ErpHabitacion {
   precio: number | null;
   piso: number;
   estado: 'libre' | 'ocupada' | 'checkout' | 'mantenimiento';
+  estado_limpieza: 'limpia' | 'sucia' | 'en_limpieza' | 'inspeccion';
   huesped: string | null;
   check_in: string | null;
   check_out: string | null;
   noches: number | null;
   consumos: ErpHabitacionConsumo[];
+  estadia_activa?: ErpEstadia | null;
+}
+
+export interface ErpHabitacionIncidencia {
+  id: number;
+  id_habitacion: number;
+  habitacion?: { id: number; numero: number; tipo: string };
+  titulo: string;
+  descripcion: string | null;
+  prioridad: 'baja' | 'media' | 'alta';
+  fuera_de_servicio: boolean;
+  estado: 'abierta' | 'resuelta';
+  resuelta_at: string | null;
+  created_at: string;
+}
+
+export interface ErpReporteOcupacion {
+  desde: string;
+  hasta: string;
+  total_habitaciones: number;
+  noches_disponibles: number;
+  noches_vendidas: number;
+  ingresos_hospedaje: number;
+  ocupacion_pct: number;
+  adr: number;
+  revpar: number;
+  por_dia: { fecha: string; ocupadas: number; total_habitaciones: number }[];
 }
 
 export interface ErpEstadia {
@@ -213,6 +241,10 @@ export interface ErpEstadia {
   total: number;
   id_pedido: number | null;
   estado: 'activa' | 'finalizada';
+  documento_tipo: string | null;
+  documento_numero: string | null;
+  firma_url: string | null;
+  firmado_at: string | null;
 }
 
 export type ErpDisponibilidadEstado = 'libre' | 'ocupada' | 'reservada' | 'mantenimiento';
@@ -234,12 +266,32 @@ export interface ErpReserva {
   id_habitacion: number;
   habitacion?: { id: number; numero: number; tipo: string };
   huesped: string;
+  id_cliente: number | null;
   telefono: string | null;
   fecha_checkin: string;
   fecha_checkout: string;
   noches: number;
   notas: string | null;
   estado: 'pendiente' | 'cancelada' | 'convertida';
+}
+
+export interface ErpTarifaTemporada {
+  id: number;
+  nombre: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  tipo_ajuste: 'porcentaje' | 'monto_fijo';
+  valor: number;
+}
+
+export interface ErpEstimadoHospedaje {
+  total: number;
+  detalle: { fecha: string; tarifa: number; temporada: string | null }[];
+}
+
+export interface ErpHistorialCliente {
+  total_estadias: number;
+  estadias: ErpEstadia[];
 }
 
 export interface ErpReceta {

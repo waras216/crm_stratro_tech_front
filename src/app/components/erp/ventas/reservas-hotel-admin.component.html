@@ -6,7 +6,13 @@
     </div>
     <div class="flex gap-2 flex-shrink-0">
       <button (click)="abrirDisponibilidad()" class="text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-600 hover:bg-slate-50">Disponibilidad</button>
+      <button (click)="abrirReportes()" class="text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-600 hover:bg-slate-50">Reportes</button>
+      <button (click)="abrirTarifas()" class="text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-600 hover:bg-slate-50">Tarifas</button>
       <button (click)="abrirHistorial()" class="text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-600 hover:bg-slate-50">Historial</button>
+      <button (click)="abrirIncidencias()" class="relative text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-600 hover:bg-slate-50">
+        Incidencias
+        <span *ngIf="incidenciasAbiertasCount" class="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold">{{ incidenciasAbiertasCount }}</span>
+      </button>
       <button (click)="abrirPapelera()" class="text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-600 hover:bg-slate-50">Papelera</button>
       <button (click)="abrirNuevaReserva()" [disabled]="habitaciones.length===0"
         class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 disabled:opacity-50"
@@ -22,7 +28,7 @@
     <span *ngFor="let a of nicho.hotelAmenidades" class="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">{{ amenidadLabel(a) }}</span>
   </div>
 
-  <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
     <div class="rounded-xl bg-emerald-50 p-3 text-center">
       <p class="text-lg font-extrabold text-emerald-600 m-0">{{ contarEstado('libre') }}</p>
       <p class="text-[10px] font-semibold text-emerald-600 m-0 mt-0.5">Libres</p>
@@ -38,6 +44,10 @@
     <div class="rounded-xl bg-slate-100 p-3 text-center">
       <p class="text-lg font-extrabold text-slate-500 m-0">{{ contarEstado('mantenimiento') }}</p>
       <p class="text-[10px] font-semibold text-slate-500 m-0 mt-0.5">Mantenimiento</p>
+    </div>
+    <div class="rounded-xl bg-red-50 p-3 text-center">
+      <p class="text-lg font-extrabold text-red-500 m-0">{{ contarLimpieza('sucia') + contarLimpieza('en_limpieza') }}</p>
+      <p class="text-[10px] font-semibold text-red-500 m-0 mt-0.5">Por limpiar</p>
     </div>
     <div class="rounded-xl bg-slate-50 p-3 text-center">
       <p class="text-lg font-extrabold m-0" style="color:#f59e0b">{{ ocupacionPct() }}%</p>
@@ -91,6 +101,7 @@
         <th class="text-right px-4 py-3 font-medium text-slate-500">Precio/noche</th>
         <th class="text-left px-4 py-3 font-medium text-slate-500">Piso</th>
         <th class="text-center px-4 py-3 font-medium text-slate-500">Estado</th>
+        <th class="text-center px-4 py-3 font-medium text-slate-500">Limpieza</th>
         <th class="text-left px-4 py-3 font-medium text-slate-500">Huésped</th>
         <th class="text-left px-4 py-3 font-medium text-slate-500">Check-in</th>
         <th class="text-left px-4 py-3 font-medium text-slate-500">Check-out</th>
@@ -99,7 +110,7 @@
       </tr></thead>
       <tbody>
         <tr *ngIf="habitaciones.length === 0">
-          <td colspan="10" class="text-center py-8 text-slate-400 text-xs">Sin habitaciones — agrega la primera con "+ Hab."</td>
+          <td colspan="11" class="text-center py-8 text-slate-400 text-xs">Sin habitaciones — agrega la primera con "+ Hab."</td>
         </tr>
         <tr *ngFor="let h of habitaciones" class="border-b border-slate-100 hover:bg-slate-50">
           <td class="px-4 py-3 font-bold">{{ h.numero }}</td>
@@ -118,6 +129,16 @@
               {{ h.estado | titlecase }}
             </span>
           </td>
+          <td class="px-4 py-3 text-center">
+            <button (click)="siguienteEstadoLimpieza(h)" [title]="'Clic para pasar a: ' + limpiezaLabel(ordenLimpiezaSiguiente(h))"
+              class="px-2 py-0.5 rounded-full text-xs font-medium border-0 cursor-pointer transition-colors"
+              [class.bg-red-100]="h.estado_limpieza==='sucia'" [class.text-red-600]="h.estado_limpieza==='sucia'"
+              [class.bg-amber-100]="h.estado_limpieza==='en_limpieza'" [class.text-amber-600]="h.estado_limpieza==='en_limpieza'"
+              [class.bg-indigo-100]="h.estado_limpieza==='inspeccion'" [class.text-indigo-600]="h.estado_limpieza==='inspeccion'"
+              [class.bg-emerald-100]="h.estado_limpieza==='limpia'" [class.text-emerald-600]="h.estado_limpieza==='limpia'">
+              {{ limpiezaLabel(h.estado_limpieza) }}
+            </button>
+          </td>
           <td class="px-4 py-3">{{ h.huesped || '—' }}</td>
           <td class="px-4 py-3">{{ h.check_in || '—' }}</td>
           <td class="px-4 py-3">{{ h.check_out || '—' }}</td>
@@ -125,6 +146,7 @@
           <td class="px-4 py-3 text-right">
             <div class="flex items-center justify-end gap-2">
               <button (click)="abrirEditarHabitacion(h)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar</button>
+              <button (click)="abrirReportarIncidencia(h)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors">Reportar</button>
               <button *ngIf="h.estado==='libre' || h.estado==='mantenimiento'" (click)="toggleMantenimiento(h)"
                 class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer transition-colors"
                 [ngClass]="h.estado==='mantenimiento' ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'">
@@ -247,7 +269,37 @@
     <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="reservaForm.id_habitacion">
       <option *ngFor="let h of habitaciones" [value]="h.id">Habitación {{ h.numero }} — {{ h.tipo }}</option>
     </select>
-    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="reservaForm.huesped" placeholder="Nombre del huésped" />
+
+    <div *ngIf="!reservaForm.id_cliente" class="flex flex-col gap-1.5">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="reservaForm.huesped" placeholder="Nombre del huésped" />
+      <div *ngIf="!buscandoCliente">
+        <button (click)="buscandoCliente=true" class="text-[11px] font-semibold text-blue-600 bg-transparent border-0 cursor-pointer hover:underline">Vincular a un cliente existente</button>
+      </div>
+      <div *ngIf="buscandoCliente" class="flex flex-col gap-1.5">
+        <input [(ngModel)]="busquedaCliente" (ngModelChange)="buscarCliente$.next($event)" autofocus
+          placeholder="Buscar cliente por nombre..."
+          class="px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:border-indigo-400" />
+        <p *ngIf="cargandoClientes" class="text-xs text-slate-400 m-0">Buscando...</p>
+        <div *ngIf="!cargandoClientes && clientesEncontrados.length>0" class="flex flex-col gap-1 max-h-28 overflow-y-auto">
+          <button *ngFor="let c of clientesEncontrados" (click)="seleccionarClienteReserva(c)"
+            class="text-left text-xs px-3 py-2 rounded-lg border border-slate-100 hover:bg-indigo-50 hover:border-indigo-200 cursor-pointer transition-all">
+            {{ c.nombre }} <span class="text-slate-400" *ngIf="c.telefono">· {{ c.telefono }}</span>
+          </button>
+        </div>
+        <button (click)="buscandoCliente=false; busquedaCliente=''; clientesEncontrados=[]" class="text-[10px] font-semibold text-slate-400 bg-transparent border-0 cursor-pointer hover:underline text-left">Cancelar</button>
+      </div>
+    </div>
+
+    <div *ngIf="reservaForm.id_cliente" class="flex items-center justify-between px-3 py-2 bg-indigo-50 rounded-lg">
+      <div>
+        <p class="text-xs font-semibold text-slate-700 m-0">{{ reservaForm.huesped }}</p>
+        <p *ngIf="historialHuesped as h" class="text-[10px] m-0 mt-0.5" [class.text-indigo-600]="h.total_estadias>0" [class.font-bold]="h.total_estadias>0" [class.text-slate-400]="h.total_estadias===0">
+          {{ h.total_estadias>0 ? '⭐ Huésped frecuente — ' + h.total_estadias + ' estadía(s) previa(s)' : 'Primera estadía' }}
+        </p>
+      </div>
+      <button (click)="quitarClienteReserva()" class="text-[10px] font-semibold text-indigo-600 bg-transparent border-0 cursor-pointer hover:underline flex-shrink-0">Cambiar</button>
+    </div>
+
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="reservaForm.telefono" placeholder="Teléfono (opcional)" />
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1">
@@ -315,10 +367,11 @@
         <th class="text-right px-3 py-2 font-medium text-slate-500">Noches</th>
         <th class="text-right px-3 py-2 font-medium text-slate-500">Total</th>
         <th class="text-center px-3 py-2 font-medium text-slate-500">Estado</th>
+        <th class="text-center px-3 py-2 font-medium text-slate-500">Registro</th>
       </tr></thead>
       <tbody>
         <tr *ngIf="historial.length === 0">
-          <td colspan="7" class="text-center py-8 text-slate-400 text-xs">Sin estadías registradas todavía — se crea una en cada check-in.</td>
+          <td colspan="8" class="text-center py-8 text-slate-400 text-xs">Sin estadías registradas todavía — se crea una en cada check-in.</td>
         </tr>
         <tr *ngFor="let e of historial" class="border-b border-slate-100 hover:bg-slate-50">
           <td class="px-3 py-2 font-bold">{{ e.habitacion?.numero ?? '—' }}</td>
@@ -334,8 +387,245 @@
               {{ e.estado==='activa' ? 'En curso' : 'Finalizada' }}
             </span>
           </td>
+          <td class="px-3 py-2 text-center">
+            <span *ngIf="e.firma_url" class="text-emerald-600 text-xs font-semibold">✓ Firmado</span>
+            <span *ngIf="!e.firma_url" class="text-slate-300 text-xs">—</span>
+          </td>
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- Modal: reportar incidencia -->
+<div *ngIf="incidenciaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="incidenciaDialogOpen=false"></div>
+<div *ngIf="incidenciaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Reportar Incidencia</h3>
+    <button (click)="incidenciaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="incidenciaForm.id_habitacion">
+      <option *ngFor="let h of habitaciones" [value]="h.id">Habitación {{ h.numero }} — {{ h.tipo }}</option>
+    </select>
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="incidenciaForm.titulo" placeholder="Ej. Aire acondicionado no enfría" />
+    <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm" rows="2" [(ngModel)]="incidenciaForm.descripcion" placeholder="Detalles (opcional)"></textarea>
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-semibold text-slate-500">Prioridad</label>
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="incidenciaForm.prioridad">
+        <option value="baja">Baja</option>
+        <option value="media">Media</option>
+        <option value="alta">Alta</option>
+      </select>
+    </div>
+    <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer">
+      <input type="checkbox" [(ngModel)]="incidenciaForm.fuera_de_servicio" />
+      Poner la habitación fuera de servicio (mantenimiento) hasta resolver
+    </label>
+    <p *ngIf="incidenciaError" class="text-xs text-red-600 m-0">{{ incidenciaError }}</p>
+    <button (click)="guardarIncidencia()" [disabled]="incidenciaSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#f97316">{{ incidenciaSaving ? 'Guardando...' : 'Reportar' }}</button>
+  </div>
+</div>
+
+<!-- Modal: incidencias -->
+<div *ngIf="incidenciasOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="incidenciasOpen=false"></div>
+<div *ngIf="incidenciasOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-2xl z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h3 class="m-0 text-lg font-semibold">Incidencias de Mantenimiento</h3>
+      <p class="text-xs text-slate-400 m-0 mt-0.5">Reportes por habitación — abiertas y resueltas recientes</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button (click)="incidenciasOpen=false; abrirReportarIncidencia()" class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90" style="background:#f97316">+ Reportar</button>
+      <button (click)="incidenciasOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="incidenciasCargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-10 rounded-lg skeleton"></div>
+  </div>
+
+  <div *ngIf="!incidenciasCargando" class="flex flex-col gap-2">
+    <p *ngIf="incidencias.length === 0" class="text-sm text-slate-400 m-0 py-6 text-center">Sin incidencias registradas.</p>
+    <div *ngFor="let i of incidencias" class="flex items-start justify-between gap-3 border border-slate-100 rounded-xl p-3">
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-sm font-bold text-slate-700">Hab. {{ i.habitacion?.numero ?? '—' }}</span>
+          <span class="text-xs font-semibold text-slate-600">{{ i.titulo }}</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+            [class.bg-slate-100]="i.prioridad==='baja'" [class.text-slate-500]="i.prioridad==='baja'"
+            [class.bg-amber-100]="i.prioridad==='media'" [class.text-amber-600]="i.prioridad==='media'"
+            [class.bg-red-100]="i.prioridad==='alta'" [class.text-red-600]="i.prioridad==='alta'">
+            {{ i.prioridad | titlecase }}
+          </span>
+          <span *ngIf="i.fuera_de_servicio" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600">Fuera de servicio</span>
+        </div>
+        <p *ngIf="i.descripcion" class="text-xs text-slate-500 m-0 mt-1">{{ i.descripcion }}</p>
+        <p class="text-[10px] text-slate-400 m-0 mt-1">{{ i.created_at | date:'short' }}</p>
+      </div>
+      <div class="flex-shrink-0">
+        <span *ngIf="i.estado==='resuelta'" class="text-xs font-semibold text-emerald-600">Resuelta</span>
+        <button *ngIf="i.estado==='abierta'" (click)="resolverIncidenciaAccion(i)"
+          class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors">Resolver</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: reportes de ocupación -->
+<div *ngIf="reportesOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="reportesOpen=false"></div>
+<div *ngIf="reportesOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[95%] max-w-3xl z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h3 class="m-0 text-lg font-semibold">Reportes de Ocupación</h3>
+      <p class="text-xs text-slate-400 m-0 mt-0.5">Ocupación, ADR y RevPAR del período seleccionado</p>
+    </div>
+    <button (click)="reportesOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="flex flex-wrap items-end gap-3 mb-4">
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-semibold text-slate-500">Desde</label>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="reportesDesde" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-semibold text-slate-500">Hasta</label>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="reportesHasta" />
+    </div>
+    <button (click)="cargarReporteRango()" class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90" style="background:#f59e0b">Ver</button>
+  </div>
+
+  <div *ngIf="reportesCargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-16 rounded-lg skeleton"></div>
+  </div>
+
+  <ng-container *ngIf="!reportesCargando && reporte as r">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+      <div class="rounded-xl bg-amber-50 p-3 text-center">
+        <p class="text-lg font-extrabold text-amber-600 m-0">{{ r.ocupacion_pct }}%</p>
+        <p class="text-[10px] font-semibold text-amber-600 m-0 mt-0.5">Ocupación</p>
+      </div>
+      <div class="rounded-xl bg-emerald-50 p-3 text-center">
+        <p class="text-lg font-extrabold text-emerald-600 m-0">${{ r.adr | number:'1.0-2' }}</p>
+        <p class="text-[10px] font-semibold text-emerald-600 m-0 mt-0.5">ADR (tarifa promedio)</p>
+      </div>
+      <div class="rounded-xl bg-blue-50 p-3 text-center">
+        <p class="text-lg font-extrabold text-blue-600 m-0">${{ r.revpar | number:'1.0-2' }}</p>
+        <p class="text-[10px] font-semibold text-blue-600 m-0 mt-0.5">RevPAR</p>
+      </div>
+      <div class="rounded-xl bg-slate-50 p-3 text-center">
+        <p class="text-lg font-extrabold text-slate-600 m-0">${{ r.ingresos_hospedaje | number:'1.0-2' }}</p>
+        <p class="text-[10px] font-semibold text-slate-500 m-0 mt-0.5">Ingresos hospedaje</p>
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-400 m-0 mb-2">{{ r.noches_vendidas }} de {{ r.noches_disponibles }} noches-habitación vendidas · {{ r.total_habitaciones }} habitaciones</p>
+
+    <div class="flex flex-col gap-1">
+      <div *ngFor="let dia of r.por_dia" class="flex items-center gap-2">
+        <span class="text-[10px] text-slate-400 w-14 flex-shrink-0">{{ dia.fecha | date:'dd/MM' }}</span>
+        <div class="flex-1 h-4 rounded bg-slate-100 overflow-hidden">
+          <div class="h-full bg-amber-400" [style.width.%]="dia.total_habitaciones > 0 ? (dia.ocupadas / dia.total_habitaciones * 100) : 0"></div>
+        </div>
+        <span class="text-[10px] text-slate-500 w-10 flex-shrink-0 text-right">{{ dia.ocupadas }}/{{ dia.total_habitaciones }}</span>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<!-- Modal: tarifas por temporada -->
+<div *ngIf="tarifasOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="tarifasOpen=false"></div>
+<div *ngIf="tarifasOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-2xl z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h3 class="m-0 text-lg font-semibold">Tarifas por Temporada</h3>
+      <p class="text-xs text-slate-400 m-0 mt-0.5">Ajustan el precio por noche de todas las habitaciones en un rango de fechas</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button (click)="abrirNuevaTarifa()" class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90" style="background:#f59e0b">+ Temporada</button>
+      <button (click)="tarifasOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="tarifasCargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-10 rounded-lg skeleton"></div>
+  </div>
+
+  <div *ngIf="!tarifasCargando" class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="text-left px-3 py-2 font-medium text-slate-500">Temporada</th>
+        <th class="text-left px-3 py-2 font-medium text-slate-500">Desde</th>
+        <th class="text-left px-3 py-2 font-medium text-slate-500">Hasta</th>
+        <th class="text-right px-3 py-2 font-medium text-slate-500">Ajuste</th>
+        <th class="text-right px-3 py-2 font-medium text-slate-500">Acción</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngIf="tarifas.length === 0">
+          <td colspan="5" class="text-center py-8 text-slate-400 text-xs">Sin temporadas — todas las habitaciones cobran su precio base todo el año.</td>
+        </tr>
+        <tr *ngFor="let t of tarifas" class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-3 py-2 font-bold">{{ t.nombre }}</td>
+          <td class="px-3 py-2">{{ t.fecha_inicio | date:'dd/MM/yy' }}</td>
+          <td class="px-3 py-2">{{ t.fecha_fin | date:'dd/MM/yy' }}</td>
+          <td class="px-3 py-2 text-right font-medium" [class.text-emerald-600]="t.valor>=0" [class.text-red-600]="t.valor<0">
+            {{ t.valor>=0 ? '+' : '' }}{{ t.valor }}{{ t.tipo_ajuste==='porcentaje' ? '%' : ' (fijo)' }}
+          </td>
+          <td class="px-3 py-2 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button (click)="abrirEditarTarifa(t)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar</button>
+              <button (click)="eliminarTarifa(t)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal: nueva/editar temporada -->
+<div *ngIf="tarifaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[102]" (click)="tarifaDialogOpen=false"></div>
+<div *ngIf="tarifaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[103] shadow-2xl p-6 modal-in">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">{{ tarifaEditando ? 'Editar Temporada' : 'Nueva Temporada' }}</h3>
+    <button (click)="tarifaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="tarifaForm.nombre" placeholder="Ej. Temporada Alta — Verano" />
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Desde</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="tarifaForm.fecha_inicio" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Hasta</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="tarifaForm.fecha_fin" />
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="tarifaForm.tipo_ajuste">
+        <option value="porcentaje">% sobre el precio</option>
+        <option value="monto_fijo">Monto fijo</option>
+      </select>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" step="0.01" [(ngModel)]="tarifaForm.valor"
+        [placeholder]="tarifaForm.tipo_ajuste==='porcentaje' ? 'Ej. 25 o -15' : 'Ej. 300 o -100'" />
+    </div>
+    <p class="text-[10px] text-slate-400 m-0">Usa un valor negativo para temporada baja (descuento).</p>
+    <p *ngIf="tarifaError" class="text-xs text-red-600 m-0">{{ tarifaError }}</p>
+    <button (click)="guardarTarifa()" [disabled]="tarifaSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#f59e0b">{{ tarifaSaving ? 'Guardando...' : (tarifaEditando ? 'Guardar Cambios' : 'Crear Temporada') }}</button>
   </div>
 </div>
