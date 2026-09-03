@@ -1,0 +1,173 @@
+<div class="flex flex-col gap-5 page-enter">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="m-0 text-lg font-bold text-slate-800">Reservas</h2>
+      <p class="text-xs text-slate-500 m-0 mt-1">Reservas pendientes y disponibilidad por fecha</p>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <button (click)="cambiarVistaReservas('lista')"
+        class="px-3 py-1.5 rounded-full text-xs font-semibold border-0 cursor-pointer whitespace-nowrap transition-all"
+        [ngClass]="vistaReservas==='lista' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'">
+        Lista
+      </button>
+      <button (click)="cambiarVistaReservas('disponibilidad')"
+        class="px-3 py-1.5 rounded-full text-xs font-semibold border-0 cursor-pointer whitespace-nowrap transition-all"
+        [ngClass]="vistaReservas==='disponibilidad' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'">
+        Disponibilidad
+      </button>
+      <button (click)="abrirNuevaReserva()" [disabled]="habitaciones.length===0"
+        class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 disabled:opacity-50"
+        style="background:#6366f1">+ Reserva</button>
+    </div>
+  </div>
+
+  <!-- Vista: lista de reservas pendientes -->
+  <div *ngIf="vistaReservas==='lista'" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="text-left px-4 py-2 font-medium text-slate-500">Hab.</th>
+        <th class="text-left px-4 py-2 font-medium text-slate-500">Huésped</th>
+        <th class="text-left px-4 py-2 font-medium text-slate-500">Teléfono</th>
+        <th class="text-left px-4 py-2 font-medium text-slate-500">Check-in</th>
+        <th class="text-left px-4 py-2 font-medium text-slate-500">Check-out</th>
+        <th class="text-right px-4 py-2 font-medium text-slate-500">Acción</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngIf="reservasPendientes.length === 0">
+          <td colspan="6" class="text-center py-8 text-slate-400 text-xs">Sin reservas pendientes — crea una con "+ Reserva" o desde Disponibilidad.</td>
+        </tr>
+        <tr *ngFor="let r of reservasPendientes" class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-2 font-bold">{{ r.habitacion?.numero ?? '—' }}</td>
+          <td class="px-4 py-2">{{ r.huesped }}</td>
+          <td class="px-4 py-2">{{ r.telefono || '—' }}</td>
+          <td class="px-4 py-2">{{ r.fecha_checkin }}</td>
+          <td class="px-4 py-2">{{ r.fecha_checkout }}</td>
+          <td class="px-4 py-2 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button (click)="hacerCheckInReserva(r)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors">Check-in</button>
+              <button (click)="cancelarReserva(r)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Cancelar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- Vista: calendario de disponibilidad -->
+  <div *ngIf="vistaReservas==='disponibilidad'" class="bg-white border border-slate-200 rounded-xl p-4">
+    <p class="text-xs text-slate-400 m-0 mb-3">Clic en una celda libre para reservarla</p>
+
+    <div class="flex flex-wrap items-end gap-3 mb-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Desde</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="disponibilidadDesde" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Hasta</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="disponibilidadHasta" />
+      </div>
+      <button (click)="cargarDisponibilidadRango()" class="text-xs font-bold px-3 py-2 rounded-lg border-0 cursor-pointer text-white hover:opacity-90" style="background:#f59e0b">Ver</button>
+      <div class="flex items-center gap-3 ml-auto text-[10px] font-semibold">
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-50 border border-emerald-200 inline-block"></span>Libre</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-100 inline-block"></span>Ocupada</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-indigo-100 inline-block"></span>Reservada</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-slate-200 inline-block"></span>Mantenimiento</span>
+      </div>
+    </div>
+
+    <div *ngIf="disponibilidadCargando" class="flex flex-col gap-2">
+      <div *ngFor="let _ of [1,2,3,4]" class="h-8 rounded-lg skeleton"></div>
+    </div>
+
+    <div *ngIf="!disponibilidadCargando && disponibilidad" class="overflow-x-auto">
+      <table class="border-collapse text-xs">
+        <thead>
+          <tr>
+            <th class="sticky left-0 bg-white text-left px-2 py-1.5 font-medium text-slate-500 z-10">Hab.</th>
+            <th *ngFor="let dia of disponibilidad.dias" class="px-1 py-1.5 font-medium text-slate-500 text-center whitespace-nowrap">{{ dia | date:'dd/MM' }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let h of disponibilidad.habitaciones">
+            <td class="sticky left-0 bg-white px-2 py-1 font-bold text-slate-700 whitespace-nowrap">{{ h.numero }}</td>
+            <td *ngFor="let dia of disponibilidad.dias" class="p-0.5">
+              <div class="w-8 h-6 rounded flex items-center justify-center"
+                [ngClass]="claseCelda(h.dias[dia])"
+                [title]="h.dias[dia]"
+                (click)="reservarDesdeCelda(h.id, dia, h.dias[dia])">
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="disponibilidad.habitaciones.length === 0">
+            <td colspan="100" class="text-center py-6 text-slate-400">Sin habitaciones registradas.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: nueva reserva -->
+<div *ngIf="reservaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="reservaDialogOpen=false"></div>
+<div *ngIf="reservaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Nueva Reserva</h3>
+    <button (click)="reservaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="reservaForm.id_habitacion">
+      <option *ngFor="let h of habitaciones" [value]="h.id">Habitación {{ h.numero }} — {{ h.tipo }}</option>
+    </select>
+
+    <div *ngIf="!reservaForm.id_cliente" class="flex flex-col gap-1.5">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="reservaForm.huesped" placeholder="Nombre del huésped" />
+      <div *ngIf="!buscandoCliente">
+        <button (click)="buscandoCliente=true" class="text-[11px] font-semibold text-blue-600 bg-transparent border-0 cursor-pointer hover:underline">Vincular a un cliente existente</button>
+      </div>
+      <div *ngIf="buscandoCliente" class="flex flex-col gap-1.5">
+        <input [(ngModel)]="busquedaCliente" (ngModelChange)="buscarCliente$.next($event)" autofocus
+          placeholder="Buscar cliente por nombre..."
+          class="px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:border-indigo-400" />
+        <p *ngIf="cargandoClientes" class="text-xs text-slate-400 m-0">Buscando...</p>
+        <div *ngIf="!cargandoClientes && clientesEncontrados.length>0" class="flex flex-col gap-1 max-h-28 overflow-y-auto">
+          <button *ngFor="let c of clientesEncontrados" (click)="seleccionarClienteReserva(c)"
+            class="text-left text-xs px-3 py-2 rounded-lg border border-slate-100 hover:bg-indigo-50 hover:border-indigo-200 cursor-pointer transition-all">
+            {{ c.nombre }} <span class="text-slate-400" *ngIf="c.telefono">· {{ c.telefono }}</span>
+          </button>
+        </div>
+        <button (click)="buscandoCliente=false; busquedaCliente=''; clientesEncontrados=[]" class="text-[10px] font-semibold text-slate-400 bg-transparent border-0 cursor-pointer hover:underline text-left">Cancelar</button>
+      </div>
+    </div>
+
+    <div *ngIf="reservaForm.id_cliente" class="flex items-center justify-between px-3 py-2 bg-indigo-50 rounded-lg">
+      <div>
+        <p class="text-xs font-semibold text-slate-700 m-0">{{ reservaForm.huesped }}</p>
+        <p *ngIf="historialHuesped as h" class="text-[10px] m-0 mt-0.5" [class.text-indigo-600]="h.total_estadias>0" [class.font-bold]="h.total_estadias>0" [class.text-slate-400]="h.total_estadias===0">
+          {{ h.total_estadias>0 ? '⭐ Huésped frecuente — ' + h.total_estadias + ' estadía(s) previa(s)' : 'Primera estadía' }}
+        </p>
+      </div>
+      <button (click)="quitarClienteReserva()" class="text-[10px] font-semibold text-indigo-600 bg-transparent border-0 cursor-pointer hover:underline flex-shrink-0">Cambiar</button>
+    </div>
+
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="reservaForm.telefono" placeholder="Teléfono (opcional)" />
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Fecha de check-in</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="reservaForm.fecha_checkin" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Noches</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="reservaForm.noches" placeholder="Noches" />
+      </div>
+    </div>
+    <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm" rows="2" [(ngModel)]="reservaForm.notas" placeholder="Notas (opcional)"></textarea>
+    <p *ngIf="reservaError" class="text-xs text-red-600 m-0">{{ reservaError }}</p>
+    <button (click)="guardarReserva()" [disabled]="reservaSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#6366f1">{{ reservaSaving ? 'Guardando...' : 'Crear Reserva' }}</button>
+  </div>
+</div>

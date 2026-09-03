@@ -1,0 +1,88 @@
+<div class="flex flex-col gap-5 page-enter">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="m-0 text-lg font-bold text-slate-800">Proveedores</h2>
+      <p class="text-xs text-slate-500 m-0 mt-1">Se usan al crear una orden de compra</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button *appPuede="'erp_proveedores.eliminar'" (click)="abrirPapelera()" class="text-xs font-semibold text-slate-400 bg-transparent border-0 cursor-pointer hover:text-slate-600 hover:underline flex-shrink-0">Papelera</button>
+      <button *appPuede="'erp_proveedores.crear'" (click)="abrirNuevo()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95 flex-shrink-0" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Proveedor</button>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-11 rounded-lg skeleton"></div>
+  </div>
+
+  <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Nombre</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Contacto</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Email</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Teléfono</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngIf="proveedores.length === 0">
+          <td colspan="5" class="text-center py-8 text-slate-400 text-xs">Sin proveedores — agrega el primero con "+ Proveedor"</td>
+        </tr>
+        <tr *ngFor="let p of proveedores" class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-3 font-bold">{{ p.nombre }}</td>
+          <td class="px-4 py-3 text-slate-500">{{ p.contacto || '—' }}</td>
+          <td class="px-4 py-3 text-slate-500">{{ p.email || '—' }}</td>
+          <td class="px-4 py-3 text-slate-500">{{ p.telefono || '—' }}</td>
+          <td class="px-4 py-3 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button *appPuede="'erp_proveedores.crear'" (click)="abrirEditar(p)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar</button>
+              <button *appPuede="'erp_proveedores.eliminar'" (click)="eliminarProveedor(p)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: nuevo proveedor -->
+<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
+<div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">{{ proveedorEditando ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</h3>
+    <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="proveedorForm.nombre" placeholder="Nombre" />
+    <div class="grid grid-cols-2 gap-3">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="proveedorForm.contacto" placeholder="Contacto" />
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="proveedorForm.telefono" placeholder="Teléfono" />
+    </div>
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="proveedorForm.email" placeholder="Email" />
+    <p *ngIf="proveedorError" class="text-xs text-red-600 m-0">{{ proveedorError }}</p>
+    <button (click)="submitProveedor()" [disabled]="proveedorSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#f59e0b">{{ proveedorSaving ? 'Guardando...' : (proveedorEditando ? 'Guardar Cambios' : 'Agregar Proveedor') }}</button>
+  </div>
+</div>
+
+<!-- Modal: papelera de proveedores -->
+<div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
+<div *ngIf="papeleraOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Papelera de Proveedores</h3>
+    <button (click)="papeleraOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-2">
+    <p *ngIf="papelera.length === 0" class="text-sm text-slate-400 m-0">No hay proveedores eliminados.</p>
+    <div *ngFor="let p of papelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+      <p class="m-0 font-medium">{{ p.nombre }}</p>
+      <button (click)="restaurarProveedor(p.id_proveedor)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Restaurar</button>
+    </div>
+  </div>
+</div>

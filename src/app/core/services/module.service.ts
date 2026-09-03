@@ -7,7 +7,7 @@ import { NichoService } from './nicho.service';
 import { AuthService } from '../auth/authservices';
 
 export type ModuleId = 'crm' | 'erp' | 'pos';
-export type ErpTab = 'dashboard' | 'finanzas' | 'compras' | 'ventas' | 'facturacion' | 'inventario' | 'fabricacion' | 'scm' | 'rrhh' | 'crm' | 'proyectos' | 'reportes';
+export type ErpTab = 'dashboard' | 'finanzas' | 'compras' | 'ventas' | 'facturacion' | 'inventario' | 'fabricacion' | 'scm' | 'rrhh' | 'crm' | 'proyectos' | 'reportes' | 'habitaciones' | 'reservas' | 'tarifas' | 'mantenimiento' | 'solicitudes' | 'categorias' | 'proveedores';
 export type PosTab = 'terminal' | 'historial';
 
 export interface ModuleConfig {
@@ -152,9 +152,21 @@ const ERP_SIDEBAR: SidebarSection[] = [
     items: [
       { label: 'Finanzas',     svg: S(`<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>`),                                                                                              erpTab: 'finanzas' },
       { label: 'Compras',      svg: S(`<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>`),                                                             erpTab: 'compras' },
+      { label: 'Proveedores',  svg: S(`<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>`), erpTab: 'proveedores' },
       { label: 'Ventas',       svg: S(`<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>`), erpTab: 'ventas' },
       { label: 'Facturación',  svg: S(`<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>`), erpTab: 'facturacion' },
+      { label: 'Categorías',   svg: S(`<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>`),                                                                     erpTab: 'categorias' },
       { label: 'Inventario',   svg: S(`<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>`),                                                                           erpTab: 'inventario' },
+    ],
+  },
+  {
+    label: 'Hotel',
+    items: [
+      { label: 'Habitaciones',   svg: S(`<path d="M3 18v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 13h18"/><path d="M7 13V9a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2"/><path d="M3 18v3"/><path d="M21 18v3"/>`),      erpTab: 'habitaciones' },
+      { label: 'Reservas',       svg: S(`<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/>`),      erpTab: 'reservas' },
+      { label: 'Tarifas',        svg: S(`<line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>`),                                                                                    erpTab: 'tarifas' },
+      { label: 'Mantenimiento',  svg: S(`<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>`),                              erpTab: 'mantenimiento' },
+      { label: 'Solicitudes',    svg: S(`<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>`),                                                                                                     erpTab: 'solicitudes' },
     ],
   },
   {
@@ -193,19 +205,25 @@ const ERP_SIDEBAR: SidebarSection[] = [
 // que sí factura por horas/proyecto.
 // "startup" es un negocio de software/servicio: no tiene inventario físico,
 // no compra mercancía a proveedores, no fabrica ni despacha envíos.
+// Los 5 tabs de "Hotel" (Habitaciones/Reservas/Tarifas/Mantenimiento/
+// Solicitudes) solo existen para operar un hotel — se ocultan para todos
+// los demás nichos.
+const HOTEL_TABS: ErpTab[] = ['habitaciones', 'reservas', 'tarifas', 'mantenimiento', 'solicitudes'];
 const ERP_TABS_OCULTOS_POR_NICHO: Partial<Record<string, ErpTab[]>> = {
-  restaurante: ['fabricacion', 'scm', 'proyectos'],
+  restaurante: ['fabricacion', 'scm', 'proyectos', ...HOTEL_TABS],
   hotel: ['fabricacion', 'scm', 'proyectos'],
-  farmacia: ['fabricacion', 'scm', 'proyectos'],
-  tienda: ['fabricacion', 'scm', 'proyectos'],
-  almacen: ['fabricacion', 'proyectos'],
-  startup: ['inventario', 'compras', 'fabricacion', 'scm'],
+  farmacia: ['fabricacion', 'scm', 'proyectos', ...HOTEL_TABS],
+  tienda: ['fabricacion', 'scm', 'proyectos', ...HOTEL_TABS],
+  almacen: ['fabricacion', 'proyectos', ...HOTEL_TABS],
+  startup: ['inventario', 'compras', 'fabricacion', 'scm', 'categorias', 'proveedores', ...HOTEL_TABS],
 };
 
-// Label del tab "Ventas" del ERP con el término operativo del nicho.
+// Label del tab "Ventas" del ERP con el término operativo del nicho. Hotel
+// no está acá: su reservas/habitaciones ya tienen tabs propios (ver arriba),
+// así que "Ventas" vuelve a significar lo mismo que en cualquier otro nicho
+// (el historial de pedidos/facturación, incluida la cuenta de un checkout).
 const ERP_VENTAS_LABEL_POR_NICHO: Partial<Record<string, string>> = {
   restaurante: 'Comandas',
-  hotel: 'Reservas',
   farmacia: 'Dispensario',
 };
 

@@ -25,11 +25,6 @@ export class ErpComprasComponent implements OnInit {
   proveedores: Proveedor[] = [];
   productos: Producto[] = [];
 
-  proveedoresPanelOpen = false;
-  proveedorForm = { nombre: '', contacto: '', email: '', telefono: '' };
-  proveedorSaving = false;
-  proveedorError = '';
-
   constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
@@ -98,51 +93,4 @@ export class ErpComprasComponent implements OnInit {
 
   recibir(id: number) { this.erpService.recibirOrdenCompra(id).subscribe({ next: () => this.cdr.detectChanges(), error: (err) => console.error(err) }); }
   cancelar(id: number) { this.erpService.cancelarOrdenCompra(id).subscribe({ next: () => this.cdr.detectChanges(), error: (err) => console.error(err) }); }
-
-  toggleProveedoresPanel() {
-    this.proveedoresPanelOpen = !this.proveedoresPanelOpen;
-    this.proveedorForm = { nombre: '', contacto: '', email: '', telefono: '' };
-    this.proveedorError = '';
-  }
-
-  submitProveedor() {
-    if (this.proveedorSaving) return;
-    if (!this.proveedorForm.nombre) { this.proveedorError = 'El nombre es obligatorio.'; return; }
-
-    this.proveedorSaving = true;
-    this.proveedorError = '';
-    this.erpService.addProveedor({ ...this.proveedorForm }).subscribe({
-      next: () => {
-        this.proveedorSaving = false;
-        this.proveedorForm = { nombre: '', contacto: '', email: '', telefono: '' };
-        this.cdr.detectChanges();
-      },
-      error: (err) => { this.proveedorSaving = false; this.proveedorError = 'No se pudo guardar el proveedor.'; this.cdr.detectChanges(); console.error(err); },
-    });
-  }
-
-  async eliminarProveedor(proveedor: Proveedor) {
-    const ok = await this.notify.confirm(`¿Eliminar proveedor "${proveedor.nombre}"? Podrás restaurarlo desde la papelera.`, { danger: true, confirmText: 'Eliminar' });
-    if (!ok) return;
-
-    this.erpService.deleteProveedor(proveedor.id_proveedor).subscribe({
-      next: () => { this.notify.success('Proveedor eliminado'); this.cdr.detectChanges(); },
-      error: (err) => { this.notify.error('No se pudo eliminar el proveedor'); console.error(err); },
-    });
-  }
-
-  proveedoresPapeleraOpen = false;
-  proveedoresPapelera: Proveedor[] = [];
-
-  abrirProveedoresPapelera() {
-    this.proveedoresPapeleraOpen = true;
-    this.erpService.cargarPapeleraProveedores().subscribe(data => { this.proveedoresPapelera = data; this.cdr.detectChanges(); });
-  }
-
-  restaurarProveedor(id: number) {
-    this.erpService.restaurarProveedor(id).subscribe({
-      next: () => { this.proveedoresPapelera = this.proveedoresPapelera.filter(p => p.id_proveedor !== id); this.notify.success('Proveedor restaurado'); this.cdr.detectChanges(); },
-      error: (err) => { this.notify.error('No se pudo restaurar el proveedor'); console.error(err); },
-    });
-  }
 }

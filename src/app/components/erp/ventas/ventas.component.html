@@ -1,14 +1,14 @@
-<!-- Estos tres embebidos van fuera del wrapper page-enter a propósito: ese
+<!-- Estos dos embebidos van fuera del wrapper page-enter a propósito: ese
      wrapper mantiene un transform (translateY(0)) activo después de que la
      animación termina, y cualquier modal `position:fixed` dentro de un hijo
-     anidado aquí (ej. "+ Hab." de reservas-hotel-admin) queda centrado
-     respecto a ese contenedor transformado en vez del viewport completo —
-     se ve encimado con el contenido en vez de como un diálogo normal. -->
+     anidado aquí queda centrado respecto a ese contenedor transformado en
+     vez del viewport completo — se ve encimado con el contenido en vez de
+     como un diálogo normal.
+     Hotel no va acá: sus 5 secciones (Habitaciones/Reservas/Tarifas/
+     Mantenimiento/Solicitudes) son tabs propios del sidebar ERP — ver
+     module.service.ts. -->
 <div *ngIf="nicho.nicho==='restaurante'" class="lg:h-[560px] overflow-y-auto">
   <app-pos-terminal-restaurante></app-pos-terminal-restaurante>
-</div>
-<div *ngIf="nicho.nicho==='hotel'" class="mb-5">
-  <app-erp-reservas-hotel-admin></app-erp-reservas-hotel-admin>
 </div>
 <div *ngIf="nicho.nicho==='farmacia'" class="lg:h-[560px] overflow-y-auto">
   <app-pos-terminal-farmacia></app-pos-terminal-farmacia>

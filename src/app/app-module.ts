@@ -62,13 +62,19 @@ import { ErpInventarioComponent }from './components/erp/inventario/inventario.co
 import { ErpComprasComponent }   from './components/erp/compras/compras.component';
 import { ErpFinanzasComponent }  from './components/erp/finanzas/finanzas.component';
 import { ErpVentasComponent }    from './components/erp/ventas/ventas.component';
-import { ErpReservasHotelAdminComponent } from './components/erp/ventas/reservas-hotel-admin.component';
 import { ErpFacturacionComponent } from './components/erp/facturacion/facturacion.component';
 import { ErpFabricacionComponent }from './components/erp/fabricacion/fabricacion.component';
 import { ErpScmComponent }       from './components/erp/scm/scm.component';
 import { ErpRrhhComponent }      from './components/erp/rrhh/rrhh.component';
 import { ErpCrmComponent }       from './components/erp/crm-erp/crm-erp.component';
 import { ErpProyectosComponent } from './components/erp/proyectos/proyectos.component';
+import { ErpHabitacionesComponent } from './components/erp/habitaciones/habitaciones.component';
+import { ErpReservasHotelComponent } from './components/erp/reservas-hotel/reservas-hotel.component';
+import { ErpTarifasTemporadaComponent } from './components/erp/tarifas-temporada/tarifas-temporada.component';
+import { ErpMantenimientoHotelComponent } from './components/erp/mantenimiento-hotel/mantenimiento-hotel.component';
+import { ErpSolicitudesHuespedComponent } from './components/erp/solicitudes-huesped/solicitudes-huesped.component';
+import { ErpCategoriasComponent } from './components/erp/categorias/categorias.component';
+import { ErpProveedoresComponent } from './components/erp/proveedores/proveedores.component';
 
 // Other
 import { ConfiguracionComponent } from './components/configuracion/configuracion.component';
@@ -132,7 +138,13 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     ErpComprasComponent,
     ErpFinanzasComponent,
     ErpVentasComponent,
-    ErpReservasHotelAdminComponent,
+    ErpHabitacionesComponent,
+    ErpReservasHotelComponent,
+    ErpTarifasTemporadaComponent,
+    ErpMantenimientoHotelComponent,
+    ErpSolicitudesHuespedComponent,
+    ErpCategoriasComponent,
+    ErpProveedoresComponent,
     ErpFacturacionComponent,
     ErpFabricacionComponent,
     ErpScmComponent,

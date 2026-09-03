@@ -1,0 +1,73 @@
+<div class="flex flex-col gap-5 page-enter">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="m-0 text-lg font-bold text-slate-800">Mantenimiento</h2>
+      <p class="text-xs text-slate-500 m-0 mt-1">Reportes por habitación — abiertas y resueltas recientes</p>
+    </div>
+    <button (click)="abrirReportarIncidencia()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95 flex-shrink-0" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Reportar</button>
+  </div>
+
+  <div *ngIf="incidenciasCargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-10 rounded-lg skeleton"></div>
+  </div>
+
+  <div *ngIf="!incidenciasCargando" class="flex flex-col gap-2">
+    <p *ngIf="incidencias.length === 0" class="text-sm text-slate-400 m-0 py-6 text-center">Sin incidencias registradas.</p>
+    <div *ngFor="let i of incidencias" class="flex items-start justify-between gap-3 bg-white border border-slate-100 rounded-xl p-3">
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-sm font-bold text-slate-700">Hab. {{ i.habitacion?.numero ?? '—' }}</span>
+          <span class="text-xs font-semibold text-slate-600">{{ i.titulo }}</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+            [class.bg-slate-100]="i.prioridad==='baja'" [class.text-slate-500]="i.prioridad==='baja'"
+            [class.bg-amber-100]="i.prioridad==='media'" [class.text-amber-600]="i.prioridad==='media'"
+            [class.bg-red-100]="i.prioridad==='alta'" [class.text-red-600]="i.prioridad==='alta'">
+            {{ i.prioridad | titlecase }}
+          </span>
+          <span *ngIf="i.fuera_de_servicio" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600">Fuera de servicio</span>
+        </div>
+        <p *ngIf="i.descripcion" class="text-xs text-slate-500 m-0 mt-1">{{ i.descripcion }}</p>
+        <p class="text-[10px] text-slate-400 m-0 mt-1">{{ i.created_at | date:'short' }}</p>
+      </div>
+      <div class="flex-shrink-0">
+        <span *ngIf="i.estado==='resuelta'" class="text-xs font-semibold text-emerald-600">Resuelta</span>
+        <button *ngIf="i.estado==='abierta'" (click)="resolverIncidenciaAccion(i)"
+          class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors">Resolver</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: reportar incidencia -->
+<div *ngIf="incidenciaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="incidenciaDialogOpen=false"></div>
+<div *ngIf="incidenciaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Reportar Incidencia</h3>
+    <button (click)="incidenciaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="incidenciaForm.id_habitacion">
+      <option *ngFor="let h of habitaciones" [value]="h.id">Habitación {{ h.numero }} — {{ h.tipo }}</option>
+    </select>
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="incidenciaForm.titulo" placeholder="Ej. Aire acondicionado no enfría" />
+    <textarea class="px-3 py-2 border border-slate-200 rounded-lg text-sm" rows="2" [(ngModel)]="incidenciaForm.descripcion" placeholder="Detalles (opcional)"></textarea>
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-semibold text-slate-500">Prioridad</label>
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="incidenciaForm.prioridad">
+        <option value="baja">Baja</option>
+        <option value="media">Media</option>
+        <option value="alta">Alta</option>
+      </select>
+    </div>
+    <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer">
+      <input type="checkbox" [(ngModel)]="incidenciaForm.fuera_de_servicio" />
+      Poner la habitación fuera de servicio (mantenimiento) hasta resolver
+    </label>
+    <p *ngIf="incidenciaError" class="text-xs text-red-600 m-0">{{ incidenciaError }}</p>
+    <button (click)="guardarIncidencia()" [disabled]="incidenciaSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#f97316">{{ incidenciaSaving ? 'Guardando...' : 'Reportar' }}</button>
+  </div>
+</div>

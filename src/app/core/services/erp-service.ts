@@ -71,20 +71,32 @@ export class ErpService {
     return this.http.get<ErpMovimientoStock[]>(`${API}/erp/inventario/${id}/movimientos`);
   }
 
+  private _categorias = new BehaviorSubject<Categoria[]>([]);
+  categorias$ = this._categorias.asObservable();
+  get categorias() { return this._categorias.getValue(); }
+
   cargarCategorias(): Observable<Categoria[]> {
-    return this.http.get<Categoria[]>(`${API}/categorias`);
+    return this.http.get<Categoria[]>(`${API}/categorias`).pipe(
+      tap(data => this._categorias.next(data))
+    );
   }
 
   addCategoria(data: { nombre: string; descripcion?: string }): Observable<Categoria> {
-    return this.http.post<Categoria>(`${API}/categorias`, data);
+    return this.http.post<Categoria>(`${API}/categorias`, data).pipe(
+      tap(nueva => this._categorias.next([nueva, ...this.categorias]))
+    );
   }
 
   updateCategoria(id: number, data: { nombre?: string; descripcion?: string; activo?: boolean }): Observable<Categoria> {
-    return this.http.put<Categoria>(`${API}/categorias/${id}`, data);
+    return this.http.put<Categoria>(`${API}/categorias/${id}`, data).pipe(
+      tap(actualizada => this._categorias.next(this.categorias.map(c => c.id_categoria === id ? actualizada : c)))
+    );
   }
 
   deleteCategoria(id: number): Observable<void> {
-    return this.http.delete<void>(`${API}/categorias/${id}`);
+    return this.http.delete<void>(`${API}/categorias/${id}`).pipe(
+      tap(() => this._categorias.next(this.categorias.filter(c => c.id_categoria !== id)))
+    );
   }
 
   cargarProductos(): Observable<Producto[]> {

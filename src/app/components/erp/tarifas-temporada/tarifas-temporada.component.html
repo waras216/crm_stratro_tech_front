@@ -1,0 +1,83 @@
+<div class="flex flex-col gap-5 page-enter">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="m-0 text-lg font-bold text-slate-800">Tarifas</h2>
+      <p class="text-xs text-slate-500 m-0 mt-1">Temporadas que ajustan el precio por noche de todas las habitaciones en un rango de fechas</p>
+    </div>
+    <button (click)="abrirNuevaTarifa()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95 flex-shrink-0" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Temporada</button>
+  </div>
+
+  <div *ngIf="tarifasCargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-10 rounded-lg skeleton"></div>
+  </div>
+
+  <div *ngIf="!tarifasCargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Temporada</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Desde</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Hasta</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Ajuste</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngIf="tarifas.length === 0">
+          <td colspan="5" class="text-center py-8 text-slate-400 text-xs">Sin temporadas — todas las habitaciones cobran su precio base todo el año.</td>
+        </tr>
+        <tr *ngFor="let t of tarifas" class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-3 font-bold">{{ t.nombre }}</td>
+          <td class="px-4 py-3">{{ t.fecha_inicio | date:'dd/MM/yy' }}</td>
+          <td class="px-4 py-3">{{ t.fecha_fin | date:'dd/MM/yy' }}</td>
+          <td class="px-4 py-3 text-right font-medium" [class.text-emerald-600]="t.valor>=0" [class.text-red-600]="t.valor<0">
+            {{ t.valor>=0 ? '+' : '' }}{{ t.valor }}{{ t.tipo_ajuste==='porcentaje' ? '%' : ' (fijo)' }}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button (click)="abrirEditarTarifa(t)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar</button>
+              <button (click)="eliminarTarifa(t)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: nueva/editar temporada -->
+<div *ngIf="tarifaDialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="tarifaDialogOpen=false"></div>
+<div *ngIf="tarifaDialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">{{ tarifaEditando ? 'Editar Temporada' : 'Nueva Temporada' }}</h3>
+    <button (click)="tarifaDialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="tarifaForm.nombre" placeholder="Ej. Temporada Alta — Verano" />
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Desde</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="tarifaForm.fecha_inicio" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-semibold text-slate-500">Hasta</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="tarifaForm.fecha_fin" />
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="tarifaForm.tipo_ajuste">
+        <option value="porcentaje">% sobre el precio</option>
+        <option value="monto_fijo">Monto fijo</option>
+      </select>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" step="0.01" [(ngModel)]="tarifaForm.valor"
+        [placeholder]="tarifaForm.tipo_ajuste==='porcentaje' ? 'Ej. 25 o -15' : 'Ej. 300 o -100'" />
+    </div>
+    <p class="text-[10px] text-slate-400 m-0">Usa un valor negativo para temporada baja (descuento).</p>
+    <p *ngIf="tarifaError" class="text-xs text-red-600 m-0">{{ tarifaError }}</p>
+    <button (click)="guardarTarifa()" [disabled]="tarifaSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#f59e0b">{{ tarifaSaving ? 'Guardando...' : (tarifaEditando ? 'Guardar Cambios' : 'Crear Temporada') }}</button>
+  </div>
+</div>

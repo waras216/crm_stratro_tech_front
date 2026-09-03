@@ -268,6 +268,9 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
       ventas: 'Ventas', facturacion: 'Facturación', inventario: 'Inventario', fabricacion: 'Fabricación',
       scm: 'Supply Chain', rrhh: 'Recursos Humanos', crm: 'CRM', proyectos: 'Proyectos',
       reportes: 'Reportes',
+      habitaciones: 'Habitaciones', reservas: 'Reservas', tarifas: 'Tarifas',
+      mantenimiento: 'Mantenimiento', solicitudes: 'Solicitudes',
+      categorias: 'Categorías', proveedores: 'Proveedores',
     };
     return m[tab] ?? tab;
   }

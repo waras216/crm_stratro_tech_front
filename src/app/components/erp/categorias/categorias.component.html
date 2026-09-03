@@ -1,0 +1,59 @@
+<div class="flex flex-col gap-5 page-enter">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="m-0 text-lg font-bold text-slate-800">Categorías</h2>
+      <p class="text-xs text-slate-500 m-0 mt-1">Clasificación de productos — se usan en Inventario y en el catálogo del POS</p>
+    </div>
+    <button (click)="abrirNueva()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95 flex-shrink-0" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Categoría</button>
+  </div>
+
+  <div *ngIf="cargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-11 rounded-lg skeleton"></div>
+  </div>
+
+  <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Nombre</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Descripción</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngIf="categorias.length === 0">
+          <td colspan="3" class="text-center py-8 text-slate-400 text-xs">Sin categorías — agrega la primera con "+ Categoría"</td>
+        </tr>
+        <tr *ngFor="let c of categorias" class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-3 font-bold">{{ c.nombre }}</td>
+          <td class="px-4 py-3 text-slate-500">{{ c.descripcion || '—' }}</td>
+          <td class="px-4 py-3 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button (click)="abrirEditar(c)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar</button>
+              <button (click)="eliminarCategoria(c)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: nueva/editar categoría -->
+<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
+<div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">{{ categoriaEditando ? 'Editar Categoría' : 'Nueva Categoría' }}</h3>
+    <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="categoriaForm.nombre" placeholder="Nombre" />
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="categoriaForm.descripcion" placeholder="Descripción (opcional)" />
+    <p *ngIf="categoriaError" class="text-xs text-red-600 m-0">{{ categoriaError }}</p>
+    <button (click)="guardarCategoria()" [disabled]="categoriaSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#f59e0b">{{ categoriaSaving ? 'Guardando...' : (categoriaEditando ? 'Guardar Cambios' : 'Crear Categoría') }}</button>
+  </div>
+</div>
