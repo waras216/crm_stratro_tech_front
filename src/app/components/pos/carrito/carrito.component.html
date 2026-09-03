@@ -19,7 +19,7 @@
     </div>
     <div *ngFor="let item of items" class="flex items-center gap-2 py-2 border-b border-slate-50">
       <img *ngIf="item.producto.imagen_url" [src]="item.producto.imagen_url" class="w-7 h-7 rounded-md object-cover flex-shrink-0" />
-      <span *ngIf="!item.producto.imagen_url" class="text-lg flex-shrink-0">📦</span>
+      <svg *ngIf="!item.producto.imagen_url" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" class="flex-shrink-0 text-slate-300"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
       <div class="flex-1 min-w-0">
         <p class="text-xs font-medium text-slate-700 m-0 truncate">{{ item.producto.nombre }}</p>
         <p class="text-xs text-emerald-600 font-semibold m-0">${{ (item.producto.precio * item.cantidad).toLocaleString() }}</p>
@@ -43,7 +43,7 @@
   </div>
 
   <!-- Totals -->
-  <div class="border-t border-slate-100 px-4 py-3 flex flex-col gap-1.5 flex-shrink-0">
+  <div class="border-t border-slate-100 px-4 py-3 flex flex-col gap-1.5 flex-shrink-0 pb-fab">
     <div class="flex justify-between text-sm font-bold text-slate-800 pt-1"><span>Total</span><span class="text-emerald-600">${{ total.toLocaleString() }}</span></div>
     <button (click)="cobrar.emit()" [disabled]="items.length===0"
       class="w-full mt-2 px-4 py-3 rounded-xl border-0 cursor-pointer text-sm font-bold text-white transition-all"

@@ -26,7 +26,7 @@ import { modalLeave } from '../../shared/animations';
         placeholder="Nombre o teléfono..."
         class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-emerald-400 transition-colors" />
     </div>
-    <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[32vh] lg:max-h-none overflow-y-auto">
+    <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[32vh] lg:max-h-none overflow-y-auto pb-fab">
       <div class="px-4 pt-4 pb-2">
         <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 m-0">Pacientes ({{ pacientes.length }})</p>
       </div>
@@ -67,7 +67,7 @@ import { modalLeave } from '../../shared/animations';
       </div>
 
       <!-- Recetas pendientes -->
-      <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[40vh] lg:max-h-none overflow-y-auto">
+      <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[40vh] lg:max-h-none overflow-y-auto pb-fab">
         <div class="px-5 pt-4 pb-2 flex items-center justify-between">
           <p class="text-xs font-bold text-slate-700 m-0">Recetas Pendientes</p>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-semibold">
@@ -120,7 +120,7 @@ import { modalLeave } from '../../shared/animations';
           <button (click)="quitarDelCarrito(item)" class="w-5 h-5 rounded text-slate-300 hover:text-red-400 border-0 bg-transparent cursor-pointer text-xs">✕</button>
         </div>
       </div>
-      <div class="px-4 pb-4 pt-2 border-t border-slate-100">
+      <div class="px-4 pb-4 pt-2 border-t border-slate-100 pb-fab">
         <div *ngIf="nicho.farmAtencion.length>1" class="flex flex-wrap gap-1.5 mb-3">
           <button *ngFor="let a of nicho.farmAtencion" (click)="atencionActiva=a"
             class="text-[10px] font-semibold px-2.5 py-1 rounded-full border-0 cursor-pointer transition-all"

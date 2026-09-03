@@ -5,6 +5,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  --scroll-fade-edge: #f7f6fd;
   --accent: #6366f1;
   --base-font: 16px;
   --spacing: 0.5rem;
@@ -22,6 +23,7 @@
 }
 
 .dark {
+  --scroll-fade-edge: #0f1729;
   --bg-page: #0f1729;
   --bg-card: #1f2937;
   --bg-card-hover: #374151;
@@ -393,6 +395,31 @@ body {
 /* Smooth page transitions */
 .page-enter {
   animation: fadeUp .4s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* Bottom padding for panels that scroll internally and reach the shell's
+   floor, so their last row doesn't sit under the fixed module-switch FAB
+   (56px, 28px from the bottom on desktop — see app-switcher.component.scss).
+   The shell's own .content already compensates for its own scroll; this is
+   for any component that opens a *second*, nested scroll context. */
+.pb-fab { padding-bottom: 96px; }
+
+/* Edge shadow for a horizontally-scrolling row (e.g. the Kanban), so a
+   column cut off at the right edge reads as "more to scroll", not as the
+   end of the list. Classic four-layer trick: the "cover" gradients scroll
+   WITH the content (background-attachment:local) and naturally hide the
+   shadow once you've reached that edge; the "shadow" gradients stay fixed
+   to the viewport (background-attachment:scroll) so they're always ready
+   to show through once the cover scrolls away. No JS, no extra markup. */
+.scroll-fade-x {
+  background:
+    linear-gradient(to right, var(--scroll-fade-edge) 0%, transparent 100%) 0 0,
+    linear-gradient(to left, var(--scroll-fade-edge) 0%, transparent 100%) 100% 0,
+    linear-gradient(to right, rgba(99, 102, 241, .16), transparent) 0 0,
+    linear-gradient(to left, rgba(99, 102, 241, .2), transparent) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 28px 100%, 28px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
 }
 
 /* Skeleton shimmer */

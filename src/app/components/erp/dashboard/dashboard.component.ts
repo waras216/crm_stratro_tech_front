@@ -84,12 +84,16 @@ const ICONS_MODULO: Record<string, string> = {
           <div *ngIf="maxTendencia > 0; else sinTendencia" class="flex items-end justify-between gap-1 sm:gap-3 h-40 mt-5">
             <div *ngFor="let t of tendencia" class="flex-1 flex flex-col items-center gap-2 h-full">
               <div class="flex items-end justify-center gap-1 h-full w-full">
-                <div *ngIf="t.ingresos > 0" class="group relative w-3 sm:w-4 bg-emerald-500 rounded-t-[3px] transition-[height] duration-500" [style.height.%]="pct(t.ingresos)">
+                <div class="group relative w-3 sm:w-4 rounded-t-[3px] transition-[height] duration-500"
+                  [class.bg-emerald-500]="t.ingresos > 0" [class.bg-slate-200]="t.ingresos === 0"
+                  [style.height.%]="t.ingresos > 0 ? pct(t.ingresos) : 2">
                   <div class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2 py-1 text-[10px] font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     Ingresos: \${{ money(t.ingresos) }}
                   </div>
                 </div>
-                <div *ngIf="t.egresos > 0" class="group relative w-3 sm:w-4 bg-rose-400 rounded-t-[3px] transition-[height] duration-500" [style.height.%]="pct(t.egresos)">
+                <div class="group relative w-3 sm:w-4 rounded-t-[3px] transition-[height] duration-500"
+                  [class.bg-rose-400]="t.egresos > 0" [class.bg-slate-200]="t.egresos === 0"
+                  [style.height.%]="t.egresos > 0 ? pct(t.egresos) : 2">
                   <div class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2 py-1 text-[10px] font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     Egresos: \${{ money(t.egresos) }}
                   </div>

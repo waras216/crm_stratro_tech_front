@@ -156,12 +156,22 @@ export class IntegracionesComponent implements OnInit, OnDestroy {
       url_sitio: integ.configuracion?.['url_sitio'] ?? '',
       google_analytics_id: integ.configuracion?.['google_analytics_id'] ?? '',
     };
+    this.mostrarToken = false;
     this.dialogSitioWebOpen = true;
   }
 
-  cerrarSitioWeb() { this.dialogSitioWebOpen = false; this.sitioWebIntegracion = null; }
+  cerrarSitioWeb() { this.dialogSitioWebOpen = false; this.sitioWebIntegracion = null; this.mostrarToken = false; }
 
   get sitioWebToken(): string { return this.sitioWebIntegracion?.configuracion?.['token'] ?? ''; }
+
+  mostrarToken = false;
+  toggleMostrarToken() { this.mostrarToken = !this.mostrarToken; }
+
+  get sitioWebTokenEnmascarado(): string {
+    const t = this.sitioWebToken;
+    if (!t) return '';
+    return this.mostrarToken ? t : `••••••••••••${t.slice(-4)}`;
+  }
 
   get sitioWebEndpoint(): string {
     return `${environment.apiUrl}/public/formularios/${this.sitioWebToken}/leads`;
@@ -237,7 +247,7 @@ document.getElementById('strato-lead-form').addEventListener('submit', function 
     );
   }
 
-  private static readonly CLAVES_SENSIBLES = ['access_token', 'refresh_token'];
+  private static readonly CLAVES_SENSIBLES = ['access_token', 'refresh_token', 'token'];
 
   configEntries(integ: Integracion): {k: string; v: string}[] {
     if (!integ.configuracion) return [];

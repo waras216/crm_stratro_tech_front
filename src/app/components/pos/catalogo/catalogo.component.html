@@ -11,7 +11,7 @@
   </div>
   <p *ngIf="!cargando && !productos.length" class="text-xs text-slate-400 m-0">Sin productos en inventario todavía.</p>
 
-  <div *ngIf="cargando" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 overflow-y-auto flex-1 content-start">
+  <div *ngIf="cargando" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 overflow-y-auto flex-1 content-start pb-fab">
     <div *ngFor="let _ of [1,2,3,4,5,6,7,8]" class="flex flex-col items-center gap-1 p-2 bg-white border border-slate-100 rounded-xl">
       <div class="w-8 h-8 rounded-lg skeleton"></div>
       <div class="h-2.5 skeleton rounded-full w-3/4"></div>
@@ -20,7 +20,7 @@
     </div>
   </div>
 
-  <div *ngIf="!cargando" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 overflow-y-auto flex-1 content-start">
+  <div *ngIf="!cargando" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 overflow-y-auto flex-1 content-start pb-fab">
     <button *ngFor="let p of filtrados; let i = index"
       (click)="agregar.emit(p)" [disabled]="sinStock(p)"
       class="flex flex-col items-center gap-1 p-2 bg-white border rounded-xl cursor-pointer hover:shadow-md hover:border-emerald-200 transition-all group text-center hover-scale card-enter disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-emerald-300"
@@ -28,7 +28,7 @@
       [style.animation-delay]="(i * 0.03) + 's'"
       [style.border]="sinStock(p) ? null : '1px solid #e2e8f0'">
       <img *ngIf="p.imagen_url" [src]="p.imagen_url" class="w-8 h-8 rounded-lg object-cover group-hover:scale-110 transition-transform" />
-      <span *ngIf="!p.imagen_url" class="text-lg group-hover:scale-110 transition-transform">📦</span>
+      <svg *ngIf="!p.imagen_url" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" class="text-slate-300 group-hover:scale-110 transition-transform"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
       <span class="text-[11px] font-semibold text-slate-700 leading-tight">{{ p.nombre }}</span>
       <span class="text-sm font-bold text-emerald-600">${{ p.precio }}</span>
       <span class="text-[10px]" [ngClass]="sinStock(p) ? 'text-red-500 font-bold' : (stockBajo(p) ? 'text-amber-500 font-bold' : 'text-slate-400')">

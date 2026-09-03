@@ -75,7 +75,7 @@ import { ErpHabitacion, ErpHabitacionConsumo, Producto } from '../../../models/e
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl border border-slate-100 p-4 flex-1 overflow-y-auto">
+      <div class="bg-white rounded-2xl border border-slate-100 p-4 flex-1 overflow-y-auto pb-fab">
         <p class="text-xs font-bold text-slate-700 m-0 mb-3">Menú — {{ seccion }}</p>
         <input class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-violet-400 mb-3"
           [(ngModel)]="busqueda" placeholder="Buscar producto..." />

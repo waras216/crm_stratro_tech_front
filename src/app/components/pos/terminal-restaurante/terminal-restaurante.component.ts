@@ -123,7 +123,7 @@ import { StockAlertService } from '../../../core/services/stock-alert.service';
       </div>
 
       <!-- Comanda -->
-      <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[40vh] lg:max-h-none overflow-y-auto">
+      <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[40vh] lg:max-h-none overflow-y-auto pb-fab">
         <div class="px-5 pt-4 pb-2 border-b border-slate-50 flex items-center justify-between">
           <p class="text-xs font-bold text-slate-700 m-0">Comanda Activa</p>
           <span class="text-xs font-bold text-red-600">Total: \${{ totalMesa(mesa) }}</span>
@@ -155,7 +155,7 @@ import { StockAlertService } from '../../../core/services/stock-alert.service';
 
   <!-- ── PANEL DER: Menú rápido ── -->
   <div class="w-full lg:w-64 lg:flex-shrink-0 flex flex-col gap-3">
-    <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[40vh] lg:max-h-none overflow-y-auto">
+    <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[40vh] lg:max-h-none overflow-y-auto pb-fab">
       <div class="px-4 pt-4 pb-2">
         <p class="text-xs font-bold text-slate-700 m-0 mb-2">Menú Rápido</p>
         <div class="flex gap-1 flex-wrap">

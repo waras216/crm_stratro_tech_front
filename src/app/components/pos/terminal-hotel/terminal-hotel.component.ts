@@ -178,7 +178,7 @@ import { modalLeave } from '../../shared/animations';
       </div>
 
       <!-- Consumos -->
-      <div class="bg-white rounded-2xl border border-slate-100 flex-1 overflow-y-auto">
+      <div class="bg-white rounded-2xl border border-slate-100 flex-1 overflow-y-auto pb-fab">
         <div *ngIf="hab.estado==='ocupada' || hab.estado==='checkout'" class="flex items-center justify-between px-5 py-2.5 border-b border-slate-50 bg-amber-50/50">
           <p class="text-xs text-slate-700 m-0">
             Hospedaje — {{ hab.noches }} noche(s) × \${{ hab.precio ?? 0 }}

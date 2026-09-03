@@ -78,6 +78,10 @@
     <!-- Oportunidades por etapa -->
     <div class="bg-white border border-slate-200 rounded-xl p-4">
       <h3 class="text-sm font-semibold text-slate-700 mb-4"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Oportunidades por Etapa</h3>
+      <div *ngIf="oppsByStage.length===0" class="flex flex-col items-center gap-1.5 py-6 text-center">
+        <svg width="22" height="22" fill="none" stroke="#e2e8f0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <p class="text-xs text-slate-400 m-0">Sin oportunidades en este periodo</p>
+      </div>
       <div class="flex flex-col gap-3 cursor-default" *ngFor="let item of oppsByStage"
         (mouseenter)="showTooltip($event, item, oppsByStage)" (mousemove)="moveTooltip($event)" (mouseleave)="hideTooltip()">
         <div class="flex justify-between text-sm mb-1">
@@ -92,6 +96,10 @@
     <!-- Por pipeline -->
     <div class="bg-white border border-slate-200 rounded-xl p-4">
       <h3 class="text-sm font-semibold text-slate-700 mb-4"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Oportunidades por Pipeline</h3>
+      <div *ngIf="oppsByPipeline.length===0" class="flex flex-col items-center gap-1.5 py-6 text-center">
+        <svg width="22" height="22" fill="none" stroke="#e2e8f0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+        <p class="text-xs text-slate-400 m-0">Sin oportunidades en este periodo</p>
+      </div>
       <div class="flex flex-col gap-3 cursor-default" *ngFor="let item of oppsByPipeline"
         (mouseenter)="showTooltip($event, item, oppsByPipeline)" (mousemove)="moveTooltip($event)" (mouseleave)="hideTooltip()">
         <div class="flex justify-between text-sm mb-1">

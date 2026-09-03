@@ -24,7 +24,7 @@
   </div>
 
   <!-- Skeleton loader -->
-  <div *ngIf="cargando" class="flex gap-4 overflow-x-auto pb-2">
+  <div *ngIf="cargando" class="flex gap-4 overflow-x-auto pb-2 scroll-fade-x">
     <div *ngFor="let etapa of etapas" class="min-w-[260px] w-[260px] flex-shrink-0 rounded-xl p-3 flex flex-col gap-2" [ngClass]="etapaColors[etapa]">
       <div class="h-3 bg-white/70 dark:bg-white/10 rounded-full w-1/2 animate-pulse mb-2"></div>
       <div *ngFor="let _ of [1,2]" class="bg-white border border-slate-100 rounded-lg p-3">
@@ -35,7 +35,7 @@
   </div>
 
   <!-- Kanban -->
-  <div *ngIf="!cargando && viewMode==='kanban'" class="flex gap-4 overflow-x-auto pb-2">
+  <div *ngIf="!cargando && viewMode==='kanban'" class="flex gap-4 overflow-x-auto pb-2 scroll-fade-x">
     <div class="min-w-[260px] w-[260px] flex-shrink-0 rounded-xl p-3 flex flex-col gap-2 transition-transform duration-150"
       *ngFor="let etapa of etapas"
       [ngClass]="etapaColors[etapa]"

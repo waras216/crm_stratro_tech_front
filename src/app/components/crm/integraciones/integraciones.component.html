@@ -206,6 +206,18 @@
       {{ guardandoSitioWeb ? 'Guardando...' : 'Guardar' }}
     </button>
 
+    <div class="flex flex-col gap-1.5 pt-2 border-t border-slate-100">
+      <div class="flex items-center justify-between">
+        <label class="text-xs font-medium text-slate-600">Token</label>
+        <div class="flex gap-2">
+          <button (click)="toggleMostrarToken()" class="text-[11px] font-semibold text-blue-600 bg-transparent border-0 cursor-pointer hover:underline">{{ mostrarToken ? 'Ocultar' : 'Mostrar' }}</button>
+          <button (click)="copiar(sitioWebToken, 'El token')" class="text-[11px] font-semibold text-blue-600 bg-transparent border-0 cursor-pointer hover:underline">Copiar</button>
+        </div>
+      </div>
+      <input readonly [value]="sitioWebTokenEnmascarado"
+        class="px-3 py-2 border border-slate-200 rounded-lg text-[11px] font-mono text-slate-500 bg-slate-50" />
+    </div>
+
     <div class="flex flex-col gap-2 pt-2 border-t border-slate-100">
       <div class="flex items-center justify-between">
         <label class="text-xs font-medium text-slate-600">Formulario para pegar en tu sitio</label>
