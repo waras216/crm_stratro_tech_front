@@ -353,6 +353,16 @@ export class ErpService {
     );
   }
 
+  /** Transfiere la comanda de una mesa (restaurante del hotel) a la cuenta de una habitación ocupada. */
+  cargarHabitacionMesa(idMesa: number, idHabitacion: number): Observable<{ mesa: ErpMesa; habitacion: ErpHabitacion }> {
+    return this.http.post<{ mesa: ErpMesa; habitacion: ErpHabitacion }>(`${API}/erp/mesas/${idMesa}/cargar-habitacion`, { id_habitacion: idHabitacion }).pipe(
+      tap(res => {
+        this.actualizarMesaLocal(res.mesa);
+        this.actualizarHabitacionLocal(res.habitacion);
+      })
+    );
+  }
+
   // ════════════════════════════════════════════════════════════════════
   // HABITACIONES (terminal POS de hotel)
   // ════════════════════════════════════════════════════════════════════

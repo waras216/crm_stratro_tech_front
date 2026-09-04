@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
-import { FARM_ATENCION_LABELS, NichoService, REST_CANALES_LABELS, TIENDA_CANALES_LABELS } from '../../../core/services/nicho.service';
+import { FARM_ATENCION_LABELS, HOTEL_AMENIDAD_CATEGORIAS, NichoService, REST_CANALES_LABELS, TIENDA_CANALES_LABELS } from '../../../core/services/nicho.service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { StockAlertService } from '../../../core/services/stock-alert.service';
 import { ErpPedido, Producto } from '../../../models/erp.models';
@@ -21,7 +21,7 @@ export class ErpVentasComponent implements OnInit {
   dialogOpen = false;
   saving = false;
   error = '';
-  form: { id_cliente: string; items: ItemRow[] } = { id_cliente: '', items: [] };
+  form: { id_cliente: string; seccion: string; items: ItemRow[] } = { id_cliente: '', seccion: '', items: [] };
 
   clienteBusqueda = '';
   clientesResultados: Cliente[] = [];
@@ -74,8 +74,16 @@ export class ErpVentasComponent implements OnInit {
     return this.form.items.reduce((s, i) => s + (Number(i.cantidad) || 0) * (Number(i.precio_unitario) || 0), 0);
   }
 
+  /** Secciones del hotel (Bar, Restaurante...) para etiquetar una venta manual creada desde
+   *  aquí en vez de por mesa/habitación — mismo mapeo que PosTerminalHotelComponent. */
+  get seccionesHotel(): string[] {
+    return Array.from(new Set(
+      this.nicho.hotelAmenidades.map(a => HOTEL_AMENIDAD_CATEGORIAS[a]).filter((n): n is string => !!n)
+    ));
+  }
+
   openNew() {
-    this.form = { id_cliente: '', items: [{ id_producto: '', cantidad: '1', precio_unitario: '' }] };
+    this.form = { id_cliente: '', seccion: '', items: [{ id_producto: '', cantidad: '1', precio_unitario: '' }] };
     this.clienteBusqueda = '';
     this.clientesResultados = [];
     this.clienteSeleccionado = null;
@@ -131,6 +139,7 @@ export class ErpVentasComponent implements OnInit {
         id_producto: Number(i.id_producto),
         cantidad: Number(i.cantidad),
         precio_unitario: Number(i.precio_unitario) || 0,
+        seccion: this.form.seccion || undefined,
       }));
 
     if (items.length === 0) { this.error = 'Agrega al menos una línea con producto y cantidad.'; return; }

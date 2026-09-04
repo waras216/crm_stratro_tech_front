@@ -223,6 +223,7 @@ export interface ErpReporteOcupacion {
   adr: number;
   revpar: number;
   por_dia: { fecha: string; ocupadas: number; total_habitaciones: number }[];
+  ingresos_por_seccion: { seccion: string; total: number }[];
 }
 
 export interface ErpSolicitudHuesped {

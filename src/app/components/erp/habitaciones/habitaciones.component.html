@@ -3,16 +3,18 @@
     <div>
       <h2 class="m-0 text-lg font-bold text-slate-800">Habitaciones</h2>
       <p class="text-xs text-slate-500 m-0 mt-1">Inventario y estado de habitaciones — el check-in, check-out y room service se hacen desde el POS</p>
+      <p *ngIf="nicho.hotelTipo || nicho.hotelAmenidades.length" class="text-[11px] text-slate-400 m-0 mt-1 flex flex-wrap items-center gap-x-1.5">
+        <span *ngIf="nicho.hotelTipo" class="font-semibold text-slate-500">{{ nicho.hotelTipo }}</span>
+        <ng-container *ngFor="let a of nicho.hotelAmenidades; let first = first">
+          <span *ngIf="first ? nicho.hotelTipo : true" class="text-slate-300">·</span>
+          <span>{{ amenidadLabel(a) }}</span>
+        </ng-container>
+      </p>
     </div>
     <div class="flex items-center gap-2">
       <button (click)="abrirPapelera()" class="text-xs font-semibold text-slate-400 bg-transparent border-0 cursor-pointer hover:text-slate-600 hover:underline flex-shrink-0">Papelera</button>
       <button (click)="abrirNuevaHabitacion()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Habitación</button>
     </div>
-  </div>
-
-  <div *ngIf="nicho.hotelTipo || nicho.hotelAmenidades.length" class="flex flex-wrap items-center gap-2">
-    <span *ngIf="nicho.hotelTipo" class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">{{ nicho.hotelTipo }}</span>
-    <span *ngFor="let a of nicho.hotelAmenidades" class="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">{{ amenidadLabel(a) }}</span>
   </div>
 
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">

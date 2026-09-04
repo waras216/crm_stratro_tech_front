@@ -31,7 +31,8 @@ import { modalLeave } from '../../shared/animations';
     </button>
   </div>
 
-  <app-pos-terminal-hotel-seccion *ngIf="seccionActiva !== 'recepcion'" class="flex-1 min-h-0" [seccion]="seccionActiva"></app-pos-terminal-hotel-seccion>
+  <app-pos-terminal-hotel-mesas *ngIf="seccionesMesa.includes(seccionActiva)" class="flex-1 min-h-0" [seccion]="seccionActiva"></app-pos-terminal-hotel-mesas>
+  <app-pos-terminal-hotel-seccion *ngIf="seccionActiva !== 'recepcion' && !seccionesMesa.includes(seccionActiva)" class="flex-1 min-h-0" [seccion]="seccionActiva"></app-pos-terminal-hotel-seccion>
 
 <div *ngIf="seccionActiva === 'recepcion'" class="flex flex-col lg:flex-row gap-4 lg:flex-1 lg:min-h-0 page-enter">
 
@@ -196,7 +197,10 @@ import { modalLeave } from '../../shared/animations';
         </div>
         <div *ngFor="let c of hab.consumos" class="flex items-center gap-3 px-5 py-3 border-b border-slate-50 last:border-0">
           <div class="min-w-0 flex-1">
-            <p class="text-xs font-semibold text-slate-700 m-0 truncate">{{ c.nombre }}</p>
+            <p class="text-xs font-semibold text-slate-700 m-0 truncate">
+              {{ c.nombre }}
+              <span *ngIf="c.seccion" class="ml-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-600">{{ c.seccion }}</span>
+            </p>
             <p class="text-[10px] text-slate-400 m-0">\${{ c.precio_unitario }} c/u</p>
           </div>
           <div class="flex items-center gap-1.5 flex-shrink-0">
@@ -460,6 +464,10 @@ export class PosTerminalHotelComponent implements OnInit {
       this.nicho.hotelAmenidades.map(a => HOTEL_AMENIDAD_CATEGORIAS[a]).filter((n): n is string => !!n)
     ));
   }
+
+  /** Secciones con clientela de mostrador (no solo huéspedes) — usan mesas/comanda en vez de
+   *  cargar consumos directo a una habitación (ver PosTerminalHotelMesasComponent). */
+  seccionesMesa = ['Restaurante', 'Bar'];
 
   habitaciones: ErpHabitacion[] = [];
   habSeleccionada: ErpHabitacion | null = null;
