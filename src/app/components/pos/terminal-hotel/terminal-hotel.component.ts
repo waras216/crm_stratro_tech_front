@@ -491,6 +491,9 @@ export class PosTerminalHotelComponent implements OnInit {
   estimandoCheckIn = false;
 
   private tarifasTemporada: ErpTarifaTemporada[] = [];
+  /** Estimado autoritativo (backend) del hospedaje de habSeleccionada, para no reimplementar
+   * TarifaTemporadaService en el front -- ver totalHospedaje()/hayTemporadaEnHospedaje(). */
+  private estimadoHabitacionOcupada: { idHabitacion: number; estimado: ErpEstimadoHospedaje } | null = null;
 
   @ViewChild('firmaCanvas') firmaCanvasRef?: ElementRef<HTMLCanvasElement>;
   registroDialogOpen = false;
@@ -539,6 +542,7 @@ export class PosTerminalHotelComponent implements OnInit {
       this.habitaciones = habitaciones;
       if (this.habSeleccionada) {
         this.habSeleccionada = habitaciones.find(h => h.id === this.habSeleccionada!.id) ?? null;
+        this.actualizarEstimadoOcupada();
       }
       this.cdr.detectChanges();
     });
@@ -762,6 +766,7 @@ export class PosTerminalHotelComponent implements OnInit {
   seleccionar(h: ErpHabitacion) {
     this.habSeleccionada = h;
     this.mostrarRoomService = false;
+    this.actualizarEstimadoOcupada();
   }
 
   abrirNuevaHabitacion() {
@@ -946,14 +951,39 @@ export class PosTerminalHotelComponent implements OnInit {
   }
 
   totalHospedaje(h: ErpHabitacion): number {
+    if (this.estimadoHabitacionOcupada?.idHabitacion === h.id) {
+      return this.estimadoHabitacionOcupada.estimado.total;
+    }
     return this.calcularCargoHospedaje(h).total;
   }
 
   hayTemporadaEnHospedaje(h: ErpHabitacion): boolean {
+    if (this.estimadoHabitacionOcupada?.idHabitacion === h.id) {
+      return this.estimadoHabitacionOcupada.estimado.detalle.some(d => !!d.temporada);
+    }
     return this.calcularCargoHospedaje(h).huboTemporada;
   }
 
-  /** Réplica en el front de TarifaTemporadaService::calcularCargoHospedaje() del backend, noche por noche. */
+  /** Refresca el estimado autoritativo (backend) para la habitación seleccionada -- se llama
+   * cada vez que cambia habSeleccionada o se actualiza tras una acción (check-in, consumos,
+   * marcar salida, etc.), para que la cuenta de una habitación ya ocupada nunca dependa de una
+   * copia desactualizada de las tarifas de temporada en el front. */
+  private actualizarEstimadoOcupada() {
+    const h = this.habSeleccionada;
+    if (!h || !h.check_in || !h.noches || h.noches <= 0 || (h.estado !== 'ocupada' && h.estado !== 'checkout')) {
+      this.estimadoHabitacionOcupada = null;
+      return;
+    }
+
+    this.erpService.cargarEstimadoHospedaje(h.id, h.noches, h.check_in).subscribe({
+      next: estimado => { this.estimadoHabitacionOcupada = { idHabitacion: h.id, estimado }; this.cdr.detectChanges(); },
+      error: () => { this.estimadoHabitacionOcupada = null; this.cdr.detectChanges(); },
+    });
+  }
+
+  /** Cálculo local de respaldo mientras se resuelve actualizarEstimadoOcupada() (o si falla) --
+   * replica TarifaTemporadaService::calcularCargoHospedaje() del backend, que es la fuente de
+   * verdad real al momento de cobrar. */
   private calcularCargoHospedaje(h: ErpHabitacion): { total: number; huboTemporada: boolean } {
     const precioBase = h.precio ?? 0;
     const noches = h.noches ?? 0;
