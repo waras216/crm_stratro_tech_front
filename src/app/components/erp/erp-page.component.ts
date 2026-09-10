@@ -24,6 +24,7 @@ import { ModuleService, ErpTab } from '../../core/services/module.service';
     <app-erp-tarifas-temporada   *ngIf="tab==='tarifas'"></app-erp-tarifas-temporada>
     <app-erp-mantenimiento-hotel *ngIf="tab==='mantenimiento'"></app-erp-mantenimiento-hotel>
     <app-erp-solicitudes-huesped *ngIf="tab==='solicitudes'"></app-erp-solicitudes-huesped>
+    <app-erp-mesas       *ngIf="tab==='mesas'"></app-erp-mesas>
     <app-erp-categorias  *ngIf="tab==='categorias'"></app-erp-categorias>
     <app-erp-proveedores *ngIf="tab==='proveedores'"></app-erp-proveedores>
   `,

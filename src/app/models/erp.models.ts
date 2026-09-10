@@ -157,6 +157,7 @@ export interface ErpComanda {
   id: number;
   estado: 'abierta' | 'enviada' | 'cerrada';
   enviada_cocina: boolean;
+  preparada: boolean;
   total: number;
   items: ErpComandaItem[];
 }
@@ -166,6 +167,8 @@ export interface ErpMesa {
   id_tenant?: number;
   numero: number;
   capacidad: number;
+  ubicacion: string | null;
+  descripcion: string | null;
   estado: 'libre' | 'ocupada' | 'cuenta' | 'reservada';
   mesero: string | null;
   comanda_activa: ErpComanda | null;

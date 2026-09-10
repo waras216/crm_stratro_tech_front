@@ -54,6 +54,7 @@ import { PosTerminalHotelSeccionComponent } from './components/pos/terminal-hote
 import { PosTerminalHotelMesasComponent } from './components/pos/terminal-hotel/terminal-hotel-mesas.component';
 import { PosTerminalRestauranteComponent }from './components/pos/terminal-restaurante/terminal-restaurante.component';
 import { PagoModalComponent }            from './components/pos/pago-modal/pago-modal.component';
+import { PosComandasComponent }          from './components/pos/comandas/comandas.component';
 
 // ERP
 import { ErpPageComponent }      from './components/erp/erp-page.component';
@@ -76,6 +77,7 @@ import { ErpMantenimientoHotelComponent } from './components/erp/mantenimiento-h
 import { ErpSolicitudesHuespedComponent } from './components/erp/solicitudes-huesped/solicitudes-huesped.component';
 import { ErpCategoriasComponent } from './components/erp/categorias/categorias.component';
 import { ErpProveedoresComponent } from './components/erp/proveedores/proveedores.component';
+import { ErpMesasComponent } from './components/erp/mesas/mesas.component';
 
 // Other
 import { ConfiguracionComponent } from './components/configuracion/configuracion.component';
@@ -131,6 +133,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     PosTerminalHotelSeccionComponent,
     PosTerminalHotelMesasComponent,
     PosTerminalRestauranteComponent,
+    PosComandasComponent,
     PagoModalComponent,
     // ERP
     ErpPageComponent,
@@ -145,6 +148,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     ErpTarifasTemporadaComponent,
     ErpMantenimientoHotelComponent,
     ErpSolicitudesHuespedComponent,
+    ErpMesasComponent,
     ErpCategoriasComponent,
     ErpProveedoresComponent,
     ErpFacturacionComponent,

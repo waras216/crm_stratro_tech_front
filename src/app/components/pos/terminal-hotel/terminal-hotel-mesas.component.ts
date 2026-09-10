@@ -100,8 +100,12 @@ import { modalLeave } from '../../shared/animations';
       </div>
 
       <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[40vh] lg:max-h-none overflow-y-auto pb-fab">
-        <div class="px-5 pt-4 pb-2 border-b border-slate-50 flex items-center justify-between">
-          <p class="text-xs font-bold text-slate-700 m-0">Comanda Activa</p>
+        <div class="px-5 pt-4 pb-2 border-b border-slate-50 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <p class="text-xs font-bold text-slate-700 m-0">Comanda Activa</p>
+            <span *ngIf="mesa.comanda_activa?.estado === 'enviada' && mesa.comanda_activa?.preparada" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600">✓ Lista para servir</span>
+            <span *ngIf="mesa.comanda_activa?.estado === 'enviada' && !mesa.comanda_activa?.preparada" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600">Enviado a {{ destinoPreparacion }}</span>
+          </div>
           <span class="text-xs font-bold text-violet-600">Total: \${{ totalMesa(mesa) }}</span>
         </div>
         <div *ngIf="comandaItems(mesa).length === 0" class="text-center py-10 text-slate-400 text-xs">
@@ -173,8 +177,14 @@ import { modalLeave } from '../../shared/animations';
   <h3 class="m-0 mb-4 text-lg font-semibold">Nueva Mesa</h3>
   <div class="flex flex-col gap-3">
     <div class="grid grid-cols-2 gap-3">
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="mesaForm.numero" placeholder="Número" />
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="mesaForm.capacidad" placeholder="Capacidad" />
+      <label class="flex flex-col gap-1 text-xs text-slate-500">
+        Número
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="mesaForm.numero" placeholder="Número" />
+      </label>
+      <label class="flex flex-col gap-1 text-xs text-slate-500">
+        Capacidad
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" min="1" [(ngModel)]="mesaForm.capacidad" placeholder="Capacidad" />
+      </label>
     </div>
     <p *ngIf="mesaError" class="text-xs text-red-600 m-0">{{ mesaError }}</p>
     <button (click)="crearMesa()" [disabled]="mesaSaving"
@@ -395,7 +405,7 @@ export class PosTerminalHotelMesasComponent implements OnInit, OnChanges {
     this.erpService.enviarCocina(this.mesaSeleccionada.id).subscribe({
       next: actualizada => {
         this.mesaSeleccionada = actualizada;
-        this.notify.success(`Mesa ${actualizada.numero} — ${this.comandaItems(actualizada).length} items`, 'Comanda enviada a cocina');
+        this.notify.success(`Mesa ${actualizada.numero} — ${this.comandaItems(actualizada).length} items`, `Comanda enviada a ${this.destinoPreparacion.toLowerCase()}`);
         this.cdr.detectChanges();
       },
     });

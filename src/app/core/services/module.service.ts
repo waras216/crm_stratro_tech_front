@@ -7,8 +7,8 @@ import { NichoService } from './nicho.service';
 import { AuthService } from '../auth/authservices';
 
 export type ModuleId = 'crm' | 'erp' | 'pos';
-export type ErpTab = 'dashboard' | 'finanzas' | 'compras' | 'ventas' | 'facturacion' | 'inventario' | 'fabricacion' | 'scm' | 'rrhh' | 'crm' | 'proyectos' | 'reportes' | 'habitaciones' | 'reservas' | 'tarifas' | 'mantenimiento' | 'solicitudes' | 'categorias' | 'proveedores';
-export type PosTab = 'terminal' | 'historial';
+export type ErpTab = 'dashboard' | 'finanzas' | 'compras' | 'ventas' | 'facturacion' | 'inventario' | 'fabricacion' | 'scm' | 'rrhh' | 'crm' | 'proyectos' | 'reportes' | 'habitaciones' | 'reservas' | 'tarifas' | 'mantenimiento' | 'solicitudes' | 'mesas' | 'categorias' | 'proveedores';
+export type PosTab = 'terminal' | 'historial' | 'comandas';
 
 export interface ModuleConfig {
   id: ModuleId;
@@ -167,6 +167,7 @@ const ERP_SIDEBAR: SidebarSection[] = [
       { label: 'Tarifas',        svg: S(`<line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>`),                                                                                    erpTab: 'tarifas' },
       { label: 'Mantenimiento',  svg: S(`<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>`),                              erpTab: 'mantenimiento' },
       { label: 'Solicitudes',    svg: S(`<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>`),                                                                                                     erpTab: 'solicitudes' },
+      { label: 'Mesas (Bar)',    svg: S(`<circle cx="12" cy="8" r="1"/><path d="M5 3h14l-1.5 9h-11L5 3z"/><path d="M12 12v9"/><path d="M8 21h8"/>`),                                                                                          erpTab: 'mesas' },
     ],
   },
   {
@@ -205,10 +206,10 @@ const ERP_SIDEBAR: SidebarSection[] = [
 // que sí factura por horas/proyecto.
 // "startup" es un negocio de software/servicio: no tiene inventario físico,
 // no compra mercancía a proveedores, no fabrica ni despacha envíos.
-// Los 5 tabs de "Hotel" (Habitaciones/Reservas/Tarifas/Mantenimiento/
-// Solicitudes) solo existen para operar un hotel — se ocultan para todos
-// los demás nichos.
-const HOTEL_TABS: ErpTab[] = ['habitaciones', 'reservas', 'tarifas', 'mantenimiento', 'solicitudes'];
+// Los tabs de "Hotel" (Habitaciones/Reservas/Tarifas/Mantenimiento/
+// Solicitudes/Mesas) solo existen para operar un hotel — se ocultan para
+// todos los demás nichos.
+const HOTEL_TABS: ErpTab[] = ['habitaciones', 'reservas', 'tarifas', 'mantenimiento', 'solicitudes', 'mesas'];
 const ERP_TABS_OCULTOS_POR_NICHO: Partial<Record<string, ErpTab[]>> = {
   restaurante: ['fabricacion', 'scm', 'proyectos', ...HOTEL_TABS],
   hotel: ['fabricacion', 'scm', 'proyectos'],
@@ -235,10 +236,22 @@ const POS_SIDEBAR: SidebarSection[] = [
   {
     items: [
       { label: 'Terminal de Venta', svg: S(`<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>`), posTab: 'terminal' },
+      { label: 'Comandas',          svg: S(`<path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/><circle cx="19" cy="6" r="1.5"/><circle cx="19" cy="12" r="1.5"/>`),      posTab: 'comandas' },
       { label: 'Historial',         svg: S(`<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`),                                                              posTab: 'historial' },
     ],
   },
 ];
+
+// "Comandas" (pantalla de bartender/cocinero) solo tiene sentido donde existe
+// el flujo de mesas + "Enviar a Cocina/Barra" (ver MesaController/PosTerminal*
+// Mesas): el restaurante independiente siempre, y el hotel solo si activó la
+// amenidad Restaurante o Bar en el onboarding -- sin ninguna de las dos no
+// hay mesas ni comandas que preparar.
+function posTieneComandas(nicho: string, hotelAmenidades: string[]): boolean {
+  if (nicho === 'restaurante') return true;
+  if (nicho === 'hotel') return hotelAmenidades.includes('restaurante') || hotelAmenidades.includes('bar');
+  return false;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ModuleService {
@@ -293,12 +306,27 @@ export class ModuleService {
     switch (moduleId) {
       case 'crm': return CRM_SIDEBAR;
       case 'erp': return this.buildErpSidebar(nicho);
-      case 'pos': return POS_SIDEBAR;
+      case 'pos': return this.buildPosSidebar(nicho);
     }
   }
 
+  private buildPosSidebar(nicho?: string): SidebarSection[] {
+    if (posTieneComandas(nicho || '', this.nicho.hotelAmenidades)) return POS_SIDEBAR;
+
+    return POS_SIDEBAR.map(section => ({
+      ...section,
+      items: section.items.filter(item => item.posTab !== 'comandas'),
+    }));
+  }
+
   private buildErpSidebar(nicho?: string): SidebarSection[] {
-    const ocultos = (nicho && ERP_TABS_OCULTOS_POR_NICHO[nicho]) || [];
+    const ocultos = [...((nicho && ERP_TABS_OCULTOS_POR_NICHO[nicho]) || [])];
+    // "Mesas (Bar)" solo aplica si, además de ser hotel, el tenant marcó la
+    // amenidad "bar" en el onboarding (ver HOTEL_AMENIDAD_CATEGORIAS) —
+    // sin esa amenidad no hay mesas de bar que administrar.
+    if (nicho === 'hotel' && !this.nicho.hotelAmenidades.includes('bar')) {
+      ocultos.push('mesas');
+    }
     const labelVentas = erpVentasLabel(nicho);
 
     return ERP_SIDEBAR

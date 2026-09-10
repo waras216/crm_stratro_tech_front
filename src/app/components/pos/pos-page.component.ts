@@ -90,6 +90,9 @@ import { Cliente } from '../../models/crm.models';
       </div>
     </ng-container>
 
+    <!-- ── COMANDAS PENDIENTES (bartender/cocinero) ── -->
+    <app-pos-comandas *ngIf="tab==='comandas'"></app-pos-comandas>
+
     <!-- ── HISTORIAL ── -->
     <div *ngIf="tab==='historial'" class="page-enter">
       <div class="bg-white border border-slate-200 rounded-xl p-5">

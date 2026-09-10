@@ -1,0 +1,33 @@
+<div class="flex flex-col gap-4 page-enter">
+  <div>
+    <h2 class="m-0 text-lg font-bold text-slate-800">Comandas Pendientes</h2>
+    <p class="text-xs text-slate-500 m-0 mt-1">Lo que las mesas mandaron a preparar — se actualiza sola</p>
+  </div>
+
+  <div *ngIf="cargando && mesas.length === 0" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-24 rounded-xl skeleton"></div>
+  </div>
+
+  <div *ngIf="!cargando && mesas.length === 0" class="bg-white border border-slate-200 rounded-xl text-center py-16 text-slate-400 text-sm">
+    Sin comandas pendientes — todo al día 🎉
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div *ngFor="let m of mesas; let i = index" class="bg-white border border-violet-200 rounded-2xl p-4 flex flex-col gap-3 card-enter" [style.animation-delay]="(i*0.05)+'s'">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-extrabold text-slate-800 m-0">Mesa {{ m.numero }}</p>
+        <span class="text-xs font-bold text-violet-600">${{ totalMesa(m) }}</span>
+      </div>
+      <p *ngIf="m.mesero" class="text-[11px] text-slate-400 m-0">Mesero: {{ m.mesero }}</p>
+      <div class="flex flex-col gap-1.5">
+        <div *ngFor="let item of m.comanda_activa?.items" class="flex items-center justify-between text-sm">
+          <span class="text-slate-700">{{ item.nombre }}</span>
+          <span class="font-bold text-slate-500">x{{ item.cantidad }}</span>
+        </div>
+      </div>
+      <button (click)="marcarLista(m)" [disabled]="marcando === m.id"
+        class="w-full py-2 text-white rounded-lg border-0 cursor-pointer text-xs font-semibold hover:opacity-90 disabled:opacity-60 mt-1"
+        style="background:#10b981">{{ marcando === m.id ? 'Marcando...' : '✓ Marcar Lista' }}</button>
+    </div>
+  </div>
+</div>

@@ -68,7 +68,6 @@
         <!-- Items -->
         <button *ngFor="let item of section.items"
           (click)="onNavigate(item)"
-          [title]="item.label"
           class="nav-item"
           [class.nav-item--collapsed]="collapsed"
           [class.nav-item--active]="isItemActive(item)"
