@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Location } from '@angular/common';
+import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
@@ -121,7 +122,8 @@ export class ConfiguracionComponent implements OnInit {
 
   private readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  get rolesAsignables(): Rol[] { return this.roles.filter(r => !r.es_sistema); }
+  get rolesAsignables(): Rol[] { return this.roles.filter(r => r.clave !== 'tenant.admin'); }
+  rolMiembroId(): number | null { return this.roles.find(r => r.clave === 'tenant.miembro')?.id_rol ?? null; }
 
   // Editar usuario existente
   dialogUsuarioOpen = false;
@@ -215,6 +217,7 @@ export class ConfiguracionComponent implements OnInit {
     private auth: AuthService,
     public theme: ThemeService,
     private location: Location,
+    private router: Router,
     private usuarioService: UsuarioService,
     private rolService: RolService,
     private cdr: ChangeDetectorRef,
@@ -226,6 +229,7 @@ export class ConfiguracionComponent implements OnInit {
   safe(html: string): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(html); }
 
   goBack() { this.location.back(); }
+  goToRoles() { this.router.navigate(['/admin/roles']); }
 
   setActiveTab(tab: TabConfiguracion) {
     this.activeTab = tab;
@@ -273,7 +277,17 @@ export class ConfiguracionComponent implements OnInit {
     this.applyStoredStyles();
     if (this.esAdmin) {
       this.cargarUsuarios();
-      this.rolService.cargarRoles().subscribe({ next: roles => this.roles = roles });
+      this.rolService.cargarRoles().subscribe({
+        next: roles => {
+          this.roles = roles;
+          // Preseleccionar "Miembro" (todos los permisos) en vez de dejar el
+          // select en un valor implícito -- así el admin ve explícitamente
+          // qué rol se le va a asignar al usuario nuevo.
+          if (this.nuevoUsuario.id_rol === null) {
+            this.nuevoUsuario.id_rol = this.rolMiembroId();
+          }
+        },
+      });
     }
   }
 
@@ -320,7 +334,7 @@ export class ConfiguracionComponent implements OnInit {
         if (nuevo.cuenta_existente) {
           this.avisoEquipo = `${nuevo.email} ya tenía una cuenta en STRATO — se agregó a tu equipo con su contraseña existente. La contraseña que escribiste aquí no se usó.`;
         }
-        this.nuevoUsuario = { nombre: '', email: '', password: '', es_admin: false, id_rol: null };
+        this.nuevoUsuario = { nombre: '', email: '', password: '', es_admin: false, id_rol: this.rolMiembroId() };
         this.erroresNuevoUsuario = {};
         this.cargarUsuarios();
         // Un cajero (sin correo) solo puede entrar configurando su 2FA, y
