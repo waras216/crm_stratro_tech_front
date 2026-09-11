@@ -22,6 +22,8 @@ import { ConfirmDialogComponent } from './components/shared/confirm-dialog/confi
 import { ViewToggleComponent } from './components/shared/view-toggle/view-toggle.component';
 import { EmptyStateComponent } from './components/shared/empty-state/empty-state.component';
 import { DateRangeComponent } from './components/shared/date-range/date-range.component';
+import { ButtonComponent } from './components/shared/button/button.component';
+import { BadgeComponent } from './components/shared/badge/badge.component';
 import { BulkActionBarComponent } from './components/shared/bulk-action-bar/bulk-action-bar.component';
 
 // Auth
@@ -104,6 +106,8 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     ViewToggleComponent,
     EmptyStateComponent,
     DateRangeComponent,
+    ButtonComponent,
+    BadgeComponent,
     BulkActionBarComponent,
     PuedeDirective,
     // Auth

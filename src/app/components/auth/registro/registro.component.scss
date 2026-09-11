@@ -79,6 +79,12 @@
   &:focus { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,.25); }
 }
 
+.password-toggle {
+  transition: color .15s ease, transform .15s ease;
+  &:hover { color: #e0e7ff !important; }
+  &:active { transform: scale(.9); }
+}
+
 .link-underline {
   position: relative;
   text-decoration: none !important;

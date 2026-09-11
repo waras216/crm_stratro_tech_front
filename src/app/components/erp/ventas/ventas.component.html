@@ -40,7 +40,46 @@
     <div *ngFor="let _ of [1,2,3,4]" class="h-12 rounded-lg skeleton"></div>
   </div>
 
-  <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-3">
+  <!-- Mobile: card list -->
+  <div *ngIf="!cargando" class="flex flex-col gap-2 md:hidden">
+    <div *ngFor="let p of pedidos" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="p-3 flex flex-col gap-2 cursor-pointer" (click)="toggleDetalle(p.id)">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-xs text-slate-500">#{{ p.id }}</span>
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="p.estado==='enviado' || p.estado==='facturado' ? 'badge-green' : p.estado==='pendiente' ? 'badge-amber' : 'badge-red'">{{ p.estado }}</span>
+        </div>
+        <p class="font-medium text-sm m-0">{{ p.cliente?.nombre }}</p>
+        <div class="flex items-center justify-between text-xs text-slate-500">
+          <span>{{ canalLabel(p.canal) }}</span>
+          <span class="font-medium text-slate-700">${{ p.total.toLocaleString() }}</span>
+        </div>
+      </div>
+      <div *ngIf="expandidoId === p.id" class="bg-slate-50 border-t border-slate-100 px-3 py-3 flex flex-col gap-2">
+        <div *ngIf="desgloseSecciones(p).length > 1" class="flex flex-wrap gap-1.5">
+          <span *ngFor="let d of desgloseSecciones(p)"
+            class="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-violet-50 text-violet-700 border border-violet-100">
+            {{ d.seccion }}: ${{ d.total.toLocaleString() }}
+          </span>
+        </div>
+        <ng-container *ngIf="p.items && p.items.length > 0; else sinItemsCard">
+          <div *ngFor="let it of p.items" class="flex items-center justify-between text-xs">
+            <span class="text-slate-600">{{ it.producto?.nombre || it.descripcion || 'Producto #' + it.id_producto }} <span class="text-slate-400">×{{ it.cantidad }}</span></span>
+            <span class="font-medium text-slate-700">${{ (it.subtotal ?? (it.cantidad * it.precio_unitario)).toLocaleString() }}</span>
+          </div>
+        </ng-container>
+        <ng-template #sinItemsCard><p class="text-slate-400 text-xs m-0 py-1">Sin detalle de productos para este pedido.</p></ng-template>
+        <ng-container *ngIf="p.estado!=='cancelada' && p.estado!=='facturado'">
+          <button *appPuede="'erp_ventas.editar'" (click)="$event.stopPropagation(); cancelar(p.id)" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline self-start border-t border-slate-200 pt-2 w-full text-left">Cancelar</button>
+        </ng-container>
+      </div>
+    </div>
+    <app-empty-state *ngIf="pedidos.length === 0" titulo="Aún no tienes pedidos" subtitulo="Crea tu primer pedido para empezar a registrar ventas." accionLabel="+ Nuevo Pedido" color="amber" (accion)="openNew()">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.91 8.84L8.56 2.23a1.93 1.93 0 0 0-1.81 0L3.1 4.13a2.12 2.12 0 0 0-.06 3.69l12.35 6.61a1.93 1.93 0 0 0 1.81 0l3.65-1.9a2.12 2.12 0 0 0 .06-3.69Z"/><path d="M3.09 8.84l12.35 6.61a1.93 1.93 0 0 0 1.81 0l3.65-1.9"/><line x1="12" y1="22" x2="12" y2="13"/></svg>
+    </app-empty-state>
+  </div>
+
+  <!-- Desktop: table -->
+  <div *ngIf="!cargando" class="hidden md:block bg-white border border-slate-200 rounded-xl overflow-hidden scale-in delay-3">
     <div class="overflow-x-auto">
     <table class="w-full text-sm border-collapse">
       <thead><tr class="bg-slate-50">

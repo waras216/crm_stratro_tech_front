@@ -77,13 +77,9 @@
           </td>
           <td class="px-4 py-3">{{ h.piso }}</td>
           <td class="px-4 py-3 text-center">
-            <span class="px-2 py-0.5 rounded-full text-xs font-medium"
-              [class.bg-emerald-100]="h.estado==='libre'" [class.text-emerald-600]="h.estado==='libre'"
-              [class.bg-amber-100]="h.estado==='ocupada'" [class.text-amber-600]="h.estado==='ocupada'"
-              [class.bg-blue-100]="h.estado==='checkout'" [class.text-blue-600]="h.estado==='checkout'"
-              [class.bg-slate-100]="h.estado==='mantenimiento'" [class.text-slate-500]="h.estado==='mantenimiento'">
+            <app-badge [color]="h.estado==='libre' ? 'emerald' : h.estado==='ocupada' ? 'amber' : h.estado==='checkout' ? 'blue' : 'slate'">
               {{ h.estado | titlecase }}
-            </span>
+            </app-badge>
           </td>
           <td class="px-4 py-3 text-center">
             <button (click)="siguienteEstadoLimpieza(h)" [title]="'Clic para pasar a: ' + limpiezaLabel(ordenLimpiezaSiguiente(h))"

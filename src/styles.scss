@@ -57,6 +57,8 @@ body {
 .text-\[10px\] { font-size: calc(var(--base-font) * 0.625) !important; }
 .text-\[13px\] { font-size: calc(var(--base-font) * 0.8125) !important; }
 .text-\[15px\] { font-size: calc(var(--base-font) * 0.9375) !important; }
+.text-\[9px\] { font-size: calc(var(--base-font) * 0.5625) !important; }
+.text-\[8px\] { font-size: calc(var(--base-font) * 0.5) !important; }
 
 /* Accent color applied globally */
 .btn-accent {
@@ -80,18 +82,66 @@ body {
   border-color: var(--accent) !important;
 }
 
-/* Border radius from settings */
+/* Border radius scale (convention observed across the app, now documented):
+   - rounded-full : pills/avatars/badges — never scales with --radius
+   - rounded-2xl  : cards, modals, page-level containers
+   - rounded-xl   : buttons, inputs, most interactive controls (this is --radius itself)
+   - rounded-lg   : compact icon buttons, table cells, small chips
+   - rounded-md   : rare, smallest inline elements
+   Shadow scale (see tailwind.config.js theme.boxShadow): shadow-card (resting cards),
+   shadow-hover (hover elevation), shadow-modal (dialogs/overlays), shadow-btn (accent buttons). */
+/* Border radius from settings — scaled off --radius as the "xl" (0.75rem default) reference */
+.rounded-md { border-radius: calc(var(--radius) * 0.5) !important; }
+.rounded-lg { border-radius: calc(var(--radius) * 2 / 3) !important; }
 .rounded-xl { border-radius: var(--radius) !important; }
 .rounded-2xl { border-radius: calc(var(--radius) * 1.5) !important; }
+.rounded-3xl { border-radius: calc(var(--radius) * 2) !important; }
+/* rounded-full intentionally not scaled — pills must stay pills regardless of radius setting */
 
-/* Spacing from settings */
-.gap-5 { gap: calc(var(--spacing) * 2.5) !important; }
-.p-6 { padding: calc(var(--spacing) * 3) !important; }
+/* Spacing from settings — every p-N/px-N/py-N/m-N/.../gap-N actually used in the app,
+   scaled so 1 Tailwind spacing unit = --spacing / 2 (matches the p-6/gap-5 defaults below) */
+@mixin spacing-utils($suffix, $val) {
+  $amount: calc(var(--spacing) * #{$val} / 2);
+  .p-#{$suffix} { padding: $amount !important; }
+  .px-#{$suffix} { padding-left: $amount !important; padding-right: $amount !important; }
+  .py-#{$suffix} { padding-top: $amount !important; padding-bottom: $amount !important; }
+  .pt-#{$suffix} { padding-top: $amount !important; }
+  .pb-#{$suffix} { padding-bottom: $amount !important; }
+  .pl-#{$suffix} { padding-left: $amount !important; }
+  .pr-#{$suffix} { padding-right: $amount !important; }
+  .m-#{$suffix} { margin: $amount !important; }
+  .mx-#{$suffix} { margin-left: $amount !important; margin-right: $amount !important; }
+  .my-#{$suffix} { margin-top: $amount !important; margin-bottom: $amount !important; }
+  .mt-#{$suffix} { margin-top: $amount !important; }
+  .mb-#{$suffix} { margin-bottom: $amount !important; }
+  .ml-#{$suffix} { margin-left: $amount !important; }
+  .mr-#{$suffix} { margin-right: $amount !important; }
+  .gap-#{$suffix} { gap: $amount !important; }
+}
+@each $n in 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16 {
+  @include spacing-utils("#{$n}", $n);
+}
+@each $whole, $n in (0: 0.5, 1: 1.5, 2: 2.5, 3: 3.5) {
+  @include spacing-utils("#{$whole}\\.5", $n);
+}
 
-/* No animations mode */
+/* No animations mode (manual toggle in Configuración) */
 .no-animations *, .no-animations *::before, .no-animations *::after {
   animation: none !important;
   transition: none !important;
+}
+
+/* Respeta la preferencia del sistema operativo además del toggle manual de arriba.
+   Se reduce a casi-instantáneo en vez de a 0 para no romper animaciones que
+   además cargan/revelan contenido (ej. *ngIf + fade), que necesitan un frame
+   para disparar sus listeners de "animationend"/"transitionend". */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Dark mode overrides for cards with inline styles */
