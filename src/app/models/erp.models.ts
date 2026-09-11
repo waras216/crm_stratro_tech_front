@@ -155,9 +155,8 @@ export interface ErpComandaItem {
 
 export interface ErpComanda {
   id: number;
-  estado: 'abierta' | 'enviada' | 'cerrada';
+  estado: 'abierta' | 'enviada' | 'preparada' | 'entregada' | 'cerrada';
   enviada_cocina: boolean;
-  preparada: boolean;
   total: number;
   items: ErpComandaItem[];
 }
@@ -167,6 +166,8 @@ export interface ErpMesa {
   id_tenant?: number;
   numero: number;
   capacidad: number;
+  /** Solo aplica a hoteles con más de una de estas amenidades — null si es indistinto. */
+  seccion: 'bar' | 'restaurante' | null;
   ubicacion: string | null;
   descripcion: string | null;
   estado: 'libre' | 'ocupada' | 'cuenta' | 'reservada';

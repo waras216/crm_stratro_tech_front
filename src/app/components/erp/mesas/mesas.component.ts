@@ -1,14 +1,16 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
+import { NichoService } from '../../../core/services/nicho.service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpMesa } from '../../../models/erp.models';
 import { modalLeave } from '../../shared/animations';
 
 /**
- * Administración de mesas del Bar del hotel fuera del terminal en vivo — igual que
- * ErpHabitacionesComponent lo es para cuartos. Solo visible si el hotel marcó la
- * amenidad "Bar" en el onboarding (ver ERP_SIDEBAR/module.service.ts). El uso en
- * vivo (abrir/cobrar/comanda) sigue viviendo en PosTerminalHotelMesasComponent.
+ * Administración de mesas fuera del terminal en vivo — igual que
+ * ErpHabitacionesComponent lo es para cuartos. Sirve tanto al hotel (visible si
+ * marcó amenidad "Bar" o "Restaurante" en el onboarding, con selector de sección
+ * si tiene ambas) como al restaurante independiente. El uso en vivo
+ * (abrir/cobrar/comanda) sigue viviendo en PosTerminalHotelMesasComponent.
  */
 @Component({
   selector: 'app-erp-mesas',
@@ -23,11 +25,17 @@ export class ErpMesasComponent implements OnInit {
 
   mesaDialogOpen = false;
   mesaEditando: ErpMesa | null = null;
-  mesaForm = { numero: null as number | null, capacidad: 4, ubicacion: '', descripcion: '' };
+  mesaForm = { numero: null as number | null, capacidad: 4, seccion: '' as '' | 'bar' | 'restaurante', ubicacion: '', descripcion: '' };
   mesaError = '';
   mesaSaving = false;
 
-  constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
+  constructor(private erpService: ErpService, private nicho: NichoService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
+
+  /** El selector de sección solo tiene sentido si el hotel tiene ambas amenidades — con una sola no hay nada que distinguir. */
+  get mostrarSeccion(): boolean {
+    const a = this.nicho.hotelAmenidades;
+    return a.includes('bar') && a.includes('restaurante');
+  }
 
   ngOnInit() {
     this.cargando = true;
@@ -44,14 +52,14 @@ export class ErpMesasComponent implements OnInit {
 
   abrirNuevaMesa() {
     this.mesaEditando = null;
-    this.mesaForm = { numero: null, capacidad: 4, ubicacion: '', descripcion: '' };
+    this.mesaForm = { numero: null, capacidad: 4, seccion: '', ubicacion: '', descripcion: '' };
     this.mesaError = '';
     this.mesaDialogOpen = true;
   }
 
   abrirEditarMesa(m: ErpMesa) {
     this.mesaEditando = m;
-    this.mesaForm = { numero: m.numero, capacidad: m.capacidad, ubicacion: m.ubicacion ?? '', descripcion: m.descripcion ?? '' };
+    this.mesaForm = { numero: m.numero, capacidad: m.capacidad, seccion: m.seccion ?? '', ubicacion: m.ubicacion ?? '', descripcion: m.descripcion ?? '' };
     this.mesaError = '';
     this.mesaDialogOpen = true;
   }
@@ -65,6 +73,7 @@ export class ErpMesasComponent implements OnInit {
     const payload = {
       numero: this.mesaForm.numero,
       capacidad: this.mesaForm.capacidad || 2,
+      seccion: this.mesaForm.seccion || null,
       ubicacion: this.mesaForm.ubicacion.trim() || null,
       descripcion: this.mesaForm.descripcion.trim() || null,
     };

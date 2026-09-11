@@ -38,11 +38,11 @@ import { modalLeave } from '../../shared/animations';
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 lg:flex-1 max-h-[32vh] lg:max-h-none overflow-y-auto p-3">
       <p *ngIf="cargandoMesas" class="text-center py-8 text-slate-400 text-xs">Cargando...</p>
-      <p *ngIf="!cargandoMesas && mesas.length===0" class="text-center py-8 text-slate-400 text-xs">
+      <p *ngIf="!cargandoMesas && mesasSeccion.length===0" class="text-center py-8 text-slate-400 text-xs">
         Sin mesas — agrega la primera con "+ Mesa"
       </p>
       <div class="grid grid-cols-3 gap-2">
-        <button *ngFor="let m of mesas"
+        <button *ngFor="let m of mesasSeccion"
           (click)="seleccionar(m)"
           class="aspect-square rounded-xl flex flex-col items-center justify-center border-2 cursor-pointer transition-all"
           [ngClass]="mesaClases(m)">
@@ -81,10 +81,13 @@ import { modalLeave } from '../../shared/animations';
           <button *ngIf="mesa.estado==='libre'" (click)="abrirMesa()"
             class="text-xs font-bold px-4 py-2 rounded-xl border-0 cursor-pointer text-white hover:opacity-90"
             style="background:#8b5cf6">Abrir Mesa</button>
-          <button *ngIf="mesa.estado==='ocupada' && comandaItems(mesa).length>0" (click)="enviarACocina()"
+          <button *ngIf="mesa.comanda_activa?.estado==='abierta' && comandaItems(mesa).length>0" (click)="enviarACocina()"
             class="text-xs font-semibold px-4 py-2 rounded-xl border border-violet-200 cursor-pointer text-violet-600 bg-violet-50 hover:bg-violet-100 transition-all">
             Enviar a {{ destinoPreparacion }}
           </button>
+          <button *ngIf="mesa.estado==='ocupada' && mesa.comanda_activa?.estado==='preparada'" (click)="marcarEntregada()" [disabled]="entregando"
+            class="text-xs font-bold px-4 py-2 rounded-xl border-0 cursor-pointer text-white hover:opacity-90 disabled:opacity-60"
+            style="background:#10b981">{{ entregando ? 'Marcando...' : '✓ Marcar entregada' }}</button>
           <button *ngIf="mesa.estado==='ocupada'" (click)="pedirCuenta()"
             class="text-xs font-bold px-4 py-2 rounded-xl border-0 cursor-pointer text-white hover:opacity-90"
             style="background:#f59e0b">Pedir Cuenta</button>
@@ -103,8 +106,9 @@ import { modalLeave } from '../../shared/animations';
         <div class="px-5 pt-4 pb-2 border-b border-slate-50 flex items-center justify-between gap-2">
           <div class="flex items-center gap-2">
             <p class="text-xs font-bold text-slate-700 m-0">Comanda Activa</p>
-            <span *ngIf="mesa.comanda_activa?.estado === 'enviada' && mesa.comanda_activa?.preparada" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600">✓ Lista para servir</span>
-            <span *ngIf="mesa.comanda_activa?.estado === 'enviada' && !mesa.comanda_activa?.preparada" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600">Enviado a {{ destinoPreparacion }}</span>
+            <span *ngIf="mesa.comanda_activa?.estado === 'enviada'" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600">Enviado a {{ destinoPreparacion }}</span>
+            <span *ngIf="mesa.comanda_activa?.estado === 'preparada'" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600">✓ Lista para servir</span>
+            <span *ngIf="mesa.comanda_activa?.estado === 'entregada'" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Entregada</span>
           </div>
           <span class="text-xs font-bold text-violet-600">Total: \${{ totalMesa(mesa) }}</span>
         </div>
@@ -231,6 +235,7 @@ export class PosTerminalHotelMesasComponent implements OnInit, OnChanges {
   mesaSeleccionada: ErpMesa | null = null;
   cargandoMesas = false;
   cobrando = false;
+  entregando = false;
 
   productosTodos: Producto[] = [];
   cargandoMenu = false;
@@ -309,6 +314,12 @@ export class PosTerminalHotelMesasComponent implements OnInit, OnChanges {
     return this.habitaciones.filter(h => h.estado === 'ocupada');
   }
 
+  /** Mesas de esta sección (Bar/Restaurante) — separación estricta, una mesa de Bar no debe verse en Restaurante y viceversa. */
+  get mesasSeccion(): ErpMesa[] {
+    const seccion = this.seccion.toLowerCase();
+    return this.mesas.filter(m => m.seccion === seccion);
+  }
+
   comandaItems(m: ErpMesa): ErpComandaItem[] {
     return m.comanda_activa?.items ?? [];
   }
@@ -335,7 +346,7 @@ export class PosTerminalHotelMesasComponent implements OnInit, OnChanges {
     if (this.mesaSaving || !this.mesaForm.numero) { this.mesaError = 'El número de mesa es obligatorio.'; return; }
     this.mesaSaving = true;
     this.mesaError = '';
-    this.erpService.crearMesa({ numero: this.mesaForm.numero, capacidad: this.mesaForm.capacidad || 2 }).subscribe({
+    this.erpService.crearMesa({ numero: this.mesaForm.numero, capacidad: this.mesaForm.capacidad || 2, seccion: this.seccion.toLowerCase() as 'bar' | 'restaurante' }).subscribe({
       next: () => {
         this.mesaSaving = false;
         this.mesaDialogOpen = false;
@@ -411,6 +422,23 @@ export class PosTerminalHotelMesasComponent implements OnInit, OnChanges {
     });
   }
 
+  marcarEntregada() {
+    if (!this.mesaSeleccionada || this.entregando) return;
+    this.entregando = true;
+    this.erpService.marcarEntregada(this.mesaSeleccionada.id).subscribe({
+      next: actualizada => {
+        this.mesaSeleccionada = actualizada;
+        this.entregando = false;
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        this.notify.error(err?.error?.message || 'No se pudo marcar la comanda como entregada');
+        this.entregando = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   async cerrarMesa() {
     if (!this.mesaSeleccionada || this.cobrando) return;
     const mesa = this.mesaSeleccionada;
@@ -457,6 +485,14 @@ export class PosTerminalHotelMesasComponent implements OnInit, OnChanges {
 
   abrirCargarHabitacion() {
     if (!this.mesaSeleccionada) return;
+    // Si el número de mesa coincide con una habitación ocupada (patrón común:
+    // mesas del restaurante numeradas igual que la habitación del huésped),
+    // se carga directo sin pedirle al mesero que la busque en la grilla.
+    const coincide = this.habitacionesOcupadas.find(h => h.numero === this.mesaSeleccionada!.numero);
+    if (coincide) {
+      this.confirmarCargarHabitacion(coincide);
+      return;
+    }
     this.habitacionDialogOpen = true;
   }
 

@@ -296,13 +296,13 @@ export class ErpService {
     );
   }
 
-  crearMesa(mesa: { numero: number; capacidad?: number; ubicacion?: string | null; descripcion?: string | null }): Observable<ErpMesa> {
+  crearMesa(mesa: { numero: number; capacidad?: number; seccion?: 'bar' | 'restaurante' | null; ubicacion?: string | null; descripcion?: string | null }): Observable<ErpMesa> {
     return this.http.post<ErpMesa>(`${API}/erp/mesas`, mesa).pipe(
       tap(nueva => this._mesas.next([...this.mesas, nueva]))
     );
   }
 
-  actualizarMesa(id: number, mesa: { numero?: number; capacidad?: number; ubicacion?: string | null; descripcion?: string | null }): Observable<ErpMesa> {
+  actualizarMesa(id: number, mesa: { numero?: number; capacidad?: number; seccion?: 'bar' | 'restaurante' | null; ubicacion?: string | null; descripcion?: string | null }): Observable<ErpMesa> {
     return this.http.patch<ErpMesa>(`${API}/erp/mesas/${id}`, mesa).pipe(
       tap(actualizada => this.actualizarMesaLocal(actualizada))
     );
@@ -357,6 +357,12 @@ export class ErpService {
   cargarComandasPendientes(): Observable<ErpMesa[]> {
     return this.http.get<ErpMesa[]>(`${API}/erp/mesas/pendientes`).pipe(
       tap(data => this._comandasPendientes.next(data))
+    );
+  }
+
+  marcarEntregada(idMesa: number): Observable<ErpMesa> {
+    return this.http.patch<ErpMesa>(`${API}/erp/mesas/${idMesa}/entregada`, {}).pipe(
+      tap(actualizada => this.actualizarMesaLocal(actualizada))
     );
   }
 

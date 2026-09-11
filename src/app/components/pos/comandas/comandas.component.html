@@ -1,19 +1,19 @@
 <div class="flex flex-col gap-4 page-enter">
   <div>
-    <h2 class="m-0 text-lg font-bold text-slate-800">Comandas Pendientes</h2>
+    <h2 class="m-0 text-lg font-bold text-slate-800">Comandas Pendientes — {{ seccion === 'bar' ? 'Bar' : 'Cocina' }}</h2>
     <p class="text-xs text-slate-500 m-0 mt-1">Lo que las mesas mandaron a preparar — se actualiza sola</p>
   </div>
 
-  <div *ngIf="cargando && mesas.length === 0" class="flex flex-col gap-2">
+  <div *ngIf="cargando && mesasSeccion.length === 0" class="flex flex-col gap-2">
     <div *ngFor="let _ of [1,2,3]" class="h-24 rounded-xl skeleton"></div>
   </div>
 
-  <div *ngIf="!cargando && mesas.length === 0" class="bg-white border border-slate-200 rounded-xl text-center py-16 text-slate-400 text-sm">
+  <div *ngIf="!cargando && mesasSeccion.length === 0" class="bg-white border border-slate-200 rounded-xl text-center py-16 text-slate-400 text-sm">
     Sin comandas pendientes — todo al día 🎉
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    <div *ngFor="let m of mesas; let i = index" class="bg-white border border-violet-200 rounded-2xl p-4 flex flex-col gap-3 card-enter" [style.animation-delay]="(i*0.05)+'s'">
+    <div *ngFor="let m of mesasSeccion; let i = index" class="bg-white border border-violet-200 rounded-2xl p-4 flex flex-col gap-3 card-enter" [style.animation-delay]="(i*0.05)+'s'">
       <div class="flex items-center justify-between">
         <p class="text-sm font-extrabold text-slate-800 m-0">Mesa {{ m.numero }}</p>
         <span class="text-xs font-bold text-violet-600">${{ totalMesa(m) }}</span>

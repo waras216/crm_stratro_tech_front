@@ -109,13 +109,16 @@ import { StockAlertService } from '../../../core/services/stock-alert.service';
           <button *ngIf="mesa.estado==='libre'" (click)="abrirMesa()"
             class="text-xs font-bold px-4 py-2 rounded-xl border-0 cursor-pointer text-white hover:opacity-90"
             style="background:#ef4444">Abrir Mesa</button>
+          <button *ngIf="mesa.estado==='ocupada' && mesa.comanda_activa?.estado==='preparada'" (click)="marcarEntregada()" [disabled]="entregando"
+            class="text-xs font-bold px-4 py-2 rounded-xl border-0 cursor-pointer text-white hover:opacity-90 disabled:opacity-60"
+            style="background:#10b981">{{ entregando ? 'Marcando...' : '✓ Marcar entregada' }}</button>
           <button *ngIf="mesa.estado==='ocupada'" (click)="pedirCuenta()"
             class="text-xs font-bold px-4 py-2 rounded-xl border-0 cursor-pointer text-white hover:opacity-90"
             style="background:#f59e0b">Pedir Cuenta</button>
           <button *ngIf="mesa.estado==='cuenta'" (click)="cerrarMesa()" [disabled]="cobrando"
             class="text-xs font-bold px-4 py-2 rounded-xl border-0 cursor-pointer text-white hover:opacity-90 disabled:opacity-60"
             style="background:#10b981">{{ cobrando ? 'Cobrando...' : 'Cobrar $' + totalMesa(mesa) }}</button>
-          <button *ngIf="mesa.estado==='ocupada' && comandaItems(mesa).length>0" (click)="enviarACocina()"
+          <button *ngIf="mesa.comanda_activa?.estado==='abierta' && comandaItems(mesa).length>0" (click)="enviarACocina()"
             class="text-xs font-semibold px-4 py-2 rounded-xl border border-red-200 cursor-pointer text-red-600 bg-red-50 hover:bg-red-100 transition-all">
             Enviar a Cocina
           </button>
@@ -127,8 +130,9 @@ import { StockAlertService } from '../../../core/services/stock-alert.service';
         <div class="px-5 pt-4 pb-2 border-b border-slate-50 flex items-center justify-between gap-2">
           <div class="flex items-center gap-2">
             <p class="text-xs font-bold text-slate-700 m-0">Comanda Activa</p>
-            <span *ngIf="mesa.comanda_activa?.estado === 'enviada' && mesa.comanda_activa?.preparada" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600">✓ Lista para servir</span>
-            <span *ngIf="mesa.comanda_activa?.estado === 'enviada' && !mesa.comanda_activa?.preparada" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600">Enviado a Cocina</span>
+            <span *ngIf="mesa.comanda_activa?.estado === 'enviada'" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600">Enviado a Cocina</span>
+            <span *ngIf="mesa.comanda_activa?.estado === 'preparada'" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600">✓ Lista para servir</span>
+            <span *ngIf="mesa.comanda_activa?.estado === 'entregada'" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Entregada</span>
           </div>
           <span class="text-xs font-bold text-red-600">Total: \${{ totalMesa(mesa) }}</span>
         </div>
@@ -246,6 +250,7 @@ export class PosTerminalRestauranteComponent implements OnInit {
   cargandoMesas = false;
   cargandoMenu = false;
   cobrando = false;
+  entregando = false;
 
   mesaDialogOpen = false;
   mesaForm = { numero: null as number | null, capacidad: 4 };
@@ -463,6 +468,23 @@ export class PosTerminalRestauranteComponent implements OnInit {
       next: actualizada => {
         this.mesaSeleccionada = actualizada;
         this.notify.success(`Mesa ${actualizada.numero} — ${this.comandaItems(actualizada).length} items`, 'Comanda enviada a cocina');
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  marcarEntregada() {
+    if (!this.mesaSeleccionada || this.entregando) return;
+    this.entregando = true;
+    this.erpService.marcarEntregada(this.mesaSeleccionada.id).subscribe({
+      next: actualizada => {
+        this.mesaSeleccionada = actualizada;
+        this.entregando = false;
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        this.notify.error(err?.error?.message || 'No se pudo marcar la comanda como entregada');
+        this.entregando = false;
         this.cdr.detectChanges();
       },
     });

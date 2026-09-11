@@ -1,12 +1,13 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpMesa } from '../../../models/erp.models';
 
 /**
- * Pantalla para el bartender/cocinero (no el mesero): todas las mesas del
- * tenant con una comanda enviada a preparación, sin importar la sección
- * (Bar/Restaurante) -- erp_mesas no distingue sección, ver Mesa::class.
+ * Pantalla para el bartender/cocinero (no el mesero): mesas del tenant con
+ * una comanda enviada a preparación. Una instancia por sección (Cocina ==
+ * seccion 'restaurante', Bar == seccion 'bar', ver PosPageComponent) para que
+ * cada uno vea solo lo suyo -- no ambas mezcladas en una sola pantalla.
  * Se refresca sola porque normalmente vive en una tablet/monitor fijo en la
  * barra, no en manos de alguien que le da "recargar".
  */
@@ -16,12 +17,18 @@ import { ErpMesa } from '../../../models/erp.models';
   templateUrl: './comandas.component.html',
 })
 export class PosComandasComponent implements OnInit, OnDestroy {
+  @Input() seccion: 'bar' | 'restaurante' | null = null;
+
   mesas: ErpMesa[] = [];
   cargando = false;
   marcando: number | null = null;
   private poll: ReturnType<typeof setInterval> | null = null;
 
   constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
+
+  get mesasSeccion(): ErpMesa[] {
+    return this.mesas.filter(m => m.seccion === this.seccion);
+  }
 
   ngOnInit() {
     this.cargando = true;
@@ -44,6 +51,7 @@ export class PosComandasComponent implements OnInit, OnDestroy {
   totalMesa(m: ErpMesa): number {
     return m.comanda_activa?.items.reduce((s, i) => s + i.precio_unitario * i.cantidad, 0) ?? 0;
   }
+
 
   marcarLista(m: ErpMesa) {
     this.marcando = m.id;
