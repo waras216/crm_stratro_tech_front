@@ -90,8 +90,12 @@ import { Cliente } from '../../models/crm.models';
       </div>
     </ng-container>
 
-    <!-- ── COMANDAS PENDIENTES (bartender/cocinero) ── -->
-    <app-pos-comandas *ngIf="tab==='comandas'"></app-pos-comandas>
+    <!-- ── COMANDAS PENDIENTES (bartender/cocinero), separadas por sección ── -->
+    <app-pos-comandas *ngIf="tab==='comandasCocina'" seccion="restaurante"></app-pos-comandas>
+    <app-pos-comandas *ngIf="tab==='comandasBar'" seccion="bar"></app-pos-comandas>
+
+    <!-- ── TICKETS DE MANTENIMIENTO (hotel) ── -->
+    <app-pos-mantenimiento *ngIf="tab==='mantenimiento'"></app-pos-mantenimiento>
 
     <!-- ── HISTORIAL ── -->
     <div *ngIf="tab==='historial'" class="page-enter">

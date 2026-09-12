@@ -38,6 +38,12 @@ Thumbs.db
 .env
 .env.local
 
+# Playwright
+/playwright-report
+/test-results
+/e2e/screenshots
+/blob-report
+
 # SSH keys accidentally placed in the repo root
 /123456
 /123456.pub

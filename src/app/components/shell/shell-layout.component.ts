@@ -269,14 +269,16 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
       scm: 'Supply Chain', rrhh: 'Recursos Humanos', crm: 'CRM', proyectos: 'Proyectos',
       reportes: 'Reportes',
       habitaciones: 'Habitaciones', reservas: 'Reservas', tarifas: 'Tarifas',
-      mantenimiento: 'Mantenimiento', solicitudes: 'Solicitudes', mesas: 'Mesas del Bar',
+      mantenimiento: 'Mantenimiento', solicitudes: 'Solicitudes', mesas: 'Mesas',
       categorias: 'Categorías', proveedores: 'Proveedores',
     };
     return m[tab] ?? tab;
   }
 
   private posLabel(tab: PosTab): string {
-    if (tab === 'comandas') return 'Comandas Pendientes';
+    if (tab === 'comandasCocina') return 'Comandas Cocina';
+    if (tab === 'comandasBar') return 'Comandas Bar';
+    if (tab === 'mantenimiento') return 'Mantenimiento';
     return tab === 'terminal' ? 'Terminal de Venta' : 'Historial de Ventas';
   }
 

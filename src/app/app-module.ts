@@ -22,6 +22,8 @@ import { ConfirmDialogComponent } from './components/shared/confirm-dialog/confi
 import { ViewToggleComponent } from './components/shared/view-toggle/view-toggle.component';
 import { EmptyStateComponent } from './components/shared/empty-state/empty-state.component';
 import { DateRangeComponent } from './components/shared/date-range/date-range.component';
+import { ButtonComponent } from './components/shared/button/button.component';
+import { BadgeComponent } from './components/shared/badge/badge.component';
 import { BulkActionBarComponent } from './components/shared/bulk-action-bar/bulk-action-bar.component';
 
 // Auth
@@ -55,6 +57,7 @@ import { PosTerminalHotelMesasComponent } from './components/pos/terminal-hotel/
 import { PosTerminalRestauranteComponent }from './components/pos/terminal-restaurante/terminal-restaurante.component';
 import { PagoModalComponent }            from './components/pos/pago-modal/pago-modal.component';
 import { PosComandasComponent }          from './components/pos/comandas/comandas.component';
+import { PosMantenimientoComponent }     from './components/pos/mantenimiento/mantenimiento.component';
 
 // ERP
 import { ErpPageComponent }      from './components/erp/erp-page.component';
@@ -104,6 +107,8 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     ViewToggleComponent,
     EmptyStateComponent,
     DateRangeComponent,
+    ButtonComponent,
+    BadgeComponent,
     BulkActionBarComponent,
     PuedeDirective,
     // Auth
@@ -134,6 +139,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     PosTerminalHotelMesasComponent,
     PosTerminalRestauranteComponent,
     PosComandasComponent,
+    PosMantenimientoComponent,
     PagoModalComponent,
     // ERP
     ErpPageComponent,

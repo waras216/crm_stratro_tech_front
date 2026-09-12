@@ -9,6 +9,7 @@ export class AuthLoginComponent {
   password = '';
   error    = '';
   loading  = false;
+  mostrarPassword = false;
 
   modo: 'email' | 'dosfa' = 'email';
   codigo = '';

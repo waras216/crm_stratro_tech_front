@@ -69,6 +69,7 @@
           <span class="hidden sm:block text-[10px] text-slate-400 font-medium">{{ lead.fuente }}</span>
           <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold" [ngClass]="estatusColors[lead.estado]">{{ lead.estado }}</span>
         </div>
+        <p *ngIf="!recentLeads.length" class="text-xs text-slate-400 text-center py-6 m-0">Aún no hay leads recientes.</p>
       </div>
     </div>
 
@@ -91,7 +92,7 @@
           <div class="flex-1 min-w-0">
             <p class="text-xs font-medium text-slate-700 m-0 truncate"
               [class.line-through]="act.estado === 'completada'" [class.text-slate-400]="act.estado === 'completada'">{{ act.titulo }}</p>
-            <p class="text-[10px] text-slate-400 m-0">{{ act.tipo }} · {{ act.fecha_inicio }}</p>
+            <p class="text-[10px] text-slate-400 m-0">{{ act.tipo }}<span *ngIf="act.fecha_inicio"> · {{ act.fecha_inicio }}</span></p>
           </div>
           <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
             [class.bg-emerald-50]="act.estado === 'completada'" [class.text-emerald-600]="act.estado === 'completada'"
@@ -99,6 +100,7 @@
             {{ act.estado === 'completada' ? 'Listo' : 'Pendiente' }}
           </span>
         </div>
+        <p *ngIf="!recentActivities.length" class="text-xs text-slate-400 text-center py-6 m-0">Aún no hay actividades recientes.</p>
       </div>
     </div>
   </div>

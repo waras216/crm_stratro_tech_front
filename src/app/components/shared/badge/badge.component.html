@@ -1,0 +1,18 @@
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold" [ngClass]="{
+    'bg-indigo-50 text-indigo-600':   color==='indigo',
+    'bg-emerald-50 text-emerald-600': color==='emerald',
+    'bg-amber-50 text-amber-600':     color==='amber',
+    'bg-rose-50 text-rose-600':       color==='rose',
+    'bg-slate-100 text-slate-600':    color==='slate',
+    'bg-blue-50 text-blue-600':       color==='blue'
+  }">
+  <span *ngIf="dot" class="w-1.5 h-1.5 rounded-full" [ngClass]="{
+      'bg-indigo-500':  color==='indigo',
+      'bg-emerald-500': color==='emerald',
+      'bg-amber-500':   color==='amber',
+      'bg-rose-500':    color==='rose',
+      'bg-slate-500':   color==='slate',
+      'bg-blue-500':    color==='blue'
+    }"></span>
+  <ng-content></ng-content>
+</span>

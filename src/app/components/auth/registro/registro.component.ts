@@ -11,6 +11,7 @@ export class AuthRegistroComponent {
   confirmPassword = '';
   error           = '';
   loading         = false;
+  mostrarPassword = false;
 
   constructor(private auth: AuthService, private router: Router, private cdr: ChangeDetectorRef) {}
 

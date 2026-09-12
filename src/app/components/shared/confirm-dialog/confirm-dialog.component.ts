@@ -19,11 +19,11 @@ import { modalLeave } from '../animations';
         <p class="text-base font-bold text-slate-800 m-0">{{ req.title ?? (req.danger ? 'Confirmar acción' : 'Confirmar') }}</p>
         <p class="text-sm text-slate-500 m-0 mt-2 leading-relaxed">{{ req.message }}</p>
         <div class="flex gap-2 mt-6">
-          <button (click)="respond(false)"
+          <button (click)="respond(false)" data-testid="confirm-dialog-cancel"
             class="btn-dialog flex-1 text-sm font-semibold px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
             {{ req.cancelText ?? 'Cancelar' }}
           </button>
-          <button (click)="respond(true)"
+          <button (click)="respond(true)" data-testid="confirm-dialog-accept"
             class="btn-dialog flex-1 text-sm font-semibold px-4 py-2.5 rounded-xl text-white transition-colors"
             [ngClass]="req.danger ? 'bg-red-600 hover:bg-red-500' : 'bg-indigo-600 hover:bg-indigo-500'">
             {{ req.confirmText ?? 'Confirmar' }}

@@ -14,7 +14,25 @@
     <div *ngFor="let _ of [1,2,3]" class="h-11 rounded-lg skeleton"></div>
   </div>
 
-  <div *ngIf="!cargando" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+  <!-- Mobile: card list -->
+  <div *ngIf="!cargando" class="flex flex-col gap-2 md:hidden">
+    <p *ngIf="proveedores.length === 0" class="text-center py-8 text-slate-400 text-xs m-0">Sin proveedores — agrega el primero con "+ Proveedor"</p>
+    <div *ngFor="let p of proveedores" class="bg-white border border-slate-200 rounded-xl p-3 flex flex-col gap-2">
+      <p class="font-bold text-sm m-0">{{ p.nombre }}</p>
+      <div class="text-xs text-slate-500 flex flex-col gap-0.5">
+        <span>{{ p.contacto || '—' }}</span>
+        <span>{{ p.email || '—' }}</span>
+        <span>{{ p.telefono || '—' }}</span>
+      </div>
+      <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-2">
+        <button *appPuede="'erp_proveedores.crear'" (click)="abrirEditar(p)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar</button>
+        <button *appPuede="'erp_proveedores.eliminar'" (click)="eliminarProveedor(p)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop: table -->
+  <div *ngIf="!cargando" class="hidden md:block bg-white border border-slate-200 rounded-xl overflow-hidden">
     <div class="overflow-x-auto">
     <table class="w-full text-sm border-collapse">
       <thead><tr class="bg-slate-50">
