@@ -21,6 +21,9 @@ export class ErpCategoriasComponent implements OnInit {
   categoriaError = '';
   categoriaSaving = false;
 
+  papeleraOpen = false;
+  papelera: Categoria[] = [];
+
   constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
@@ -76,6 +79,18 @@ export class ErpCategoriasComponent implements OnInit {
     this.erpService.deleteCategoria(c.id_categoria).subscribe({
       next: () => { this.notify.success('Categoría eliminada'); this.cdr.detectChanges(); },
       error: (err) => { this.notify.error('No se pudo eliminar la categoría'); console.error(err); },
+    });
+  }
+
+  abrirPapelera() {
+    this.papeleraOpen = true;
+    this.erpService.cargarPapeleraCategorias().subscribe(data => { this.papelera = data; this.cdr.detectChanges(); });
+  }
+
+  restaurarCategoria(id: number) {
+    this.erpService.restaurarCategoria(id).subscribe({
+      next: () => { this.papelera = this.papelera.filter(c => c.id_categoria !== id); this.notify.success('Categoría restaurada'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error('No se pudo restaurar la categoría'); console.error(err); },
     });
   }
 }

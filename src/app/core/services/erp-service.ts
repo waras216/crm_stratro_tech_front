@@ -6,7 +6,8 @@ import { environment } from '../../../environments/environment';
 import {
   Producto, Categoria, Proveedor, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
   ErpOrdenProduccion, ErpEnvio, ErpProyecto, ErpProyectoTarea, ErpProyectoHora, ErpInteraccion, ErpCrmResumen,
-  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpHabitacionIncidencia, ErpSolicitudHuesped, ErpEstadia, ErpReserva, ErpHistorialCliente, ErpDisponibilidad, ErpReporteOcupacion, ErpTarifaTemporada, ErpEstimadoHospedaje, ErpReceta, PedidoPago, ErpFactura
+  ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpHabitacionIncidencia, ErpSolicitudHuesped, ErpEstadia, ErpReserva, ErpHistorialCliente, ErpDisponibilidad, ErpReporteOcupacion, ErpTarifaTemporada, ErpEstimadoHospedaje, ErpReceta, PedidoPago, ErpFactura,
+  ErpSucursal, ErpCaja, ErpTurnoCaja, ErpTransferencia, ErpPromocion, ErpDevolucion, ErpClienteCredito, ErpMovimientoCredito
 } from '../../models/erp.models';
 
 const API = environment.apiUrl;
@@ -99,6 +100,16 @@ export class ErpService {
     );
   }
 
+  cargarPapeleraCategorias(): Observable<Categoria[]> {
+    return this.http.get<Categoria[]>(`${API}/categorias/papelera`);
+  }
+
+  restaurarCategoria(id: number): Observable<Categoria> {
+    return this.http.patch<Categoria>(`${API}/categorias/${id}/restaurar`, {}).pipe(
+      tap(item => this._categorias.next([item, ...this.categorias]))
+    );
+  }
+
   cargarProductos(): Observable<Producto[]> {
     return this.http.get<Producto[]>(`${API}/productos`);
   }
@@ -185,6 +196,22 @@ export class ErpService {
     );
   }
 
+  deleteOrdenCompra(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/compras/${id}`).pipe(
+      tap(() => this._ordenesCompra.next(this.ordenesCompra.filter(o => o.id !== id)))
+    );
+  }
+
+  cargarPapeleraOrdenesCompra(): Observable<ErpOrdenCompra[]> {
+    return this.http.get<ErpOrdenCompra[]>(`${API}/erp/compras/papelera`);
+  }
+
+  restaurarOrdenCompra(id: number): Observable<ErpOrdenCompra> {
+    return this.http.patch<ErpOrdenCompra>(`${API}/erp/compras/${id}/restaurar`, {}).pipe(
+      tap(item => this._ordenesCompra.next([item, ...this.ordenesCompra]))
+    );
+  }
+
   // ════════════════════════════════════════════════════════════════════
   // FINANZAS (movimientos)
   // ════════════════════════════════════════════════════════════════════
@@ -245,6 +272,22 @@ export class ErpService {
     );
   }
 
+  deletePedido(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/ventas/${id}`).pipe(
+      tap(() => this._pedidos.next(this.pedidos.filter(p => p.id !== id)))
+    );
+  }
+
+  cargarPapeleraPedidos(): Observable<ErpPedido[]> {
+    return this.http.get<ErpPedido[]>(`${API}/erp/ventas/papelera`);
+  }
+
+  restaurarPedido(id: number): Observable<ErpPedido> {
+    return this.http.patch<ErpPedido>(`${API}/erp/ventas/${id}/restaurar`, {}).pipe(
+      tap(item => this._pedidos.next([item, ...this.pedidos]))
+    );
+  }
+
   // ════════════════════════════════════════════════════════════════════
   // FACTURACIÓN (registro interno o timbrado real vía PAC)
   // ════════════════════════════════════════════════════════════════════
@@ -276,6 +319,22 @@ export class ErpService {
   cancelarFactura(id: number): Observable<ErpFactura> {
     return this.http.patch<ErpFactura>(`${API}/erp/facturas/${id}/cancelar`, {}).pipe(
       tap(actualizada => this._facturas.next(this.facturas.map(f => f.id === id ? actualizada : f)))
+    );
+  }
+
+  deleteFactura(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/facturas/${id}`).pipe(
+      tap(() => this._facturas.next(this.facturas.filter(f => f.id !== id)))
+    );
+  }
+
+  cargarPapeleraFacturas(): Observable<ErpFactura[]> {
+    return this.http.get<ErpFactura[]>(`${API}/erp/facturas/papelera`);
+  }
+
+  restaurarFactura(id: number): Observable<ErpFactura> {
+    return this.http.patch<ErpFactura>(`${API}/erp/facturas/${id}/restaurar`, {}).pipe(
+      tap(item => this._facturas.next([item, ...this.facturas]))
     );
   }
 
@@ -832,5 +891,228 @@ export class ErpService {
     if (desde) params = params.set('desde', desde);
     if (hasta) params = params.set('hasta', hasta);
     return this.http.get<ErpReportesResumen>(`${API}/erp/reportes/resumen`, { params });
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // SUCURSALES
+  // ════════════════════════════════════════════════════════════════════
+  private _sucursales = new BehaviorSubject<ErpSucursal[]>([]);
+  sucursales$ = this._sucursales.asObservable();
+  get sucursales() { return this._sucursales.getValue(); }
+
+  cargarSucursales(): Observable<ErpSucursal[]> {
+    return this.http.get<ErpSucursal[]>(`${API}/erp/sucursales`).pipe(tap(data => this._sucursales.next(data)));
+  }
+
+  addSucursal(data: Partial<ErpSucursal>): Observable<ErpSucursal> {
+    return this.http.post<ErpSucursal>(`${API}/erp/sucursales`, data).pipe(
+      tap(nueva => this._sucursales.next([nueva, ...this.sucursales]))
+    );
+  }
+
+  updateSucursal(id: number, data: Partial<ErpSucursal>): Observable<ErpSucursal> {
+    return this.http.put<ErpSucursal>(`${API}/erp/sucursales/${id}`, data).pipe(
+      tap(act => this._sucursales.next(this.sucursales.map(s => s.id_sucursal === id ? act : s)))
+    );
+  }
+
+  deleteSucursal(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/sucursales/${id}`).pipe(
+      tap(() => this._sucursales.next(this.sucursales.filter(s => s.id_sucursal !== id)))
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // CAJAS Y TURNOS
+  // ════════════════════════════════════════════════════════════════════
+  private _cajas = new BehaviorSubject<ErpCaja[]>([]);
+  cajas$ = this._cajas.asObservable();
+  get cajas() { return this._cajas.getValue(); }
+
+  cargarCajas(): Observable<ErpCaja[]> {
+    return this.http.get<ErpCaja[]>(`${API}/erp/cajas`).pipe(tap(data => this._cajas.next(data)));
+  }
+
+  addCaja(data: { nombre: string; id_sucursal: number }): Observable<ErpCaja> {
+    return this.http.post<ErpCaja>(`${API}/erp/cajas`, data).pipe(
+      tap(nueva => this._cajas.next([nueva, ...this.cajas]))
+    );
+  }
+
+  deleteCaja(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/cajas/${id}`).pipe(
+      tap(() => this._cajas.next(this.cajas.filter(c => c.id_caja !== id)))
+    );
+  }
+
+  private _turnos = new BehaviorSubject<ErpTurnoCaja[]>([]);
+  turnos$ = this._turnos.asObservable();
+  get turnos() { return this._turnos.getValue(); }
+
+  cargarTurnos(): Observable<ErpTurnoCaja[]> {
+    return this.http.get<ErpTurnoCaja[]>(`${API}/erp/turnos-caja`).pipe(tap(data => this._turnos.next(data)));
+  }
+
+  abrirTurno(data: { id_caja: number; monto_apertura: number; notas?: string }): Observable<ErpTurnoCaja> {
+    return this.http.post<ErpTurnoCaja>(`${API}/erp/turnos-caja/abrir`, data).pipe(
+      tap(nuevo => this._turnos.next([nuevo, ...this.turnos]))
+    );
+  }
+
+  cerrarTurno(id: number, data: { monto_cierre: number; notas?: string }): Observable<ErpTurnoCaja> {
+    return this.http.patch<ErpTurnoCaja>(`${API}/erp/turnos-caja/${id}/cerrar`, data).pipe(
+      tap(act => this._turnos.next(this.turnos.map(t => t.id_turno === id ? act : t)))
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // TRANSFERENCIAS
+  // ════════════════════════════════════════════════════════════════════
+  private _transferencias = new BehaviorSubject<ErpTransferencia[]>([]);
+  transferencias$ = this._transferencias.asObservable();
+  get transferencias() { return this._transferencias.getValue(); }
+
+  cargarTransferencias(): Observable<ErpTransferencia[]> {
+    return this.http.get<ErpTransferencia[]>(`${API}/erp/transferencias`).pipe(tap(data => this._transferencias.next(data)));
+  }
+
+  addTransferencia(data: { id_sucursal_origen: number; id_sucursal_destino: number; notas?: string; items: { id_producto: number; cantidad: number }[] }): Observable<ErpTransferencia> {
+    return this.http.post<ErpTransferencia>(`${API}/erp/transferencias`, data).pipe(
+      tap(nueva => this._transferencias.next([nueva, ...this.transferencias]))
+    );
+  }
+
+  private actualizarTransferencia(id: number, obs: Observable<ErpTransferencia>): Observable<ErpTransferencia> {
+    return obs.pipe(tap(act => this._transferencias.next(this.transferencias.map(t => t.id === id ? act : t))));
+  }
+
+  enviarTransferencia(id: number): Observable<ErpTransferencia> {
+    return this.actualizarTransferencia(id, this.http.patch<ErpTransferencia>(`${API}/erp/transferencias/${id}/enviar`, {}));
+  }
+
+  recibirTransferencia(id: number): Observable<ErpTransferencia> {
+    return this.actualizarTransferencia(id, this.http.patch<ErpTransferencia>(`${API}/erp/transferencias/${id}/recibir`, {}));
+  }
+
+  cancelarTransferencia(id: number): Observable<ErpTransferencia> {
+    return this.actualizarTransferencia(id, this.http.patch<ErpTransferencia>(`${API}/erp/transferencias/${id}/cancelar`, {}));
+  }
+
+  deleteTransferencia(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/transferencias/${id}`).pipe(
+      tap(() => this._transferencias.next(this.transferencias.filter(t => t.id !== id)))
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // PRECIOS Y PROMOCIONES
+  // ════════════════════════════════════════════════════════════════════
+  private _promociones = new BehaviorSubject<ErpPromocion[]>([]);
+  promociones$ = this._promociones.asObservable();
+  get promociones() { return this._promociones.getValue(); }
+
+  cargarPromociones(): Observable<ErpPromocion[]> {
+    return this.http.get<ErpPromocion[]>(`${API}/erp/promociones`).pipe(tap(data => this._promociones.next(data)));
+  }
+
+  addPromocion(data: Partial<ErpPromocion>): Observable<ErpPromocion> {
+    return this.http.post<ErpPromocion>(`${API}/erp/promociones`, data).pipe(
+      tap(nueva => this._promociones.next([nueva, ...this.promociones]))
+    );
+  }
+
+  updatePromocion(id: number, data: Partial<ErpPromocion>): Observable<ErpPromocion> {
+    return this.http.put<ErpPromocion>(`${API}/erp/promociones/${id}`, data).pipe(
+      tap(act => this._promociones.next(this.promociones.map(p => p.id === id ? act : p)))
+    );
+  }
+
+  toggleActivoPromocion(id: number): Observable<ErpPromocion> {
+    return this.http.patch<ErpPromocion>(`${API}/erp/promociones/${id}/toggle`, {}).pipe(
+      tap(act => this._promociones.next(this.promociones.map(p => p.id === id ? act : p)))
+    );
+  }
+
+  deletePromocion(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/promociones/${id}`).pipe(
+      tap(() => this._promociones.next(this.promociones.filter(p => p.id !== id)))
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // DEVOLUCIONES Y GARANTÍAS
+  // ════════════════════════════════════════════════════════════════════
+  private _devoluciones = new BehaviorSubject<ErpDevolucion[]>([]);
+  devoluciones$ = this._devoluciones.asObservable();
+  get devoluciones() { return this._devoluciones.getValue(); }
+
+  cargarDevoluciones(): Observable<ErpDevolucion[]> {
+    return this.http.get<ErpDevolucion[]>(`${API}/erp/devoluciones`).pipe(tap(data => this._devoluciones.next(data)));
+  }
+
+  addDevolucion(data: { id_pedido: number; id_producto: number; cantidad: number; tipo: 'devolucion' | 'garantia'; motivo?: string }): Observable<ErpDevolucion> {
+    return this.http.post<ErpDevolucion>(`${API}/erp/devoluciones`, data).pipe(
+      tap(nueva => this._devoluciones.next([nueva, ...this.devoluciones]))
+    );
+  }
+
+  private actualizarDevolucion(id: number, obs: Observable<ErpDevolucion>): Observable<ErpDevolucion> {
+    return obs.pipe(tap(act => this._devoluciones.next(this.devoluciones.map(d => d.id === id ? act : d))));
+  }
+
+  aprobarDevolucion(id: number, montoReembolso?: number): Observable<ErpDevolucion> {
+    return this.actualizarDevolucion(id, this.http.patch<ErpDevolucion>(`${API}/erp/devoluciones/${id}/aprobar`, { monto_reembolso: montoReembolso }));
+  }
+
+  rechazarDevolucion(id: number): Observable<ErpDevolucion> {
+    return this.actualizarDevolucion(id, this.http.patch<ErpDevolucion>(`${API}/erp/devoluciones/${id}/rechazar`, {}));
+  }
+
+  completarDevolucion(id: number): Observable<ErpDevolucion> {
+    return this.actualizarDevolucion(id, this.http.patch<ErpDevolucion>(`${API}/erp/devoluciones/${id}/completar`, {}));
+  }
+
+  deleteDevolucion(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/erp/devoluciones/${id}`).pipe(
+      tap(() => this._devoluciones.next(this.devoluciones.filter(d => d.id !== id)))
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // CLIENTES Y CRÉDITOS
+  // ════════════════════════════════════════════════════════════════════
+  private _clientesCredito = new BehaviorSubject<ErpClienteCredito[]>([]);
+  clientesCredito$ = this._clientesCredito.asObservable();
+  get clientesCredito() { return this._clientesCredito.getValue(); }
+
+  cargarClientesCredito(): Observable<ErpClienteCredito[]> {
+    return this.http.get<ErpClienteCredito[]>(`${API}/erp/creditos`).pipe(tap(data => this._clientesCredito.next(data)));
+  }
+
+  actualizarLimiteCredito(idCliente: number, limite_credito: number): Observable<ErpClienteCredito> {
+    return this.http.patch<ErpClienteCredito>(`${API}/erp/creditos/${idCliente}/limite`, { limite_credito }).pipe(
+      tap(act => {
+        const existe = this.clientesCredito.some(c => c.id_cliente === idCliente);
+        this._clientesCredito.next(existe
+          ? this.clientesCredito.map(c => c.id_cliente === idCliente ? act : c)
+          : [act, ...this.clientesCredito]);
+      })
+    );
+  }
+
+  cargarMovimientosCredito(idCliente: number): Observable<ErpMovimientoCredito[]> {
+    return this.http.get<ErpMovimientoCredito[]>(`${API}/erp/creditos/${idCliente}/movimientos`);
+  }
+
+  cargarCredito(idCliente: number, monto: number, referencia?: string, notas?: string): Observable<ErpMovimientoCredito> {
+    return this.http.post<ErpMovimientoCredito>(`${API}/erp/creditos/${idCliente}/cargar`, { monto, referencia, notas }).pipe(
+      tap(mov => this._clientesCredito.next(this.clientesCredito.map(c => c.id_cliente === idCliente ? { ...c, saldo_credito: mov.saldo_resultante } : c)))
+    );
+  }
+
+  abonarCredito(idCliente: number, monto: number, referencia?: string, notas?: string): Observable<ErpMovimientoCredito> {
+    return this.http.post<ErpMovimientoCredito>(`${API}/erp/creditos/${idCliente}/abonar`, { monto, referencia, notas }).pipe(
+      tap(mov => this._clientesCredito.next(this.clientesCredito.map(c => c.id_cliente === idCliente ? { ...c, saldo_credito: mov.saldo_resultante } : c)))
+    );
   }
 }

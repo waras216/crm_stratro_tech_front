@@ -27,6 +27,12 @@ import { ModuleService, ErpTab } from '../../core/services/module.service';
     <app-erp-mesas       *ngIf="tab==='mesas'"></app-erp-mesas>
     <app-erp-categorias  *ngIf="tab==='categorias'"></app-erp-categorias>
     <app-erp-proveedores *ngIf="tab==='proveedores'"></app-erp-proveedores>
+    <app-erp-sucursales             *ngIf="tab==='sucursales'"></app-erp-sucursales>
+    <app-erp-cajas-turnos           *ngIf="tab==='cajasTurnos'"></app-erp-cajas-turnos>
+    <app-erp-transferencias         *ngIf="tab==='transferencias'"></app-erp-transferencias>
+    <app-erp-precios-promociones    *ngIf="tab==='preciosPromociones'"></app-erp-precios-promociones>
+    <app-erp-devoluciones-garantias *ngIf="tab==='devolucionesGarantias'"></app-erp-devoluciones-garantias>
+    <app-erp-clientes-creditos      *ngIf="tab==='clientesCreditos'"></app-erp-clientes-creditos>
   `,
   // min-height (no height fija): el host nunca debe quedar más bajo que el
   // área visible, pero sí debe poder crecer más si el contenido de la

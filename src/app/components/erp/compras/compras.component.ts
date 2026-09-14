@@ -25,6 +25,9 @@ export class ErpComprasComponent implements OnInit {
   proveedores: Proveedor[] = [];
   productos: Producto[] = [];
 
+  papeleraOpen = false;
+  papelera: ErpOrdenCompra[] = [];
+
   constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
@@ -93,4 +96,26 @@ export class ErpComprasComponent implements OnInit {
 
   recibir(id: number) { this.erpService.recibirOrdenCompra(id).subscribe({ next: () => this.cdr.detectChanges(), error: (err) => console.error(err) }); }
   cancelar(id: number) { this.erpService.cancelarOrdenCompra(id).subscribe({ next: () => this.cdr.detectChanges(), error: (err) => console.error(err) }); }
+
+  async eliminar(id: number) {
+    const ok = await this.notify.confirm('¿Eliminar esta orden de compra? Podrás restaurarla desde la papelera.', { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+
+    this.erpService.deleteOrdenCompra(id).subscribe({
+      next: () => { this.notify.success('Orden eliminada'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error(err?.error?.message || 'No se pudo eliminar la orden'); console.error(err); },
+    });
+  }
+
+  abrirPapelera() {
+    this.papeleraOpen = true;
+    this.erpService.cargarPapeleraOrdenesCompra().subscribe(data => { this.papelera = data; this.cdr.detectChanges(); });
+  }
+
+  restaurar(id: number) {
+    this.erpService.restaurarOrdenCompra(id).subscribe({
+      next: () => { this.papelera = this.papelera.filter(o => o.id !== id); this.notify.success('Orden restaurada'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error('No se pudo restaurar la orden'); console.error(err); },
+    });
+  }
 }

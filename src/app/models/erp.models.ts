@@ -481,3 +481,113 @@ export interface ErpReporteVentaDetalle {
   items: number;
   total: number;
 }
+
+// ════════════════════════════════════════════════════════════════════
+// TIENDA / SUCURSAL (nicho "tienda")
+// ════════════════════════════════════════════════════════════════════
+export interface ErpSucursal {
+  id_sucursal: number;
+  id_tenant?: number;
+  nombre: string;
+  direccion?: string | null;
+  telefono?: string | null;
+  responsable?: string | null;
+  activo?: boolean;
+}
+
+export interface ErpCaja {
+  id_caja: number;
+  id_tenant?: number;
+  id_sucursal: number;
+  sucursal?: ErpSucursal;
+  nombre: string;
+  activo?: boolean;
+}
+
+export interface ErpTurnoCaja {
+  id_turno: number;
+  id_tenant?: number;
+  id_caja: number;
+  caja?: ErpCaja;
+  id_usuario: number;
+  cajero?: { id_usuario: number; nombre: string };
+  fecha_apertura: string;
+  fecha_cierre?: string | null;
+  monto_apertura: number;
+  monto_cierre?: number | null;
+  diferencia?: number | null;
+  estado: 'abierto' | 'cerrado';
+  notas?: string | null;
+}
+
+export interface ErpTransferenciaItem {
+  id?: number;
+  id_producto: number;
+  producto?: Producto;
+  cantidad: number;
+}
+
+export interface ErpTransferencia {
+  id: number;
+  id_tenant?: number;
+  id_sucursal_origen: number;
+  sucursal_origen?: ErpSucursal;
+  id_sucursal_destino: number;
+  sucursal_destino?: ErpSucursal;
+  id_usuario?: number;
+  usuario?: { id_usuario: number; nombre: string };
+  fecha: string;
+  estado: 'pendiente' | 'enviada' | 'recibida' | 'cancelada';
+  notas?: string | null;
+  items: ErpTransferenciaItem[];
+}
+
+export interface ErpPromocion {
+  id: number;
+  id_tenant?: number;
+  nombre: string;
+  tipo: 'porcentaje' | 'monto_fijo';
+  valor: number;
+  id_producto?: number | null;
+  producto?: Producto | null;
+  id_categorias?: number | null;
+  categoria?: Categoria | null;
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
+  activo: boolean;
+}
+
+export interface ErpDevolucion {
+  id: number;
+  id_tenant?: number;
+  id_pedido: number;
+  pedido?: { id: number; cliente?: Cliente };
+  id_producto: number;
+  producto?: Producto;
+  id_usuario?: number;
+  usuario?: { id_usuario: number; nombre: string };
+  cantidad: number;
+  tipo: 'devolucion' | 'garantia';
+  motivo?: string | null;
+  estado: 'pendiente' | 'aprobada' | 'rechazada' | 'completada';
+  monto_reembolso?: number | null;
+  fecha: string;
+}
+
+export interface ErpClienteCredito extends Cliente {
+  limite_credito: number;
+  saldo_credito: number;
+}
+
+export interface ErpMovimientoCredito {
+  id: number;
+  id_tenant?: number;
+  id_cliente: number;
+  id_usuario?: number | null;
+  tipo: 'cargo' | 'abono';
+  monto: number;
+  saldo_resultante: number;
+  referencia?: string | null;
+  notas?: string | null;
+  fecha: string;
+}

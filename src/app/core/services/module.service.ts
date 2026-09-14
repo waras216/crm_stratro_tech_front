@@ -7,7 +7,7 @@ import { NichoService } from './nicho.service';
 import { AuthService } from '../auth/authservices';
 
 export type ModuleId = 'crm' | 'erp' | 'pos';
-export type ErpTab = 'dashboard' | 'finanzas' | 'compras' | 'ventas' | 'facturacion' | 'inventario' | 'fabricacion' | 'scm' | 'rrhh' | 'crm' | 'proyectos' | 'reportes' | 'habitaciones' | 'reservas' | 'tarifas' | 'mantenimiento' | 'solicitudes' | 'mesas' | 'categorias' | 'proveedores';
+export type ErpTab = 'dashboard' | 'finanzas' | 'compras' | 'ventas' | 'facturacion' | 'inventario' | 'fabricacion' | 'scm' | 'rrhh' | 'crm' | 'proyectos' | 'reportes' | 'habitaciones' | 'reservas' | 'tarifas' | 'mantenimiento' | 'solicitudes' | 'mesas' | 'categorias' | 'proveedores' | 'sucursales' | 'cajasTurnos' | 'transferencias' | 'preciosPromociones' | 'devolucionesGarantias' | 'clientesCreditos';
 export type PosTab = 'terminal' | 'historial' | 'comandasCocina' | 'comandasBar' | 'mantenimiento';
 
 export interface ModuleConfig {
@@ -172,6 +172,17 @@ const ERP_SIDEBAR: SidebarSection[] = [
     ],
   },
   {
+    label: 'Tienda / Sucursal',
+    items: [
+      { label: 'Sucursales',              svg: S(`<path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/>`),                                                                                                                     erpTab: 'sucursales' },
+      { label: 'Cajas y Turnos',          svg: S(`<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>`),                                                                              erpTab: 'cajasTurnos' },
+      { label: 'Transferencias',          svg: S(`<path d="M17 3l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 21l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>`),                                                                    erpTab: 'transferencias' },
+      { label: 'Precios y Promociones',   svg: S(`<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>`),                                                              erpTab: 'preciosPromociones' },
+      { label: 'Devoluciones y Garantías', svg: S(`<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>`),                                                                                                              erpTab: 'devolucionesGarantias' },
+      { label: 'Clientes y Créditos',     svg: S(`<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>`),                                                                                                        erpTab: 'clientesCreditos' },
+    ],
+  },
+  {
     label: 'Producción',
     items: [
       { label: 'Fabricación',  svg: S(`<circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/>`),                               erpTab: 'fabricacion' },
@@ -211,16 +222,21 @@ const ERP_SIDEBAR: SidebarSection[] = [
 // Solicitudes/Mesas) solo existen para operar un hotel — se ocultan para
 // todos los demás nichos.
 const HOTEL_TABS: ErpTab[] = ['habitaciones', 'reservas', 'tarifas', 'mantenimiento', 'solicitudes', 'mesas'];
+// Sección "Tienda / Sucursal": sucursales, cajas/turnos, transferencias entre
+// sucursales, promociones, devoluciones/garantías y crédito a clientes --
+// solo tiene sentido para el nicho "tienda" (retail multi-sucursal), se
+// oculta para todos los demás igual que HOTEL_TABS se oculta fuera de hotel.
+const TIENDA_TABS: ErpTab[] = ['sucursales', 'cajasTurnos', 'transferencias', 'preciosPromociones', 'devolucionesGarantias', 'clientesCreditos'];
 const ERP_TABS_OCULTOS_POR_NICHO: Partial<Record<string, ErpTab[]>> = {
   // 'mesas' no va en la lista de restaurante: usa su propio item "Mesas" en
   // Operaciones (mismo erpTab, distinto item que "Mesas (Bar)" del hotel —
   // ver el filtro por sección en buildErpSidebar).
-  restaurante: ['fabricacion', 'scm', 'proyectos', ...HOTEL_TABS.filter(t => t !== 'mesas')],
-  hotel: ['fabricacion', 'scm', 'proyectos'],
-  farmacia: ['fabricacion', 'scm', 'proyectos', ...HOTEL_TABS],
+  restaurante: ['fabricacion', 'scm', 'proyectos', ...HOTEL_TABS.filter(t => t !== 'mesas'), ...TIENDA_TABS],
+  hotel: ['fabricacion', 'scm', 'proyectos', ...TIENDA_TABS],
+  farmacia: ['fabricacion', 'scm', 'proyectos', ...HOTEL_TABS, ...TIENDA_TABS],
   tienda: ['fabricacion', 'scm', 'proyectos', ...HOTEL_TABS],
-  almacen: ['fabricacion', 'proyectos', ...HOTEL_TABS],
-  startup: ['inventario', 'compras', 'fabricacion', 'scm', 'categorias', 'proveedores', ...HOTEL_TABS],
+  almacen: ['fabricacion', 'proyectos', ...HOTEL_TABS, ...TIENDA_TABS],
+  startup: ['inventario', 'compras', 'fabricacion', 'scm', 'categorias', 'proveedores', ...HOTEL_TABS, ...TIENDA_TABS],
 };
 
 // Label del tab "Ventas" del ERP con el término operativo del nicho. Hotel
@@ -300,6 +316,14 @@ export class ModuleService {
       this._activeModule.set(mod);
       this.lastRoutes.set(mod.id, url);
     }
+    // ERP/POS no navegan por router (ver comentario en setErpTab/setPosTab)
+    // así que la única forma de que un F5 respete la pestaña activa es
+    // reflejarla en ?tab= y releerla acá en cada NavigationEnd (incluida la
+    // navegación inicial al cargar la página).
+    const tab = new URLSearchParams(url.split('?')[1] || '').get('tab');
+    if (!tab) return;
+    if (mod?.id === 'erp' && tab !== this.erpTab$.value) this.erpTab$.next(tab as ErpTab);
+    if (mod?.id === 'pos' && tab !== this.posTab$.value) this.posTab$.next(tab as PosTab);
   }
 
   switchTo(moduleId: ModuleId) {
@@ -310,8 +334,14 @@ export class ModuleService {
     this.router.navigate([target]);
   }
 
-  setErpTab(tab: ErpTab) { this.erpTab$.next(tab); }
-  setPosTab(tab: PosTab) { this.posTab$.next(tab); }
+  setErpTab(tab: ErpTab) {
+    this.erpTab$.next(tab);
+    this.router.navigate(['/erp'], { queryParams: { tab }, replaceUrl: true });
+  }
+  setPosTab(tab: PosTab) {
+    this.posTab$.next(tab);
+    this.router.navigate(['/pos'], { queryParams: { tab }, replaceUrl: true });
+  }
 
   getSidebar(moduleId: ModuleId, nicho?: string): SidebarSection[] {
     switch (moduleId) {

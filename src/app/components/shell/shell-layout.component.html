@@ -59,14 +59,14 @@
 
     <!-- ── Navigation ── -->
     <nav class="sidebar-nav" [class.nav-collapsed]="collapsed">
-      <ng-container *ngFor="let section of sidebarSections">
+      <ng-container *ngFor="let section of sidebarSections; trackBy: trackBySection">
 
         <!-- Section label -->
         <p *ngIf="section.label && !collapsed" class="section-label"
           [style]="'color:' + activeModule.textMuted">{{ section.label }}</p>
 
         <!-- Items -->
-        <button *ngFor="let item of section.items"
+        <button *ngFor="let item of section.items; trackBy: trackByItem"
           (click)="onNavigate(item)"
           class="nav-item"
           [class.nav-item--collapsed]="collapsed"

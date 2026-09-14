@@ -4,7 +4,10 @@
       <h2 class="m-0 text-lg font-bold text-slate-800">Facturación</h2>
       <p class="text-xs text-slate-500 m-0 mt-1">Emite comprobantes fiscales sobre pedidos ya facturados: registro interno o timbrado real (CFDI) vía PAC</p>
     </div>
-    <button *appPuede="'erp_ventas.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Nueva Factura</button>
+    <div class="flex items-center gap-2">
+      <button *appPuede="'erp_ventas.eliminar'" (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50 flex-shrink-0">Papelera</button>
+      <button *appPuede="'erp_ventas.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Nueva Factura</button>
+    </div>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -66,6 +69,10 @@
               <ng-container *ngIf="f.estado==='registrada' || f.estado==='pendiente_timbrado' || f.estado==='error'">
                 <button *appPuede="'erp_ventas.editar'" (click)="cancelar(f)"
                   class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Cancelar</button>
+              </ng-container>
+              <ng-container *ngIf="f.estado!=='timbrada'">
+                <button *appPuede="'erp_ventas.eliminar'" (click)="eliminar(f)"
+                  class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Eliminar</button>
               </ng-container>
             </div>
           </td>
@@ -153,5 +160,26 @@
 
     <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
     <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Registrar Factura' }}</button>
+  </div>
+</div>
+
+<!-- Modal: papelera de facturas -->
+<div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
+<div *ngIf="papeleraOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Papelera de Facturas</h3>
+    <button (click)="papeleraOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-2">
+    <p *ngIf="papelera.length === 0" class="text-sm text-slate-400 m-0">No hay facturas eliminadas.</p>
+    <div *ngFor="let f of papelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+      <div>
+        <p class="m-0 font-medium">{{ f.serie }}-{{ f.folio }} — {{ f.razon_social_receptor }}</p>
+        <p class="m-0 text-xs text-slate-400">${{ f.total.toLocaleString() }}</p>
+      </div>
+      <button (click)="restaurar(f.id)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Restaurar</button>
+    </div>
   </div>
 </div>

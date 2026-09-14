@@ -80,6 +80,12 @@ import { ErpMantenimientoHotelComponent } from './components/erp/mantenimiento-h
 import { ErpSolicitudesHuespedComponent } from './components/erp/solicitudes-huesped/solicitudes-huesped.component';
 import { ErpCategoriasComponent } from './components/erp/categorias/categorias.component';
 import { ErpProveedoresComponent } from './components/erp/proveedores/proveedores.component';
+import { ErpSucursalesComponent } from './components/erp/sucursales/sucursales.component';
+import { ErpCajasTurnosComponent } from './components/erp/cajas-turnos/cajas-turnos.component';
+import { ErpTransferenciasComponent } from './components/erp/transferencias/transferencias.component';
+import { ErpPreciosPromocionesComponent } from './components/erp/precios-promociones/precios-promociones.component';
+import { ErpDevolucionesGarantiasComponent } from './components/erp/devoluciones-garantias/devoluciones-garantias.component';
+import { ErpClientesCreditosComponent } from './components/erp/clientes-creditos/clientes-creditos.component';
 import { ErpMesasComponent } from './components/erp/mesas/mesas.component';
 
 // Other
@@ -157,6 +163,12 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     ErpMesasComponent,
     ErpCategoriasComponent,
     ErpProveedoresComponent,
+    ErpSucursalesComponent,
+    ErpCajasTurnosComponent,
+    ErpTransferenciasComponent,
+    ErpPreciosPromocionesComponent,
+    ErpDevolucionesGarantiasComponent,
+    ErpClientesCreditosComponent,
     ErpFacturacionComponent,
     ErpFabricacionComponent,
     ErpScmComponent,

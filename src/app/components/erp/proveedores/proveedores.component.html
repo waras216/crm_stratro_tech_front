@@ -5,7 +5,7 @@
       <p class="text-xs text-slate-500 m-0 mt-1">Se usan al crear una orden de compra</p>
     </div>
     <div class="flex items-center gap-2">
-      <button *appPuede="'erp_proveedores.eliminar'" (click)="abrirPapelera()" class="text-xs font-semibold text-slate-400 bg-transparent border-0 cursor-pointer hover:text-slate-600 hover:underline flex-shrink-0">Papelera</button>
+      <button *appPuede="'erp_proveedores.eliminar'" (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50 flex-shrink-0">Papelera</button>
       <button *appPuede="'erp_proveedores.crear'" (click)="abrirNuevo()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95 flex-shrink-0" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Proveedor</button>
     </div>
   </div>

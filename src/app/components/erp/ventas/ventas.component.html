@@ -20,7 +20,10 @@
       <h2 class="m-0 text-lg font-bold text-slate-800">Pedidos</h2>
       <p class="text-xs text-slate-500 m-0 mt-1">Historial de pedidos, presupuestos y facturación</p>
     </div>
-    <button *appPuede="'erp_ventas.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Nuevo Pedido</button>
+    <div class="flex items-center gap-2">
+      <button *appPuede="'erp_ventas.eliminar'" (click)="abrirPapelera()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50 flex-shrink-0">Papelera</button>
+      <button *appPuede="'erp_ventas.crear'" (click)="openNew()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-amber-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(217,119,6,.35)">+ Nuevo Pedido</button>
+    </div>
   </div>
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div class="bg-white rounded-xl p-4 border border-slate-100 card-enter delay-1" style="box-shadow:var(--shadow-card)">
@@ -68,9 +71,12 @@
           </div>
         </ng-container>
         <ng-template #sinItemsCard><p class="text-slate-400 text-xs m-0 py-1">Sin detalle de productos para este pedido.</p></ng-template>
-        <ng-container *ngIf="p.estado!=='cancelada' && p.estado!=='facturado'">
-          <button *appPuede="'erp_ventas.editar'" (click)="$event.stopPropagation(); cancelar(p.id)" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline self-start border-t border-slate-200 pt-2 w-full text-left">Cancelar</button>
-        </ng-container>
+        <div class="flex items-center gap-3 self-start border-t border-slate-200 pt-2 w-full">
+          <ng-container *ngIf="p.estado!=='cancelada' && p.estado!=='facturado'">
+            <button *appPuede="'erp_ventas.editar'" (click)="$event.stopPropagation(); cancelar(p.id)" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Cancelar</button>
+          </ng-container>
+          <button *appPuede="'erp_ventas.eliminar'" (click)="$event.stopPropagation(); eliminar(p.id)" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Eliminar</button>
+        </div>
       </div>
     </div>
     <app-empty-state *ngIf="pedidos.length === 0" titulo="Aún no tienes pedidos" subtitulo="Crea tu primer pedido para empezar a registrar ventas." accionLabel="+ Nuevo Pedido" color="amber" (accion)="openNew()">
@@ -106,8 +112,9 @@
             </td>
             <td class="px-4 py-3 text-right">
               <ng-container *ngIf="p.estado!=='cancelada' && p.estado!=='facturado'">
-                <button *appPuede="'erp_ventas.editar'" (click)="$event.stopPropagation(); cancelar(p.id)" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Cancelar</button>
+                <button *appPuede="'erp_ventas.editar'" (click)="$event.stopPropagation(); cancelar(p.id)" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline mr-2">Cancelar</button>
               </ng-container>
+              <button *appPuede="'erp_ventas.eliminar'" (click)="$event.stopPropagation(); eliminar(p.id)" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Eliminar</button>
             </td>
           </tr>
           <tr *ngIf="expandidoId === p.id" class="border-b border-slate-100 bg-slate-50/60 dark:bg-white/5">
@@ -199,5 +206,26 @@
     <p class="text-sm font-semibold text-slate-700 m-0 text-right">Total: ${{ totalFormulario.toLocaleString() }}</p>
     <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
     <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Crear Pedido' }}</button>
+  </div>
+</div>
+
+<!-- Modal: papelera de pedidos -->
+<div *ngIf="papeleraOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="papeleraOpen=false"></div>
+<div *ngIf="papeleraOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[80vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Papelera de Pedidos</h3>
+    <button (click)="papeleraOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-2">
+    <p *ngIf="papelera.length === 0" class="text-sm text-slate-400 m-0">No hay pedidos eliminados.</p>
+    <div *ngFor="let p of papelera" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+      <div>
+        <p class="m-0 font-medium">#{{ p.id }} — {{ p.cliente?.nombre }}</p>
+        <p class="m-0 text-xs text-slate-400">${{ p.total.toLocaleString() }}</p>
+      </div>
+      <button (click)="restaurar(p.id)" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Restaurar</button>
+    </div>
   </div>
 </div>

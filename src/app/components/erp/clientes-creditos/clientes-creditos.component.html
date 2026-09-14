@@ -1,0 +1,138 @@
+<div class="flex flex-col gap-5 page-enter">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="m-0 text-lg font-bold text-slate-800">Clientes y Créditos</h2>
+      <p class="text-xs text-slate-500 m-0 mt-1">Línea de crédito, saldo y abonos de tus clientes</p>
+    </div>
+    <button *appPuede="'erp_creditos.crear'" (click)="abrirAsignar()" class="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-pink-700 transition-all hover:scale-105 active:scale-95 flex-shrink-0" style="box-shadow:0 4px 12px rgba(219,39,119,.35)">+ Asignar Crédito</button>
+  </div>
+
+  <div *ngIf="cargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-11 rounded-lg skeleton"></div>
+  </div>
+
+  <!-- Mobile: card list -->
+  <div *ngIf="!cargando" class="flex flex-col gap-2 md:hidden">
+    <p *ngIf="clientes.length === 0" class="text-center py-8 text-slate-400 text-xs m-0">Sin clientes con línea de crédito — asigna la primera con "+ Asignar Crédito"</p>
+    <div *ngFor="let c of clientes" class="bg-white border border-slate-200 rounded-xl p-3 flex flex-col gap-2">
+      <p class="font-bold text-sm m-0">{{ c.nombre }}</p>
+      <div class="text-xs text-slate-500 flex flex-col gap-0.5">
+        <span>Límite: ${{ c.limite_credito.toLocaleString() }}</span>
+        <span>Saldo: ${{ c.saldo_credito.toLocaleString() }}</span>
+        <span class="font-semibold" [ngClass]="disponible(c) > 0 ? 'text-emerald-600' : 'text-red-500'">Disponible: ${{ disponible(c).toLocaleString() }}</span>
+      </div>
+      <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-2">
+        <button *appPuede="'erp_creditos.crear'" (click)="abrirMovimientos(c)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">Movimientos</button>
+        <button *appPuede="'erp_creditos.editar'" (click)="abrirEditarLimite(c)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar límite</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop: table -->
+  <div *ngIf="!cargando" class="hidden md:block bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Cliente</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Límite</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Saldo</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Disponible</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngIf="clientes.length === 0">
+          <td colspan="5" class="text-center py-8 text-slate-400 text-xs">Sin clientes con línea de crédito — asigna la primera con "+ Asignar Crédito"</td>
+        </tr>
+        <tr *ngFor="let c of clientes" class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-3 font-bold">{{ c.nombre }}</td>
+          <td class="px-4 py-3 text-right">${{ c.limite_credito.toLocaleString() }}</td>
+          <td class="px-4 py-3 text-right">${{ c.saldo_credito.toLocaleString() }}</td>
+          <td class="px-4 py-3 text-right font-semibold" [ngClass]="disponible(c) > 0 ? 'text-emerald-600' : 'text-red-500'">${{ disponible(c).toLocaleString() }}</td>
+          <td class="px-4 py-3 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button *appPuede="'erp_creditos.crear'" (click)="abrirMovimientos(c)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">Movimientos</button>
+              <button *appPuede="'erp_creditos.editar'" (click)="abrirEditarLimite(c)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar límite</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: asignar crédito a cliente nuevo -->
+<div *ngIf="dialogAsignarOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogAsignarOpen=false"></div>
+<div *ngIf="dialogAsignarOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Asignar Línea de Crédito</h3>
+    <button (click)="dialogAsignarOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <div class="relative">
+      <input class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="clienteBusqueda" (ngModelChange)="buscarCliente()" placeholder="Buscar cliente por nombre..." />
+      <div *ngIf="clientesResultados.length > 0" class="absolute z-10 bg-white border border-slate-200 rounded-lg mt-1 w-full shadow-lg max-h-40 overflow-y-auto">
+        <div *ngFor="let c of clientesResultados" (click)="seleccionarCliente(c)" class="px-3 py-2 text-sm cursor-pointer hover:bg-slate-50">{{ c.nombre }}</div>
+      </div>
+      <p *ngIf="clienteSeleccionado" class="text-xs text-emerald-600 mt-1 mb-0">Cliente seleccionado: {{ clienteSeleccionado.nombre }}</p>
+    </div>
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="limiteNuevo" placeholder="Límite de crédito" />
+    <p *ngIf="asignarError" class="text-xs text-red-600 m-0">{{ asignarError }}</p>
+    <button (click)="submitAsignar()" [disabled]="asignarSaving || !clienteSeleccionado"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#ec4899">{{ asignarSaving ? 'Guardando...' : 'Asignar Crédito' }}</button>
+  </div>
+</div>
+
+<!-- Modal: editar límite -->
+<div *ngIf="dialogLimiteOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogLimiteOpen=false"></div>
+<div *ngIf="dialogLimiteOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Editar límite — {{ clienteParaLimite?.nombre }}</h3>
+    <button (click)="dialogLimiteOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="limiteEditado" placeholder="Nuevo límite" />
+    <button (click)="submitLimite()" [disabled]="limiteSaving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#ec4899">{{ limiteSaving ? 'Guardando...' : 'Guardar Límite' }}</button>
+  </div>
+</div>
+
+<!-- Modal: movimientos de crédito -->
+<div *ngIf="dialogMovimientosOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogMovimientosOpen=false"></div>
+<div *ngIf="dialogMovimientosOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Movimientos — {{ clienteParaMovimientos?.nombre }}</h3>
+    <button (click)="dialogMovimientosOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div *appPuede="'erp_creditos.crear'" class="flex flex-col gap-2 mb-4 pb-4 border-b border-slate-100">
+    <div class="grid grid-cols-2 gap-2">
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="montoMovimiento" placeholder="Monto" />
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="referenciaMovimiento" placeholder="Referencia (opcional)" />
+    </div>
+    <p *ngIf="movError" class="text-xs text-red-600 m-0">{{ movError }}</p>
+    <div class="grid grid-cols-2 gap-2">
+      <button (click)="cargar()" [disabled]="movSaving" class="py-2 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60" style="background:#ef4444">Cargo (deuda)</button>
+      <button (click)="abonar()" [disabled]="movSaving" class="py-2 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60" style="background:#10b981">Abono (pago)</button>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <p *ngIf="movimientos.length === 0" class="text-sm text-slate-400 m-0">Sin movimientos todavía.</p>
+    <div *ngFor="let m of movimientos" class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+      <div>
+        <p class="m-0 font-medium" [ngClass]="m.tipo==='cargo' ? 'text-red-500' : 'text-emerald-600'">{{ m.tipo === 'cargo' ? 'Cargo' : 'Abono' }}: ${{ m.monto.toLocaleString() }}</p>
+        <p class="m-0 text-xs text-slate-400">{{ m.fecha }} {{ m.referencia ? '· ' + m.referencia : '' }}</p>
+      </div>
+      <p class="m-0 text-xs text-slate-500">Saldo: ${{ m.saldo_resultante.toLocaleString() }}</p>
+    </div>
+  </div>
+</div>

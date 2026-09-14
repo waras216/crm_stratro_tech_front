@@ -1,0 +1,124 @@
+<div class="flex flex-col gap-5 page-enter">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="m-0 text-lg font-bold text-slate-800">Precios y Promociones</h2>
+      <p class="text-xs text-slate-500 m-0 mt-1">Descuentos por producto, categoría o todo el catálogo</p>
+    </div>
+    <button *appPuede="'erp_promociones.crear'" (click)="abrirNueva()" class="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-pink-700 transition-all hover:scale-105 active:scale-95 flex-shrink-0" style="box-shadow:0 4px 12px rgba(219,39,119,.35)">+ Promoción</button>
+  </div>
+
+  <div *ngIf="cargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-11 rounded-lg skeleton"></div>
+  </div>
+
+  <!-- Mobile: card list -->
+  <div *ngIf="!cargando" class="flex flex-col gap-2 md:hidden">
+    <p *ngIf="promociones.length === 0" class="text-center py-8 text-slate-400 text-xs m-0">Sin promociones — agrega la primera con "+ Promoción"</p>
+    <div *ngFor="let p of promociones" class="bg-white border border-slate-200 rounded-xl p-3 flex flex-col gap-2">
+      <div class="flex items-center justify-between">
+        <p class="font-bold text-sm m-0">{{ p.nombre }}</p>
+        <span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="p.activo ? 'badge-green' : 'badge-slate'">{{ p.activo ? 'Activa' : 'Inactiva' }}</span>
+      </div>
+      <div class="text-xs text-slate-500 flex flex-col gap-0.5">
+        <span class="font-semibold text-pink-600">{{ valorLabel(p) }} de descuento</span>
+        <span>{{ alcanceLabel(p) }}</span>
+        <span *ngIf="p.fecha_inicio || p.fecha_fin">{{ p.fecha_inicio || '—' }} a {{ p.fecha_fin || '—' }}</span>
+      </div>
+      <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-2">
+        <button *appPuede="'erp_promociones.editar'" (click)="toggle(p)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors">{{ p.activo ? 'Desactivar' : 'Activar' }}</button>
+        <button *appPuede="'erp_promociones.editar'" (click)="abrirEditar(p)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar</button>
+        <button *appPuede="'erp_promociones.eliminar'" (click)="eliminar(p)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop: table -->
+  <div *ngIf="!cargando" class="hidden md:block bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Nombre</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Descuento</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Aplica a</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Vigencia</th>
+        <th class="text-center px-4 py-3 font-medium text-slate-500">Estado</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngIf="promociones.length === 0">
+          <td colspan="6" class="text-center py-8 text-slate-400 text-xs">Sin promociones — agrega la primera con "+ Promoción"</td>
+        </tr>
+        <tr *ngFor="let p of promociones" class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-3 font-bold">{{ p.nombre }}</td>
+          <td class="px-4 py-3 font-semibold text-pink-600">{{ valorLabel(p) }}</td>
+          <td class="px-4 py-3 text-slate-500">{{ alcanceLabel(p) }}</td>
+          <td class="px-4 py-3 text-slate-500">{{ (p.fecha_inicio || p.fecha_fin) ? (p.fecha_inicio || '—') + ' a ' + (p.fecha_fin || '—') : 'Sin límite' }}</td>
+          <td class="px-4 py-3 text-center">
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="p.activo ? 'badge-green' : 'badge-slate'">{{ p.activo ? 'Activa' : 'Inactiva' }}</span>
+          </td>
+          <td class="px-4 py-3 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button *appPuede="'erp_promociones.editar'" (click)="toggle(p)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors">{{ p.activo ? 'Desactivar' : 'Activar' }}</button>
+              <button *appPuede="'erp_promociones.editar'" (click)="abrirEditar(p)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar</button>
+              <button *appPuede="'erp_promociones.eliminar'" (click)="eliminar(p)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: nueva/editar promoción -->
+<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
+<div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">{{ promoEditando ? 'Editar Promoción' : 'Nueva Promoción' }}</h3>
+    <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.nombre" placeholder="Nombre de la promoción" />
+
+    <div class="grid grid-cols-2 gap-3">
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.tipo">
+        <option value="porcentaje">% Porcentaje</option>
+        <option value="monto_fijo">$ Monto fijo</option>
+      </select>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="form.valor" [placeholder]="form.tipo==='porcentaje' ? '15' : '50.00'" />
+    </div>
+
+    <label class="text-xs font-medium text-slate-500">Aplica a</label>
+    <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.alcance">
+      <option value="todo">Todo el catálogo</option>
+      <option value="categoria">Una categoría</option>
+      <option value="producto">Un producto</option>
+    </select>
+    <select *ngIf="form.alcance==='categoria'" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.id_categorias">
+      <option value="">Categoría...</option>
+      <option *ngFor="let c of categorias" [value]="c.id_categoria">{{ c.nombre }}</option>
+    </select>
+    <select *ngIf="form.alcance==='producto'" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.id_producto">
+      <option value="">Producto...</option>
+      <option *ngFor="let p of productos" [value]="p.id_productos">{{ p.nombre }}</option>
+    </select>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-500">Desde (opcional)</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="form.fecha_inicio" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-500">Hasta (opcional)</label>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="date" [(ngModel)]="form.fecha_fin" />
+      </div>
+    </div>
+
+    <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
+    <button (click)="submit()" [disabled]="saving"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      style="background:#ec4899">{{ saving ? 'Guardando...' : (promoEditando ? 'Guardar Cambios' : 'Crear Promoción') }}</button>
+  </div>
+</div>

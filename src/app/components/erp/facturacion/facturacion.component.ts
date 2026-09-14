@@ -55,6 +55,9 @@ export class ErpFacturacionComponent implements OnInit {
 
   timbrandoId: number | null = null;
 
+  papeleraOpen = false;
+  papelera: ErpFactura[] = [];
+
   constructor(
     private erpService: ErpService,
     private notify: NotifyService,
@@ -159,6 +162,28 @@ export class ErpFacturacionComponent implements OnInit {
     this.erpService.cancelarFactura(factura.id).subscribe({
       next: () => { this.notify.success('Factura cancelada'); this.cdr.detectChanges(); },
       error: (err) => { this.notify.error(err?.error?.errors?.estado?.[0] || 'No se pudo cancelar la factura'); console.error(err); },
+    });
+  }
+
+  async eliminar(factura: ErpFactura) {
+    const ok = await this.notify.confirm(`¿Eliminar la factura #${factura.folio}? Podrás restaurarla desde la papelera.`, { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+
+    this.erpService.deleteFactura(factura.id).subscribe({
+      next: () => { this.notify.success('Factura eliminada'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error(err?.error?.message || 'No se pudo eliminar la factura'); console.error(err); },
+    });
+  }
+
+  abrirPapelera() {
+    this.papeleraOpen = true;
+    this.erpService.cargarPapeleraFacturas().subscribe(data => { this.papelera = data; this.cdr.detectChanges(); });
+  }
+
+  restaurar(id: number) {
+    this.erpService.restaurarFactura(id).subscribe({
+      next: () => { this.papelera = this.papelera.filter(f => f.id !== id); this.notify.success('Factura restaurada'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error('No se pudo restaurar la factura'); console.error(err); },
     });
   }
 }

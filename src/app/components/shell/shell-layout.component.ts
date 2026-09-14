@@ -251,6 +251,17 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  // sidebarSections es un getter que reconstruye arrays/objetos nuevos en
+  // cada ciclo de detección de cambios (ver ModuleService.buildErpSidebar) —
+  // sin trackBy, *ngFor destruye y recrea los nav-item en cada click,
+  // reseteando el scroll de .sidebar-nav a 0 (el sidebar "se sube").
+  trackBySection(_: number, section: { label?: string }): string {
+    return section.label ?? '';
+  }
+  trackByItem(_: number, item: SidebarNavItem): string {
+    return item.erpTab || item.posTab || item.route || item.label;
+  }
+
   getPageTitle(): string {
     if (this.activeModule.id === 'erp') return this.erpLabel(this.activeErpTab);
     if (this.activeModule.id === 'pos') return this.posLabel(this.activePosTab);
@@ -271,6 +282,9 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
       habitaciones: 'Habitaciones', reservas: 'Reservas', tarifas: 'Tarifas',
       mantenimiento: 'Mantenimiento', solicitudes: 'Solicitudes', mesas: 'Mesas',
       categorias: 'Categorías', proveedores: 'Proveedores',
+      sucursales: 'Sucursales', cajasTurnos: 'Cajas y Turnos', transferencias: 'Transferencias',
+      preciosPromociones: 'Precios y Promociones', devolucionesGarantias: 'Devoluciones y Garantías',
+      clientesCreditos: 'Clientes y Créditos',
     };
     return m[tab] ?? tab;
   }

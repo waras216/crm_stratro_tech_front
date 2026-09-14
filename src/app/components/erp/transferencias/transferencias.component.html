@@ -1,0 +1,149 @@
+<div class="flex flex-col gap-5 page-enter">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="m-0 text-lg font-bold text-slate-800">Transferencias</h2>
+      <p class="text-xs text-slate-500 m-0 mt-1">Movimiento de mercancía entre sucursales</p>
+    </div>
+    <button *appPuede="'erp_transferencias.crear'" (click)="openNew()" class="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-pink-700 transition-all hover:scale-105 active:scale-95" style="box-shadow:0 4px 12px rgba(219,39,119,.35)">+ Nueva Transferencia</button>
+  </div>
+
+  <div *ngIf="cargando" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-12 rounded-lg skeleton"></div>
+  </div>
+
+  <!-- Mobile: card list -->
+  <div *ngIf="!cargando" class="flex flex-col gap-2 md:hidden">
+    <p *ngIf="transferencias.length === 0" class="text-center py-8 text-slate-400 text-xs m-0">Sin transferencias todavía.</p>
+    <div *ngFor="let t of transferencias" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="p-3 flex flex-col gap-2 cursor-pointer" (click)="toggleExpandida(t.id)">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-xs text-slate-500">#{{ t.id }}</span>
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="{'badge-amber': t.estado==='pendiente', 'badge-blue': t.estado==='enviada', 'badge-green': t.estado==='recibida', 'badge-red': t.estado==='cancelada'}">{{ t.estado }}</span>
+        </div>
+        <p class="text-sm font-medium m-0">{{ t.sucursal_origen?.nombre }} → {{ t.sucursal_destino?.nombre }}</p>
+        <p class="text-xs text-slate-500 m-0">{{ t.fecha }} · {{ t.items.length }} producto(s)</p>
+      </div>
+      <div *ngIf="expandidaId===t.id" class="bg-slate-50 border-t border-slate-100 px-3 py-3 flex flex-col gap-2">
+        <div *ngFor="let i of t.items" class="flex items-center justify-between text-xs">
+          <span class="text-slate-600">{{ i.producto?.nombre ?? ('Producto #' + i.id_producto) }}</span>
+          <span class="font-medium text-slate-700">×{{ i.cantidad }}</span>
+        </div>
+        <div class="flex items-center gap-3 border-t border-slate-200 pt-2">
+          <ng-container *appPuede="'erp_transferencias.editar'">
+            <button *ngIf="t.estado==='pendiente'" (click)="enviar(t.id); $event.stopPropagation()" class="text-xs text-blue-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Enviar</button>
+            <button *ngIf="t.estado==='enviada'" (click)="recibir(t.id); $event.stopPropagation()" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline">Recibir</button>
+            <button *ngIf="t.estado!=='recibida' && t.estado!=='cancelada'" (click)="cancelar(t.id); $event.stopPropagation()" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Cancelar</button>
+          </ng-container>
+          <ng-container *appPuede="'erp_transferencias.eliminar'">
+            <button *ngIf="t.estado==='pendiente'" (click)="eliminar(t.id); $event.stopPropagation()" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Eliminar</button>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop: table -->
+  <div *ngIf="!cargando" class="hidden md:block bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="w-8"></th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">#</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Origen</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Destino</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Fecha</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Items</th>
+        <th class="text-center px-4 py-3 font-medium text-slate-500">Estado</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Acciones</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngIf="transferencias.length === 0">
+          <td colspan="8" class="text-center py-8 text-slate-400 text-xs">Sin transferencias todavía.</td>
+        </tr>
+        <ng-container *ngFor="let t of transferencias">
+          <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" (click)="toggleExpandida(t.id)">
+            <td class="px-2 py-3 text-center text-slate-400">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" [style.transform]="expandidaId === t.id ? 'rotate(90deg)' : 'rotate(0deg)'" style="transition: transform .15s;"><polyline points="9 18 15 12 9 6"/></svg>
+            </td>
+            <td class="px-4 py-3 font-mono text-xs">#{{ t.id }}</td>
+            <td class="px-4 py-3 font-medium">{{ t.sucursal_origen?.nombre }}</td>
+            <td class="px-4 py-3 font-medium">{{ t.sucursal_destino?.nombre }}</td>
+            <td class="px-4 py-3 text-slate-500">{{ t.fecha }}</td>
+            <td class="px-4 py-3 text-right">{{ t.items.length }}</td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="{'badge-amber': t.estado==='pendiente', 'badge-blue': t.estado==='enviada', 'badge-green': t.estado==='recibida', 'badge-red': t.estado==='cancelada'}">{{ t.estado }}</span>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <ng-container *appPuede="'erp_transferencias.editar'">
+                <button *ngIf="t.estado==='pendiente'" (click)="enviar(t.id); $event.stopPropagation()" class="text-xs text-blue-600 font-medium bg-transparent border-0 cursor-pointer hover:underline mr-2">Enviar</button>
+                <button *ngIf="t.estado==='enviada'" (click)="recibir(t.id); $event.stopPropagation()" class="text-xs text-emerald-600 font-medium bg-transparent border-0 cursor-pointer hover:underline mr-2">Recibir</button>
+                <button *ngIf="t.estado!=='recibida' && t.estado!=='cancelada'" (click)="cancelar(t.id); $event.stopPropagation()" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline mr-2">Cancelar</button>
+              </ng-container>
+              <ng-container *appPuede="'erp_transferencias.eliminar'">
+                <button *ngIf="t.estado==='pendiente'" (click)="eliminar(t.id); $event.stopPropagation()" class="text-xs text-red-500 font-medium bg-transparent border-0 cursor-pointer hover:underline">Eliminar</button>
+              </ng-container>
+            </td>
+          </tr>
+          <tr *ngIf="expandidaId===t.id" class="bg-slate-50">
+            <td colspan="8" class="px-6 py-3">
+              <table class="w-full text-xs border-collapse">
+                <thead><tr class="text-slate-400">
+                  <th class="text-left py-1 font-medium">Producto</th>
+                  <th class="text-right py-1 font-medium">Cantidad</th>
+                </tr></thead>
+                <tbody>
+                  <tr *ngFor="let i of t.items">
+                    <td class="py-1">{{ i.producto?.nombre ?? ('Producto #' + i.id_producto) }}</td>
+                    <td class="py-1 text-right">{{ i.cantidad }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p *ngIf="t.notas" class="text-xs text-slate-500 mt-2 mb-0">Notas: {{ t.notas }}</p>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: nueva transferencia -->
+<div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
+<div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="m-0 text-lg font-semibold">Nueva Transferencia</h3>
+    <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex flex-col gap-3">
+    <div class="grid grid-cols-2 gap-3">
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.id_sucursal_origen">
+        <option value="">Origen...</option>
+        <option *ngFor="let s of sucursales" [value]="s.id_sucursal">{{ s.nombre }}</option>
+      </select>
+      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.id_sucursal_destino">
+        <option value="">Destino...</option>
+        <option *ngFor="let s of sucursales" [value]="s.id_sucursal">{{ s.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <div *ngFor="let row of form.items; let i = index" class="grid grid-cols-[1fr_80px_auto] gap-2 items-center">
+        <select class="px-2 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="row.id_producto">
+          <option value="">Producto...</option>
+          <option *ngFor="let p of productos" [value]="p.id_productos">{{ p.nombre }}</option>
+        </select>
+        <input class="px-2 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="row.cantidad" placeholder="Cant." />
+        <button (click)="removeItemRow(i)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">✕</button>
+      </div>
+      <button (click)="addItemRow()" class="text-xs text-pink-600 font-medium bg-transparent border-0 cursor-pointer hover:underline text-left">+ Agregar línea</button>
+    </div>
+
+    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.notas" placeholder="Notas (opcional)" />
+
+    <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
+    <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-pink-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-pink-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Crear Transferencia' }}</button>
+  </div>
+</div>

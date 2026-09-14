@@ -32,6 +32,9 @@ export class ErpVentasComponent implements OnInit {
   productos: Producto[] = [];
   expandidoId: number | null = null;
 
+  papeleraOpen = false;
+  papelera: ErpPedido[] = [];
+
   constructor(
     private erpService: ErpService,
     private crmService: CrmService,
@@ -177,6 +180,28 @@ export class ErpVentasComponent implements OnInit {
     this.erpService.cancelarPedido(id).subscribe({
       next: () => { this.notify.success('Pedido cancelado'); this.cdr.detectChanges(); },
       error: (err) => { this.notify.error('No se pudo cancelar el pedido'); console.error(err); },
+    });
+  }
+
+  async eliminar(id: number) {
+    const ok = await this.notify.confirm('¿Eliminar este pedido? Podrás restaurarlo desde la papelera.', { danger: true, confirmText: 'Eliminar' });
+    if (!ok) return;
+
+    this.erpService.deletePedido(id).subscribe({
+      next: () => { this.notify.success('Pedido eliminado'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error(err?.error?.message || 'No se pudo eliminar el pedido'); console.error(err); },
+    });
+  }
+
+  abrirPapelera() {
+    this.papeleraOpen = true;
+    this.erpService.cargarPapeleraPedidos().subscribe(data => { this.papelera = data; this.cdr.detectChanges(); });
+  }
+
+  restaurar(id: number) {
+    this.erpService.restaurarPedido(id).subscribe({
+      next: () => { this.papelera = this.papelera.filter(p => p.id !== id); this.notify.success('Pedido restaurado'); this.cdr.detectChanges(); },
+      error: (err) => { this.notify.error('No se pudo restaurar el pedido'); console.error(err); },
     });
   }
 }
