@@ -81,7 +81,7 @@
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.direccion" placeholder="Dirección" />
     <div class="grid grid-cols-2 gap-3">
       <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.telefono" placeholder="Teléfono" />
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.responsable" placeholder="Responsable" />
+      <app-selector-usuario [(value)]="form.responsable" placeholder="Responsable — sin asignar" clase="px-3 py-2 border border-slate-200 rounded-lg text-sm"></app-selector-usuario>
     </div>
     <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
     <button (click)="submit()" [disabled]="saving"

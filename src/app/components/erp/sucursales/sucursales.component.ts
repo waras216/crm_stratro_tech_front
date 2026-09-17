@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { ErpService } from '../../../core/services/erp-service';
 import { NotifyService } from '../../../core/services/notify.service';
 import { ErpSucursal } from '../../../models/erp.models';
@@ -21,10 +22,28 @@ export class ErpSucursalesComponent implements OnInit {
   saving = false;
   error = '';
 
-  constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private erpService: ErpService,
+    private notify: NotifyService,
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+  ) {}
 
   ngOnInit() {
-    this.erpService.sucursales$.subscribe(data => { this.sucursales = data; this.cargando = false; this.cdr.detectChanges(); });
+    // Deep-link desde la terminal POS: ?id_sucursal=X abre directo el diálogo
+    // de edición de esa sucursal (ver botón "Administrar sucursal" en pos-page).
+    let idSucursalDestino = Number(this.route.snapshot.queryParamMap.get('id_sucursal')) || null;
+
+    this.erpService.sucursales$.subscribe(data => {
+      this.sucursales = data;
+      this.cargando = false;
+      if (idSucursalDestino) {
+        const s = data.find(x => x.id_sucursal === idSucursalDestino);
+        idSucursalDestino = null;
+        if (s) this.abrirEditar(s);
+      }
+      this.cdr.detectChanges();
+    });
     this.erpService.cargarSucursales().subscribe();
   }
 

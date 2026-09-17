@@ -108,6 +108,8 @@ export interface ErpPedido {
   cliente?: Cliente;
   id_usuario?: number | null;
   cajero?: { id_usuario: number; nombre: string } | null;
+  id_turno?: number | null;
+  turno?: ErpTurnoCaja | null;
   total: number;
   estado: 'pendiente' | 'enviado' | 'facturado' | 'cancelada';
   canal?: string | null;

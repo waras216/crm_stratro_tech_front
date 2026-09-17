@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Location } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
@@ -223,6 +223,7 @@ export class ConfiguracionComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private notify: NotifyService,
     private sanitizer: DomSanitizer,
+    private route: ActivatedRoute,
   ) {}
 
   // Angular sanitiza (y descarta) cualquier <svg> pasado a [innerHTML] sin esto.
@@ -241,6 +242,11 @@ export class ConfiguracionComponent implements OnInit {
     if (this.esAdmin) tabsPermitidos.push('equipo', 'negocio', 'fiscal');
     const tabGuardado = localStorage.getItem('configuracionActiveTab') as TabConfiguracion | null;
     if (tabGuardado && tabsPermitidos.includes(tabGuardado)) this.activeTab = tabGuardado;
+
+    // Deep-link desde el sidebar ("Usuarios" en CRM/ERP → aquí, pestaña
+    // Equipo) o cualquier otro link con ?tab=. Pisa el tab guardado.
+    const tabDeep = this.route.snapshot.queryParamMap.get('tab') as TabConfiguracion | null;
+    if (tabDeep && tabsPermitidos.includes(tabDeep)) this.activeTab = tabDeep;
 
     const session = this.auth.session;
     if (session) {

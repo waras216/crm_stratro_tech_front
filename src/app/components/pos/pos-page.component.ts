@@ -16,8 +16,26 @@ import { Cliente } from '../../models/crm.models';
   selector: 'app-pos-page',
   standalone: false,
   template: `
+    <!-- ── APERTURA DE CAJA: bloquea la terminal hasta que el cajero abra un turno ── -->
+    <div *ngIf="tab==='terminal' && !cargandoTurno && !erpService.turnoActivo" class="h-full">
+      <app-pos-apertura-caja (abierta)="onCajaAbierta()"></app-pos-apertura-caja>
+    </div>
+
     <!-- ── TERMINAL ── -->
-    <ng-container *ngIf="tab==='terminal'">
+    <ng-container *ngIf="tab==='terminal' && (cargandoTurno || erpService.turnoActivo)">
+
+      <div *ngIf="erpService.turnoActivo" class="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-3 py-2 mb-3 flex-shrink-0">
+        <p class="text-xs text-slate-500 m-0">
+          Caja <span class="font-semibold text-slate-700">{{ erpService.turnoActivo.caja?.nombre }}</span>
+          <span *ngIf="erpService.turnoActivo.caja?.sucursal"> · {{ erpService.turnoActivo.caja?.sucursal?.nombre }}</span>
+          abierta desde {{ erpService.turnoActivo.fecha_apertura | date:'short' }}
+        </p>
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <button *ngIf="erpService.turnoActivo.caja?.sucursal && puedeAdministrarErp" (click)="administrarSucursal()"
+            class="text-[10px] font-semibold text-blue-600 bg-transparent border-0 cursor-pointer hover:underline">Administrar sucursal</button>
+          <button (click)="abrirCierreCaja()" class="text-[10px] font-semibold text-slate-500 bg-transparent border-0 cursor-pointer hover:underline">Cerrar caja</button>
+        </div>
+      </div>
 
       <ng-container *ngIf="nicho.nicho==='farmacia'">
         <app-pos-terminal-farmacia></app-pos-terminal-farmacia>
@@ -120,6 +138,29 @@ import { Cliente } from '../../models/crm.models';
     <app-pos-ticket [pedido]="lastPedido" [visible]="ticketOpen" (cerrar)="ticketOpen=false"></app-pos-ticket>
     <app-pos-pago-modal [visible]="pagoModalOpen" [total]="totalCarrito"
       (confirmar)="confirmarPago($event)" (cancelado)="pagoModalOpen=false"></app-pos-pago-modal>
+
+    <!-- ── CIERRE DE CAJA ── -->
+    <div *ngIf="cierreCajaOpen" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="cierreCajaOpen=false"></div>
+    <div *ngIf="cierreCajaOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-96 p-6 shadow-2xl z-[101]" (click)="$event.stopPropagation()">
+      <h3 class="m-0 mb-4 text-lg font-bold text-slate-800 text-center">Cerrar caja</h3>
+      <div class="flex flex-col gap-3">
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Monto de cierre (efectivo contado)</label>
+          <input type="number" min="0" step="0.01" [(ngModel)]="montoCierre"
+            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Notas (opcional)</label>
+          <input type="text" [(ngModel)]="notasCierre" maxlength="350"
+            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700" />
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button (click)="cierreCajaOpen=false" class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl border-0 cursor-pointer text-sm font-semibold hover:bg-slate-200">Cancelar</button>
+        <button (click)="cerrarCaja()" [disabled]="montoCierre < 0 || cerrandoCaja"
+          class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl border-0 cursor-pointer text-sm font-semibold hover:bg-emerald-700 disabled:opacity-40">Confirmar cierre</button>
+      </div>
+    </div>
   `,
   styles: [':host { display: block; height: 100%; }'],
 })
@@ -141,12 +182,18 @@ export class PosPageComponent implements OnInit, OnDestroy {
   cargandoClientes = false;
   canalVenta: string | null = null;
 
+  cargandoTurno = true;
+  cierreCajaOpen = false;
+  montoCierre = 0;
+  notasCierre = '';
+  cerrandoCaja = false;
+
   private destroy$ = new Subject<void>();
 
   constructor(
     public nicho: NichoService,
     private moduleService: ModuleService,
-    private erpService: ErpService,
+    public erpService: ErpService,
     private crmService: CrmService,
     private notify: NotifyService,
     private cdr: ChangeDetectorRef,
@@ -155,8 +202,22 @@ export class PosPageComponent implements OnInit, OnDestroy {
 
   canalLabel(id: string): string { return TIENDA_CANALES_LABELS[id] || id; }
 
+  get puedeAdministrarErp(): boolean {
+    return this.moduleService.modules.some(m => m.id === 'erp');
+  }
+
+  administrarSucursal() {
+    const idSucursal = this.erpService.turnoActivo?.caja?.sucursal?.id_sucursal;
+    if (!idSucursal) return;
+    this.moduleService.setErpTab('sucursales', { id_sucursal: String(idSucursal) });
+  }
+
   ngOnInit() {
     this.canalVenta = this.nicho.tiendaCanales[0] || null;
+    this.erpService.cargarMiTurno().subscribe({
+      next: () => { this.cargandoTurno = false; this.cdr.detectChanges(); },
+      error: () => { this.cargandoTurno = false; this.cdr.detectChanges(); },
+    });
     this.moduleService.posTab$
       .pipe(takeUntil(this.destroy$))
       .subscribe(t => {
@@ -288,6 +349,35 @@ export class PosPageComponent implements OnInit, OnDestroy {
       error: err => {
         this.notify.error(err?.error?.message || 'No se pudo procesar la venta');
         this.cobrando = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  onCajaAbierta() {
+    this.cdr.detectChanges();
+  }
+
+  abrirCierreCaja() {
+    this.montoCierre = 0;
+    this.notasCierre = '';
+    this.cierreCajaOpen = true;
+  }
+
+  cerrarCaja() {
+    const turno = this.erpService.turnoActivo;
+    if (!turno || this.montoCierre < 0 || this.cerrandoCaja) return;
+    this.cerrandoCaja = true;
+    this.erpService.cerrarTurno(turno.id_turno, { monto_cierre: this.montoCierre, notas: this.notasCierre || undefined }).subscribe({
+      next: () => {
+        this.cerrandoCaja = false;
+        this.cierreCajaOpen = false;
+        this.notify.success('Caja cerrada');
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        this.cerrandoCaja = false;
+        this.notify.error(err?.error?.message || 'No se pudo cerrar la caja');
         this.cdr.detectChanges();
       },
     });

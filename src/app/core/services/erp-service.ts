@@ -1,7 +1,7 @@
 // src/app/core/services/erp-service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Producto, Categoria, Proveedor, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
@@ -261,7 +261,8 @@ export class ErpService {
   }
 
   addPedido(pedido: Partial<ErpPedido>): Observable<ErpPedido> {
-    return this.http.post<ErpPedido>(`${API}/erp/ventas`, pedido).pipe(
+    const body = { ...pedido, id_turno: pedido.id_turno ?? this.turnoActivo?.id_turno ?? null };
+    return this.http.post<ErpPedido>(`${API}/erp/ventas`, body).pipe(
       tap(nuevo => this._pedidos.next([nuevo, ...this.pedidos]))
     );
   }
@@ -435,7 +436,8 @@ export class ErpService {
   }
 
   cobrarMesa(id: number, idCliente: number, pagos: PedidoPago[]): Observable<{ mesa: ErpMesa; pedido: ErpPedido }> {
-    return this.http.post<{ mesa: ErpMesa; pedido: ErpPedido }>(`${API}/erp/mesas/${id}/cobrar`, { id_cliente: idCliente, pagos }).pipe(
+    const body = { id_cliente: idCliente, pagos, id_turno: this.turnoActivo?.id_turno ?? null };
+    return this.http.post<{ mesa: ErpMesa; pedido: ErpPedido }>(`${API}/erp/mesas/${id}/cobrar`, body).pipe(
       tap(res => {
         this.actualizarMesaLocal(res.mesa);
         this._pedidos.next([res.pedido, ...this.pedidos]);
@@ -638,7 +640,7 @@ export class ErpService {
   }
 
   checkOutHabitacion(id: number, idCliente?: number, pagos?: PedidoPago[]): Observable<{ habitacion: ErpHabitacion; pedido: ErpPedido | null }> {
-    const body = idCliente ? { id_cliente: idCliente, pagos } : {};
+    const body = idCliente ? { id_cliente: idCliente, pagos, id_turno: this.turnoActivo?.id_turno ?? null } : {};
     return this.http.post<{ habitacion: ErpHabitacion; pedido: ErpPedido | null }>(`${API}/erp/habitaciones/${id}/check-out`, body).pipe(
       tap(res => {
         this.actualizarHabitacionLocal(res.habitacion);
@@ -703,7 +705,8 @@ export class ErpService {
   }
 
   dispensarLote(ids: number[], idCliente: number, pagos: PedidoPago[], canal?: string | null): Observable<ErpPedido> {
-    return this.http.post<ErpPedido>(`${API}/erp/recetas/dispensar-lote`, { ids, id_cliente: idCliente, pagos, canal: canal || null }).pipe(
+    const body = { ids, id_cliente: idCliente, pagos, canal: canal || null, id_turno: this.turnoActivo?.id_turno ?? null };
+    return this.http.post<ErpPedido>(`${API}/erp/recetas/dispensar-lote`, body).pipe(
       tap(pedido => {
         this._recetas.next(this.recetas.map(r => ids.includes(r.id) ? { ...r, pendiente: false } : r));
         this._pedidos.next([pedido, ...this.pedidos]);
@@ -953,15 +956,34 @@ export class ErpService {
     return this.http.get<ErpTurnoCaja[]>(`${API}/erp/turnos-caja`).pipe(tap(data => this._turnos.next(data)));
   }
 
+  // Turno de caja abierto del cajero autenticado en la terminal POS (null si
+  // no abrió caja todavía). El POS bloquea la venta hasta que haya uno.
+  private _turnoActivo = new BehaviorSubject<ErpTurnoCaja | null>(null);
+  turnoActivo$ = this._turnoActivo.asObservable();
+  get turnoActivo() { return this._turnoActivo.getValue(); }
+
+  cargarMiTurno(): Observable<ErpTurnoCaja | null> {
+    return this.http.get<ErpTurnoCaja | null>(`${API}/erp/turnos-caja/mio`).pipe(
+      tap(turno => this._turnoActivo.next(turno))
+    );
+  }
+
   abrirTurno(data: { id_caja: number; monto_apertura: number; notas?: string }): Observable<ErpTurnoCaja> {
     return this.http.post<ErpTurnoCaja>(`${API}/erp/turnos-caja/abrir`, data).pipe(
-      tap(nuevo => this._turnos.next([nuevo, ...this.turnos]))
+      tap(nuevo => {
+        this._turnos.next([nuevo, ...this.turnos]);
+        this._turnoActivo.next(nuevo);
+      })
     );
   }
 
   cerrarTurno(id: number, data: { monto_cierre: number; notas?: string }): Observable<ErpTurnoCaja> {
+    if (!id) return throwError(() => new Error('No hay un turno de caja válido para cerrar.'));
     return this.http.patch<ErpTurnoCaja>(`${API}/erp/turnos-caja/${id}/cerrar`, data).pipe(
-      tap(act => this._turnos.next(this.turnos.map(t => t.id_turno === id ? act : t)))
+      tap(act => {
+        this._turnos.next(this.turnos.map(t => t.id_turno === id ? act : t));
+        if (this.turnoActivo?.id_turno === id) this._turnoActivo.next(null);
+      })
     );
   }
 

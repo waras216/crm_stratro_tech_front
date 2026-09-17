@@ -230,7 +230,7 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
 
   onNavigate(item: SidebarNavItem) {
     if (item.route) {
-      this.router.navigate([item.route]);
+      this.router.navigate([item.route], item.queryParams ? { queryParams: item.queryParams } : {});
     } else if (item.erpTab) {
       this.module.setErpTab(item.erpTab);
     } else if (item.posTab) {

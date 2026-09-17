@@ -178,6 +178,10 @@
         <div *ngFor="let c of clientesResultados" (click)="seleccionarCliente(c)" class="px-3 py-2 text-sm cursor-pointer hover:bg-slate-50">{{ c.nombre }}</div>
       </div>
       <p *ngIf="clienteSeleccionado" class="text-xs text-emerald-600 mt-1 mb-0">Cliente seleccionado: {{ clienteSeleccionado.nombre }}</p>
+      <p *ngIf="busquedaClienteSinResultados && !clienteSeleccionado" class="text-xs text-amber-600 mt-1 mb-0">
+        No encontramos ningún cliente con ese nombre. Registralo primero en
+        <a (click)="irACrmClientes()" class="font-semibold underline cursor-pointer">CRM → Clientes</a> para poder facturarle.
+      </p>
     </div>
 
     <select *ngIf="nicho.nicho==='hotel' && seccionesHotel.length" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.seccion">

@@ -1,0 +1,42 @@
+<div class="h-full flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl border border-slate-200">
+    <div class="text-center mb-5">
+      <h3 class="m-0 text-lg font-bold text-slate-800">Abrir caja</h3>
+      <p class="text-xs text-slate-400 mt-1">Necesitás abrir un turno de caja antes de vender.</p>
+    </div>
+
+    <p *ngIf="cargando" class="text-center text-sm text-slate-400 py-6">Cargando cajas...</p>
+
+    <div *ngIf="!cargando && cajas.length === 0" class="text-center text-sm text-slate-500 py-6">
+      No hay cajas configuradas para tu negocio.<br />
+      Pedile a un administrador que cree una en ERP → Sucursales y Cajas.
+    </div>
+
+    <form *ngIf="!cargando && cajas.length > 0" (ngSubmit)="abrir()" class="flex flex-col gap-3">
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Caja</label>
+        <select [(ngModel)]="idCaja" name="idCaja" required
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700">
+          <option *ngFor="let c of cajas" [value]="c.id_caja">{{ c.nombre }} — {{ c.sucursal?.nombre }}</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Monto de apertura</label>
+        <input type="number" min="0" step="0.01" [(ngModel)]="montoApertura" name="montoApertura" required
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700" />
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Notas (opcional)</label>
+        <input type="text" [(ngModel)]="notas" name="notas" maxlength="350"
+          class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700" />
+      </div>
+
+      <button type="submit" [disabled]="!idCaja || montoApertura < 0 || guardando"
+        class="mt-2 w-full py-2.5 bg-emerald-600 text-white rounded-xl border-0 cursor-pointer text-sm font-semibold hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed">
+        {{ guardando ? 'Abriendo...' : 'Abrir caja' }}
+      </button>
+    </form>
+  </div>
+</div>

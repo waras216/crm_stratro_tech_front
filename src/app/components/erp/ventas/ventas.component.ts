@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { ErpService } from '../../../core/services/erp-service';
 import { CrmService } from '../../../core/services/crm-service';
 import { FARM_ATENCION_LABELS, HOTEL_AMENIDAD_CATEGORIAS, NichoService, REST_CANALES_LABELS, TIENDA_CANALES_LABELS } from '../../../core/services/nicho.service';
@@ -42,7 +43,13 @@ export class ErpVentasComponent implements OnInit {
     public nicho: NichoService,
     private notify: NotifyService,
     public stockAlert: StockAlertService,
+    private router: Router,
   ) {}
+
+  irACrmClientes() {
+    this.dialogOpen = false;
+    this.router.navigate(['/crm/clientes']);
+  }
 
   canalLabel(canal: string | null | undefined): string {
     if (!canal) return '—';
@@ -90,14 +97,19 @@ export class ErpVentasComponent implements OnInit {
     this.clienteBusqueda = '';
     this.clientesResultados = [];
     this.clienteSeleccionado = null;
+    this.busquedaClienteSinResultados = false;
     this.error = '';
     this.dialogOpen = true;
   }
 
+  busquedaClienteSinResultados = false;
+
   buscarCliente() {
+    this.busquedaClienteSinResultados = false;
     if (!this.clienteBusqueda) { this.clientesResultados = []; return; }
     this.crmService.cargarClientes(1, this.clienteBusqueda).subscribe(page => {
       this.clientesResultados = page.data;
+      this.busquedaClienteSinResultados = page.data.length === 0;
       this.cdr.detectChanges();
     });
   }
@@ -106,6 +118,7 @@ export class ErpVentasComponent implements OnInit {
     this.clienteSeleccionado = cliente;
     this.form.id_cliente = String(cliente.id_cliente);
     this.clientesResultados = [];
+    this.busquedaClienteSinResultados = false;
     this.clienteBusqueda = cliente.nombre;
   }
 
