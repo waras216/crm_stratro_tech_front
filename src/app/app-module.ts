@@ -14,6 +14,7 @@ import { ShellLayoutComponent } from './components/shell/shell-layout.component'
 
 // Shared
 import { AppSwitcherComponent } from './components/shared/app-switcher.component';
+import { SelectorUsuarioComponent } from './components/shared/selector-usuario/selector-usuario.component';
 import { ReportExportButtonsComponent } from './components/shared/report-export-buttons/report-export-buttons.component';
 import { PuedeDirective } from './core/directives/puede.directive';
 import { RolesComponent } from './components/admin/roles/roles.component';
@@ -38,6 +39,7 @@ import { AuthSocialCallbackComponent } from './components/auth/social-callback/s
 import { DashboardComponent }    from './components/crm/dashboard/dashboard.component';
 import { LeadsComponent }        from './components/crm/leads/leads.component';
 import { OportunidadesComponent }from './components/crm/oportunidades/oportunidades.component';
+import { PipelineComponent }     from './components/crm/pipeline/pipeline.component';
 import { ClientesComponent }     from './components/crm/clientes/clientes.component';
 import { ActividadesComponent }  from './components/crm/actividades/actividades.component';
 import { MarketingComponent }    from './components/crm/marketing/marketing.component';
@@ -58,6 +60,7 @@ import { PosTerminalRestauranteComponent }from './components/pos/terminal-restau
 import { PagoModalComponent }            from './components/pos/pago-modal/pago-modal.component';
 import { PosComandasComponent }          from './components/pos/comandas/comandas.component';
 import { PosMantenimientoComponent }     from './components/pos/mantenimiento/mantenimiento.component';
+import { AperturaCajaComponent }         from './components/pos/apertura-caja/apertura-caja.component';
 
 // ERP
 import { ErpPageComponent }      from './components/erp/erp-page.component';
@@ -109,6 +112,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     ShellLayoutComponent,
     // Shared
     AppSwitcherComponent,
+    SelectorUsuarioComponent,
     ReportExportButtonsComponent,
     ViewToggleComponent,
     EmptyStateComponent,
@@ -128,6 +132,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     DashboardComponent,
     LeadsComponent,
     OportunidadesComponent,
+    PipelineComponent,
     ClientesComponent,
     ActividadesComponent,
     MarketingComponent,
@@ -147,6 +152,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     PosComandasComponent,
     PosMantenimientoComponent,
     PagoModalComponent,
+    AperturaCajaComponent,
     // ERP
     ErpPageComponent,
     ErpDashboardComponent,

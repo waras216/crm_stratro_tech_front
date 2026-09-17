@@ -36,6 +36,7 @@ export interface SidebarNavItem {
   label: string;
   svg: string;
   route?: string;
+  queryParams?: Record<string, string>;
   erpTab?: ErpTab;
   posTab?: PosTab;
   badge?: number;
@@ -121,6 +122,7 @@ const CRM_SIDEBAR: SidebarSection[] = [
     items: [
       { label: 'Clientes',       svg: S(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>`),                                                                                                     route: '/crm/clientes' },
       { label: 'Leads',          svg: S(`<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>`),                                                                                                                                     route: '/crm/leads' },
+      { label: 'Pipeline',       svg: S(`<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.12 15.88"/><path d="M14.47 14.48L20 20"/><path d="M8.12 8.12L12 12"/>`),                                       route: '/crm/pipeline' },
       { label: 'Oportunidades',  svg: S(`<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>`),                                                                              route: '/crm/oportunidades' },
     ],
   },
@@ -139,6 +141,15 @@ const CRM_SIDEBAR: SidebarSection[] = [
       { label: 'Integraciones',  svg: S(`<rect x="2" y="2" width="6" height="6"/><rect x="16" y="2" width="6" height="6"/><rect x="2" y="16" width="6" height="6"/><path d="M5 8v12h12V8"/><path d="M5 5h14"/>`),                  route: '/crm/integraciones' },
     ],
   },
+  {
+    label: 'Administración',
+    items: [
+      // Global: mismo destino (Configuración → Equipo) sin importar nicho o
+      // tenant — item tipo "route", no "erpTab"/"posTab", así que no lo toca
+      // el filtro por nicho de ERP_TABS_OCULTOS_POR_NICHO.
+      { label: 'Usuarios', svg: S(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`), route: '/configuracion', queryParams: { tab: 'equipo' } },
+    ],
+  },
 ];
 
 const ERP_SIDEBAR: SidebarSection[] = [
@@ -152,11 +163,11 @@ const ERP_SIDEBAR: SidebarSection[] = [
     items: [
       { label: 'Finanzas',     svg: S(`<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>`),                                                                                              erpTab: 'finanzas' },
       { label: 'Compras',      svg: S(`<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>`),                                                             erpTab: 'compras' },
-      { label: 'Proveedores',  svg: S(`<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>`), erpTab: 'proveedores' },
-      { label: 'Ventas',       svg: S(`<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>`), erpTab: 'ventas' },
-      { label: 'Facturación',  svg: S(`<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>`), erpTab: 'facturacion' },
+      { label: 'Proveedores',  svg: S(`<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>`), erpTab: 'proveedores' },        
       { label: 'Categorías',   svg: S(`<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>`),                                                                     erpTab: 'categorias' },
       { label: 'Inventario',   svg: S(`<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>`),                                                                           erpTab: 'inventario' },
+      { label: 'Ventas',       svg: S(`<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>`), erpTab: 'ventas' },
+      { label: 'Facturación',  svg: S(`<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>`), erpTab: 'facturacion' },
       { label: 'Mesas',        svg: S(`<circle cx="12" cy="8" r="1"/><path d="M5 3h14l-1.5 9h-11L5 3z"/><path d="M12 12v9"/><path d="M8 21h8"/>`),                                                                                          erpTab: 'mesas' },
     ],
   },
@@ -195,6 +206,8 @@ const ERP_SIDEBAR: SidebarSection[] = [
     items: [
       { label: 'RR.HH.',       svg: S(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`),                               erpTab: 'rrhh' },
       { label: 'CRM',          svg: S(`<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>`),                                      erpTab: 'crm' },
+      // route (no erpTab): visible siempre, sin importar el nicho del tenant.
+      { label: 'Usuarios',     svg: S(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`), route: '/configuracion', queryParams: { tab: 'equipo' } },
     ],
   },
   {
@@ -331,12 +344,15 @@ export class ModuleService {
     if (!mod || mod.id === this._activeModule().id) return;
     this._activeModule.set(mod);
     const target = this.lastRoutes.get(moduleId) ?? mod.defaultPath;
-    this.router.navigate([target]);
+    // target puede traer query string (ej. "/erp?tab=sucursales") porque se
+    // guarda tal cual desde syncFromUrl; router.navigate([target]) lo trataría
+    // como un segmento literal y codificaría el "?"/"=", rompiendo la URL.
+    this.router.navigateByUrl(target);
   }
 
-  setErpTab(tab: ErpTab) {
+  setErpTab(tab: ErpTab, extraParams?: Record<string, string>) {
     this.erpTab$.next(tab);
-    this.router.navigate(['/erp'], { queryParams: { tab }, replaceUrl: true });
+    this.router.navigate(['/erp'], { queryParams: { tab, ...extraParams }, replaceUrl: true });
   }
   setPosTab(tab: PosTab) {
     this.posTab$.next(tab);

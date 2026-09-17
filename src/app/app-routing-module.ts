@@ -13,6 +13,7 @@ import { ShellLayoutComponent }   from './components/shell/shell-layout.componen
 import { DashboardComponent }     from './components/crm/dashboard/dashboard.component';
 import { LeadsComponent }         from './components/crm/leads/leads.component';
 import { OportunidadesComponent } from './components/crm/oportunidades/oportunidades.component';
+import { PipelineComponent }      from './components/crm/pipeline/pipeline.component';
 import { ClientesComponent }      from './components/crm/clientes/clientes.component';
 import { ActividadesComponent }   from './components/crm/actividades/actividades.component';
 import { MarketingComponent }     from './components/crm/marketing/marketing.component';
@@ -62,6 +63,7 @@ const routes: Routes = [
           { path: 'dashboard',    component: DashboardComponent },
           { path: 'leads',        component: LeadsComponent },
           { path: 'oportunidades',component: OportunidadesComponent },
+          { path: 'pipeline',     component: PipelineComponent },
           { path: 'clientes',     component: ClientesComponent },
           { path: 'actividades',  component: ActividadesComponent },
           { path: 'marketing',    component: MarketingComponent },

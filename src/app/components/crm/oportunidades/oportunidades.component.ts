@@ -41,13 +41,6 @@ export class OportunidadesComponent implements OnInit {
   pendingCierreId: number | null = null;
   cierreError = '';
 
-  // Gestión de pipelines
-  pipelineManagerOpen = false;
-  pipelineFormOpen = false;
-  editingPipeline: Pipeline | null = null;
-  pipelineForm: { nombre: string; activo: boolean } = { nombre: '', activo: true };
-  pipelineError = '';
-
   constructor(private crm: CrmService, private cdr: ChangeDetectorRef, private notify: NotifyService, private route: ActivatedRoute) {}
 
   ngOnInit() {
@@ -242,50 +235,4 @@ export class OportunidadesComponent implements OnInit {
     this.draggedOp = null;
   }
 
-  // Gestión de pipelines
-  private cargarPipelinesList() {
-    this.crm.cargarPipelines().subscribe({ next: res => { this.pipelines = res ?? []; this.cdr.detectChanges(); } });
-  }
-
-  openPipelineManager() { this.pipelineManagerOpen = true; }
-  closePipelineManager() { this.pipelineManagerOpen = false; this.closePipelineForm(); }
-
-  resetPipelineForm() { this.pipelineForm = { nombre: '', activo: true }; this.editingPipeline = null; this.pipelineError = ''; }
-  openNewPipeline() { this.resetPipelineForm(); this.pipelineFormOpen = true; }
-  closePipelineForm() { this.pipelineFormOpen = false; this.resetPipelineForm(); }
-
-  handleEditPipeline(p: Pipeline) {
-    this.editingPipeline = p;
-    this.pipelineForm = { nombre: p.nombre, activo: p.activo ?? true };
-    this.pipelineFormOpen = true;
-  }
-
-  handleSubmitPipeline() {
-    if (!this.pipelineForm.nombre.trim()) { this.pipelineError = 'El nombre del pipeline es obligatorio.'; return; }
-    const obs = this.editingPipeline
-      ? this.crm.updatePipeline(this.editingPipeline.id_pipeline, this.pipelineForm)
-      : this.crm.addPipeline(this.pipelineForm);
-    obs.subscribe({
-      next: () => { this.closePipelineForm(); this.cargarPipelinesList(); },
-      error: err => { this.pipelineError = err.error?.message ?? 'Error al guardar el pipeline'; this.cdr.detectChanges(); },
-    });
-  }
-
-  togglePipelineActivo(p: Pipeline) {
-    this.crm.updatePipeline(p.id_pipeline, { activo: !p.activo }).subscribe({
-      next: () => this.cargarPipelinesList(),
-    });
-  }
-
-  async deletePipeline(p: Pipeline) {
-    const enUso = this.oportunidades.some(o => o.id_pipeline === p.id_pipeline);
-    const aviso = enUso
-      ? `"${p.nombre}" tiene oportunidades activas. Eliminarlo también eliminará esas oportunidades. ¿Continuar?`
-      : `¿Eliminar el pipeline "${p.nombre}"?`;
-    const ok = await this.notify.confirm(aviso, { danger: enUso, confirmText: 'Eliminar' });
-    if (!ok) return;
-    this.crm.deletePipeline(p.id_pipeline).subscribe({
-      next: () => { this.cargarPipelinesList(); this.cargar(); this.notify.success('Pipeline eliminado'); },
-    });
-  }
 }
