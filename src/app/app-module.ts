@@ -18,6 +18,7 @@ import { SelectorUsuarioComponent } from './components/shared/selector-usuario/s
 import { ReportExportButtonsComponent } from './components/shared/report-export-buttons/report-export-buttons.component';
 import { PuedeDirective } from './core/directives/puede.directive';
 import { RolesComponent } from './components/admin/roles/roles.component';
+import { UsuariosComponent } from './components/admin/usuarios/usuarios.component';
 import { ToastContainerComponent } from './components/shared/toast/toast-container.component';
 import { ConfirmDialogComponent } from './components/shared/confirm-dialog/confirm-dialog.component';
 import { ViewToggleComponent } from './components/shared/view-toggle/view-toggle.component';
@@ -188,6 +189,7 @@ import { ErrorInterceptor } from './core/interceptors/error-interceptor-intercep
     PlanesComponent,
     EmpresasComponent,
     RolesComponent,
+    UsuariosComponent,
     SuscripcionComponent,
   ],
   imports: [

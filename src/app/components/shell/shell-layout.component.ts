@@ -263,11 +263,18 @@ export class ShellLayoutComponent implements OnInit, OnDestroy {
   }
 
   getPageTitle(): string {
-    if (this.activeModule.id === 'erp') return this.erpLabel(this.activeErpTab);
-    if (this.activeModule.id === 'pos') return this.posLabel(this.activePosTab);
+    const path = this.currentUrl.split('?')[0];
+    // ERP/POS no navegan por router para sus tabs (ver setErpTab/setPosTab),
+    // así que activeErpTab/activePosTab solo son la fuente de verdad cuando
+    // la URL realmente sigue dentro de /erp o /pos — en una ruta global como
+    // /admin/usuarios, activeModule sigue siendo el último módulo visitado
+    // pero la URL ya no matchea, y había que derivar el título de la URL
+    // como en cualquier otra ruta fuera de los módulos.
+    if (this.activeModule.id === 'erp' && path.startsWith('/erp')) return this.erpLabel(this.activeErpTab);
+    if (this.activeModule.id === 'pos' && path.startsWith('/pos')) return this.posLabel(this.activePosTab);
     // currentUrl puede traer query params (ej. ?q=... desde un resultado de
     // búsqueda) — se descartan antes de derivar el título de la URL.
-    const parts = this.currentUrl.split('?')[0].split('/').filter(Boolean);
+    const parts = path.split('/').filter(Boolean);
     if (parts.length >= 2) return parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
     return this.activeModule.label;
   }

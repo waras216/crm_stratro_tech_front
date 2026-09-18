@@ -32,6 +32,7 @@ import { ModuloGuard }            from './core/auth/modulo.guard';
 import { PlanesComponent }        from './components/admin/planes/planes.component';
 import { EmpresasComponent }      from './components/admin/empresas/empresas.component';
 import { RolesComponent }         from './components/admin/roles/roles.component';
+import { UsuariosComponent }      from './components/admin/usuarios/usuarios.component';
 import { SuscripcionComponent }   from './components/configuracion/suscripcion/suscripcion.component';
 import { SuperAdminGuard }        from './core/auth/superadmin.guard';
 import { AdminTenantGuard }       from './core/auth/admin-tenant.guard';
@@ -79,6 +80,7 @@ const routes: Routes = [
       { path: 'admin/planes', component: PlanesComponent, canActivate: [SuperAdminGuard] },
       { path: 'admin/empresas', component: EmpresasComponent, canActivate: [SuperAdminGuard] },
       { path: 'admin/roles', component: RolesComponent, canActivate: [AdminTenantGuard] },
+      { path: 'admin/usuarios', component: UsuariosComponent, canActivate: [AdminTenantGuard] },
     ],
   },
 

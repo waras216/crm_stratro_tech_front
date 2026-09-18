@@ -144,10 +144,11 @@ const CRM_SIDEBAR: SidebarSection[] = [
   {
     label: 'Administración',
     items: [
-      // Global: mismo destino (Configuración → Equipo) sin importar nicho o
-      // tenant — item tipo "route", no "erpTab"/"posTab", así que no lo toca
-      // el filtro por nicho de ERP_TABS_OCULTOS_POR_NICHO.
-      { label: 'Usuarios', svg: S(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`), route: '/configuracion', queryParams: { tab: 'equipo' } },
+      // Global: módulo propio de administración de usuarios (independiente
+      // de Configuración) sin importar nicho o tenant — item tipo "route",
+      // no "erpTab"/"posTab", así que no lo toca el filtro por nicho de
+      // ERP_TABS_OCULTOS_POR_NICHO.
+      { label: 'Usuarios', svg: S(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`), route: '/admin/usuarios' },
     ],
   },
 ];
@@ -207,7 +208,7 @@ const ERP_SIDEBAR: SidebarSection[] = [
       { label: 'RR.HH.',       svg: S(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`),                               erpTab: 'rrhh' },
       { label: 'CRM',          svg: S(`<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>`),                                      erpTab: 'crm' },
       // route (no erpTab): visible siempre, sin importar el nicho del tenant.
-      { label: 'Usuarios',     svg: S(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`), route: '/configuracion', queryParams: { tab: 'equipo' } },
+      { label: 'Usuarios',     svg: S(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`), route: '/admin/usuarios' },
     ],
   },
   {

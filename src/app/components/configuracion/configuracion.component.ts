@@ -4,10 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/auth/authservices';
 import { ThemeService } from '../../core/theme.service';
-import { UsuarioService } from '../../core/services/usuario.service';
-import { RolService } from '../../core/services/rol.service';
 import { NotifyService } from '../../core/services/notify.service';
-import { Usuario, Rol } from '../../models/crm.models';
 import { REGIMENES_FISCALES_SAT } from '../../core/constants/sat.constants';
 import {
   ALMACEN_OPS_LABELS, FARM_ATENCION_LABELS, FARM_ESPECIALIDADES_LABELS,
@@ -16,7 +13,7 @@ import {
 
 interface PerfilNegocioCampo { label: string; texto?: string; lista?: string[]; labelsMap?: Record<string, string>; }
 
-type TabConfiguracion = 'general' | 'cuenta' | 'notificaciones' | 'apariencia' | 'seguridad' | 'equipo' | 'negocio' | 'fiscal';
+type TabConfiguracion = 'general' | 'cuenta' | 'notificaciones' | 'apariencia' | 'seguridad' | 'negocio' | 'fiscal';
 
 @Component({
   selector: 'app-configuracion',
@@ -98,7 +95,6 @@ export class ConfiguracionComponent implements OnInit {
     { id: 'notificaciones' as const, label: 'Notificaciones', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>' },
     { id: 'apariencia' as const, label: 'Apariencia', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="2.5"/><path d="M17.1 13.1A7.5 7.5 0 0 0 12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1.7 0 3.3-.4 4.7-1.2"/><path d="M19 17l3 3-3 3"/></svg>' },
     { id: 'seguridad' as const, label: 'Seguridad', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' },
-    { id: 'equipo' as const, label: 'Equipo', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
     { id: 'negocio' as const, label: 'Negocio', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>' },
     { id: 'fiscal' as const, label: 'Fiscal', icon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>' },
   ];
@@ -107,40 +103,6 @@ export class ConfiguracionComponent implements OnInit {
   errorCuenta = '';
   errorGeneral = '';
   logoPreview: string | null = null;
-
-  // Equipo
-  usuarios: Usuario[] = [];
-  cargandoUsuarios = false;
-  errorEquipo = '';
-  invitando = false;
-  modoInvitar: 'con_correo' | 'cajero' = 'con_correo';
-  nuevoUsuario: { nombre: string; email: string; password: string; es_admin: boolean; id_rol: number | null } =
-    { nombre: '', email: '', password: '', es_admin: false, id_rol: null };
-  erroresNuevoUsuario: { nombre?: string; email?: string; password?: string } = {};
-  roles: Rol[] = [];
-  avisoEquipo = '';
-
-  private readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  get rolesAsignables(): Rol[] { return this.roles.filter(r => r.clave !== 'tenant.admin'); }
-  rolMiembroId(): number | null { return this.roles.find(r => r.clave === 'tenant.miembro')?.id_rol ?? null; }
-
-  // Editar usuario existente
-  dialogUsuarioOpen = false;
-  editandoUsuario: Usuario | null = null;
-  formUsuario = { nombre: '', email: '', telefono: '', password: '' };
-  errorDialogUsuario = '';
-  guardandoUsuario = false;
-
-  // Configurar/restablecer 2FA (login rápido de cajero)
-  dialogDosFaOpen = false;
-  dosFaUsuario: Usuario | null = null;
-  dosFaQr: string | null = null;
-  dosFaSecret = '';
-  dosFaCodigo = '';
-  errorDosFa = '';
-  cargandoDosFa = false;
-  confirmandoDosFa = false;
 
   get esAdmin(): boolean { return !!this.auth.session?.es_admin; }
 
@@ -192,36 +154,13 @@ export class ConfiguracionComponent implements OnInit {
   perfilNegocioLabel(campo: PerfilNegocioCampo, id: string): string {
     return campo.labelsMap?.[id] || id;
   }
-  get maxUsuarios(): number | null { return this.auth.session?.plan?.max_usuarios ?? null; }
-  get limiteAlcanzado(): boolean { return this.maxUsuarios !== null && this.usuarios.length >= this.maxUsuarios; }
-  get miIdUsuario(): number | undefined { return this.auth.session?.id_usuario; }
-
-  // Terminal POS (vínculo dispositivo↔tenant para login rápido por 2FA)
-  get terminalVinculada(): boolean { return this.auth.terminalVinculadaAMiTenant; }
-  get terminalVinculadaAOtroTenant(): boolean {
-    const idTerminal = this.auth.terminalTenantId;
-    return idTerminal !== null && idTerminal !== this.auth.session?.id_tenant;
-  }
-
-  vincularTerminal() {
-    this.auth.vincularTerminal();
-    this.avisoEquipo = 'Esta terminal quedó configurada para tu negocio: ya puede usarse el login rápido por 2FA.';
-  }
-
-  desvincularTerminal() {
-    this.auth.desvincularTerminal();
-    this.avisoEquipo = 'Esta terminal ya no ofrecerá login por 2FA hasta que la vuelvas a configurar.';
-  }
 
   constructor(
     private auth: AuthService,
     public theme: ThemeService,
     private location: Location,
     private router: Router,
-    private usuarioService: UsuarioService,
-    private rolService: RolService,
     private cdr: ChangeDetectorRef,
-    private notify: NotifyService,
     private sanitizer: DomSanitizer,
     private route: ActivatedRoute,
   ) {}
@@ -239,12 +178,11 @@ export class ConfiguracionComponent implements OnInit {
 
   ngOnInit() {
     const tabsPermitidos: TabConfiguracion[] = ['general', 'cuenta', 'notificaciones', 'apariencia', 'seguridad'];
-    if (this.esAdmin) tabsPermitidos.push('equipo', 'negocio', 'fiscal');
+    if (this.esAdmin) tabsPermitidos.push('negocio', 'fiscal');
     const tabGuardado = localStorage.getItem('configuracionActiveTab') as TabConfiguracion | null;
     if (tabGuardado && tabsPermitidos.includes(tabGuardado)) this.activeTab = tabGuardado;
 
-    // Deep-link desde el sidebar ("Usuarios" en CRM/ERP → aquí, pestaña
-    // Equipo) o cualquier otro link con ?tab=. Pisa el tab guardado.
+    // Deep-link desde cualquier link con ?tab=. Pisa el tab guardado.
     const tabDeep = this.route.snapshot.queryParamMap.get('tab') as TabConfiguracion | null;
     if (tabDeep && tabsPermitidos.includes(tabDeep)) this.activeTab = tabDeep;
 
@@ -281,209 +219,6 @@ export class ConfiguracionComponent implements OnInit {
     this.sesionActiva = localStorage.getItem('sesionActiva') !== 'false';
     this.logoPreview = this.auth.session?.logo ?? null;
     this.applyStoredStyles();
-    if (this.esAdmin) {
-      this.cargarUsuarios();
-      this.rolService.cargarRoles().subscribe({
-        next: roles => {
-          this.roles = roles;
-          // Preseleccionar "Miembro" (todos los permisos) en vez de dejar el
-          // select en un valor implícito -- así el admin ve explícitamente
-          // qué rol se le va a asignar al usuario nuevo.
-          if (this.nuevoUsuario.id_rol === null) {
-            this.nuevoUsuario.id_rol = this.rolMiembroId();
-          }
-        },
-      });
-    }
-  }
-
-  cargarUsuarios() {
-    this.cargandoUsuarios = true;
-    this.usuarioService.cargarUsuarios().subscribe({
-      next: usuarios => { this.usuarios = usuarios; this.cargandoUsuarios = false; this.cdr.detectChanges(); },
-      error: () => { this.cargandoUsuarios = false; this.cdr.detectChanges(); },
-    });
-  }
-
-  validarNuevoUsuario(): boolean {
-    const errores: typeof this.erroresNuevoUsuario = {};
-    const u = this.nuevoUsuario;
-
-    if (!u.nombre.trim()) errores.nombre = 'El nombre es obligatorio.';
-    else if (u.nombre.trim().length < 2) errores.nombre = 'El nombre es muy corto.';
-
-    if (this.modoInvitar === 'con_correo') {
-      if (!u.email.trim()) errores.email = 'El correo es obligatorio.';
-      else if (!this.EMAIL_REGEX.test(u.email.trim())) errores.email = 'Ese correo no es válido.';
-
-      if (!u.password) errores.password = 'La contraseña es obligatoria.';
-      else if (u.password.length < 6) errores.password = 'Mínimo 6 caracteres.';
-    }
-
-    this.erroresNuevoUsuario = errores;
-    return Object.keys(errores).length === 0;
-  }
-
-  invitarUsuario() {
-    if (!this.validarNuevoUsuario()) return;
-    this.errorEquipo = '';
-    this.avisoEquipo = '';
-    this.invitando = true;
-
-    const payload = this.modoInvitar === 'cajero'
-      ? { ...this.nuevoUsuario, email: '', password: '' }
-      : this.nuevoUsuario;
-
-    this.usuarioService.invitarUsuario(payload).subscribe({
-      next: nuevo => {
-        this.invitando = false;
-        if (nuevo.cuenta_existente) {
-          this.avisoEquipo = `${nuevo.email} ya tenía una cuenta en STRATO — se agregó a tu equipo con su contraseña existente. La contraseña que escribiste aquí no se usó.`;
-        }
-        this.nuevoUsuario = { nombre: '', email: '', password: '', es_admin: false, id_rol: this.rolMiembroId() };
-        this.erroresNuevoUsuario = {};
-        this.cargarUsuarios();
-        // Un cajero (sin correo) solo puede entrar configurando su 2FA, y
-        // eso requiere escanear un QR -- no puede pasarse en el alta misma.
-        // Se lo ofrecemos al toque para no obligar a un segundo viaje a
-        // "Editar" después.
-        if (nuevo.id_usuario) this.iniciarConfiguracion2fa(nuevo);
-        this.cdr.detectChanges();
-      },
-      error: err => {
-        this.invitando = false;
-        this.errorEquipo = err?.error?.message || 'No se pudo invitar al usuario';
-        this.cdr.detectChanges();
-      },
-    });
-  }
-
-  /** Abre el diálogo de enrolamiento 2FA para este usuario: genera un
-   * secreto nuevo y muestra el QR para escanear con una app tipo Google
-   * Authenticator. El secreto viaja solo en memoria del componente hasta
-   * confirmarConfiguracion2fa() -- nunca se persiste sin confirmar. */
-  iniciarConfiguracion2fa(usuario: Usuario) {
-    this.dosFaUsuario = usuario;
-    this.dosFaQr = null;
-    this.dosFaSecret = '';
-    this.dosFaCodigo = '';
-    this.errorDosFa = '';
-    this.dialogDosFaOpen = true;
-    this.cargandoDosFa = true;
-    this.usuarioService.iniciarDosFa(usuario.id_usuario).subscribe({
-      next: res => { this.dosFaQr = res.qr; this.dosFaSecret = res.secret; this.cargandoDosFa = false; this.cdr.detectChanges(); },
-      error: err => { this.cargandoDosFa = false; this.errorDosFa = err?.error?.message || 'No se pudo generar el código 2FA'; this.cdr.detectChanges(); },
-    });
-  }
-
-  confirmarConfiguracion2fa() {
-    if (!this.dosFaUsuario || this.dosFaCodigo.length !== 6) return;
-    this.errorDosFa = '';
-    this.confirmandoDosFa = true;
-    this.usuarioService.confirmarDosFa(this.dosFaUsuario.id_usuario, this.dosFaSecret, this.dosFaCodigo).subscribe({
-      next: () => { this.confirmandoDosFa = false; this.cerrarDialogDosFa(); this.cargarUsuarios(); },
-      error: err => { this.confirmandoDosFa = false; this.errorDosFa = err?.error?.message || 'Código incorrecto'; this.cdr.detectChanges(); },
-    });
-  }
-
-  async restablecerDosFa(usuario: Usuario) {
-    const ok = await this.notify.confirm(`¿Restablecer la verificación en dos pasos de ${usuario.nombre}? Va a necesitar configurarla de nuevo para poder entrar.`, { danger: true, confirmText: 'Restablecer' });
-    if (!ok) return;
-    this.errorEquipo = '';
-    this.usuarioService.restablecerDosFa(usuario.id_usuario).subscribe({
-      next: () => { this.cargarUsuarios(); },
-      error: err => { this.errorEquipo = err?.error?.message || 'No se pudo restablecer el 2FA'; this.cdr.detectChanges(); },
-    });
-  }
-
-  cerrarDialogDosFa() {
-    this.dialogDosFaOpen = false;
-    this.dosFaUsuario = null;
-    this.dosFaQr = null;
-    this.dosFaSecret = '';
-    this.dosFaCodigo = '';
-    this.errorDosFa = '';
-  }
-
-  abrirEditarUsuario(u: Usuario) {
-    this.editandoUsuario = u;
-    this.formUsuario = { nombre: u.nombre, email: u.email ?? '', telefono: u.telefono ?? '', password: '' };
-    this.errorDialogUsuario = '';
-    this.dialogUsuarioOpen = true;
-  }
-
-  cerrarEditarUsuario() {
-    this.dialogUsuarioOpen = false;
-    this.editandoUsuario = null;
-  }
-
-  guardarUsuario() {
-    if (!this.editandoUsuario) return;
-    // Un cajero (sin correo) no tiene correo que editar -- solo un usuario
-    // "con correo" lo requiere obligatoriamente.
-    const esCajero = !this.editandoUsuario.email;
-    if (!this.formUsuario.nombre || (!esCajero && !this.formUsuario.email)) {
-      this.errorDialogUsuario = 'Nombre y correo son obligatorios.';
-      return;
-    }
-
-    const payload: Partial<Usuario> & { password?: string } = {
-      nombre: this.formUsuario.nombre,
-      telefono: this.formUsuario.telefono || null,
-    };
-    if (!esCajero) payload.email = this.formUsuario.email;
-    if (this.formUsuario.password) payload.password = this.formUsuario.password;
-
-    this.errorDialogUsuario = '';
-    this.guardandoUsuario = true;
-    this.usuarioService.actualizarUsuario(this.editandoUsuario.id_usuario, payload).subscribe({
-      next: () => {
-        this.guardandoUsuario = false;
-        this.cerrarEditarUsuario();
-        this.cargarUsuarios();
-      },
-      error: err => {
-        this.guardandoUsuario = false;
-        this.errorDialogUsuario = err?.error?.message || 'No se pudo actualizar el usuario';
-      },
-    });
-  }
-
-  toggleAdmin(usuario: Usuario) {
-    this.errorEquipo = '';
-    this.usuarioService.actualizarUsuario(usuario.id_usuario, { es_admin: !usuario.es_admin }).subscribe({
-      error: err => { this.errorEquipo = err?.error?.message || 'No se pudo actualizar el usuario'; },
-    });
-  }
-
-  cambiarEstado(usuario: Usuario, estado: string) {
-    if (!estado || estado === usuario.estado) return;
-    this.errorEquipo = '';
-    this.usuarioService.actualizarUsuario(usuario.id_usuario, { estado } as Partial<Usuario>).subscribe({
-      next: () => { usuario.estado = estado as Usuario['estado']; },
-      error: err => { this.errorEquipo = err?.error?.message || 'No se pudo actualizar el estado'; },
-    });
-  }
-
-  cambiarMiEstado(estado: 'activo' | 'ocupado') {
-    if (estado === this.auth.session?.estado) return;
-    this.errorEquipo = '';
-    this.auth.cambiarMiEstado(estado).subscribe({
-      next: () => {
-        const mio = this.usuarios.find(u => u.id_usuario === this.miIdUsuario);
-        if (mio) mio.estado = estado;
-      },
-      error: () => { this.errorEquipo = 'No se pudo actualizar tu estado'; },
-    });
-  }
-
-  async eliminarUsuario(usuario: Usuario) {
-    const ok = await this.notify.confirm(`¿Eliminar a ${usuario.nombre} del equipo?`, { danger: true, confirmText: 'Eliminar' });
-    if (!ok) return;
-    this.errorEquipo = '';
-    this.usuarioService.eliminarUsuario(usuario.id_usuario).subscribe({
-      error: err => { this.errorEquipo = err?.error?.message || 'No se pudo eliminar al usuario'; },
-    });
   }
 
   subiendoLogo = false;

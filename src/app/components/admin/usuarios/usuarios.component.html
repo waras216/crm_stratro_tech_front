@@ -1,0 +1,308 @@
+<div class="flex flex-col gap-5 page-enter">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="m-0 text-lg font-bold text-slate-800">Usuarios</h2>
+      <p class="text-xs text-slate-500 m-0 mt-1">Administra los usuarios de tu organización</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 flex-shrink-0">{{ usuarios.length }} / {{ maxUsuarios ?? '∞' }}</span>
+      <button (click)="goToRoles()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50 flex-shrink-0">Roles y permisos</button>
+      <button (click)="abrirInvitar()" [disabled]="limiteAlcanzado"
+        class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium border-0 cursor-pointer hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+        style="box-shadow:0 4px 12px rgba(79,70,229,.35)">+ Invitar Usuario</button>
+    </div>
+  </div>
+
+  <div *ngIf="errorEquipo" class="text-xs font-medium px-4 py-2.5 rounded-xl" style="background:#fef2f2;color:#dc2626">{{ errorEquipo }}</div>
+  <div *ngIf="avisoEquipo" class="text-xs font-medium px-4 py-2.5 rounded-xl" style="background:#eff6ff;color:#1d4ed8">{{ avisoEquipo }}</div>
+  <div *ngIf="limiteAlcanzado" class="text-xs font-medium px-4 py-2.5 rounded-xl" style="background:#fffbeb;color:#b45309">Alcanzaste el límite de usuarios de tu plan. Actualiza tu plan para agregar más.</div>
+
+  <div *ngIf="cargandoUsuarios" class="flex flex-col gap-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-11 rounded-lg skeleton"></div>
+  </div>
+
+  <!-- Mobile: card list -->
+  <div *ngIf="!cargandoUsuarios" class="flex flex-col gap-2 md:hidden">
+    <p *ngIf="usuarios.length === 0" class="text-center py-8 text-slate-400 text-xs m-0">Sin usuarios — agrega el primero con "+ Invitar Usuario"</p>
+    <div *ngFor="let u of usuarios" class="bg-white border border-slate-200 rounded-xl p-3 flex flex-col gap-2">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <p class="font-bold text-sm m-0">
+            {{ u.nombre }}
+            <span *ngIf="u.es_admin" class="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-1" style="background:#eef2ff;color:#6366f1">Admin</span>
+          </p>
+          <p class="text-xs text-slate-500 m-0 mt-0.5">{{ u.email || 'Sin correo (cajero)' }}</p>
+        </div>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0"
+          [ngClass]="u.estado === 'ocupado' ? 'badge-amber' : u.estado === 'suspendido' ? 'badge-red' : 'badge-green'">
+          {{ u.estado ?? 'activo' }}
+        </span>
+      </div>
+      <div class="flex flex-wrap gap-1">
+        <span *ngFor="let r of u.roles" class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:#f5f3ff;color:#7c3aed">{{ r }}</span>
+        <span *ngIf="!u.es_admin && (!u.roles || u.roles.length === 0)" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-50 text-slate-400">Sin rol</span>
+        <span *ngIf="!u.email" class="text-[10px] font-semibold px-2 py-0.5 rounded-full" [ngClass]="u.tiene_2fa ? 'badge-green' : 'badge-amber'">{{ u.tiene_2fa ? '2FA activo' : 'Sin 2FA' }}</span>
+      </div>
+      <div class="flex items-center flex-wrap gap-2 border-t border-slate-100 pt-2">
+        <select *ngIf="u.id_usuario === miIdUsuario" (change)="cambiarMiEstado($any($event.target).value)"
+          [ngClass]="estadoBadgeClase(u)" class="text-[11px] font-semibold pl-2.5 pr-1 py-1 rounded-full border-0 outline-none cursor-pointer w-[92px]">
+          <option value="activo" [selected]="u.estado !== 'ocupado'">Activo</option>
+          <option value="ocupado" [selected]="u.estado === 'ocupado'">Ocupado</option>
+        </select>
+        <select *ngIf="u.id_usuario !== miIdUsuario" (change)="cambiarEstado(u, $any($event.target).value)"
+          [ngClass]="estadoBadgeClase(u)" class="text-[11px] font-semibold pl-2.5 pr-1 py-1 rounded-full border-0 outline-none cursor-pointer w-[92px]">
+          <option value="activo" [selected]="u.estado === 'activo' || !u.estado">Activo</option>
+          <option value="ocupado" [selected]="u.estado === 'ocupado'">Ocupado</option>
+          <option value="suspendido" [selected]="u.estado === 'suspendido'">Suspendido</option>
+        </select>
+        <button (click)="abrirEditarUsuario(u)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar</button>
+        <ng-container *ngIf="u.id_usuario !== miIdUsuario">
+          <button *ngIf="!u.email" (click)="u.tiene_2fa ? restablecerDosFa(u) : iniciarConfiguracion2fa(u)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">{{ u.tiene_2fa ? 'Restablecer 2FA' : 'Configurar 2FA' }}</button>
+          <button (click)="toggleAdmin(u)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">{{ u.es_admin ? 'Quitar admin' : 'Hacer admin' }}</button>
+          <button (click)="eliminarUsuario(u)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop: table -->
+  <div *ngIf="!cargandoUsuarios" class="hidden md:block bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead><tr class="bg-slate-50">
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Nombre</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Contacto</th>
+        <th class="text-left px-4 py-3 font-medium text-slate-500">Rol</th>
+        <th class="text-center px-4 py-3 font-medium text-slate-500">Estado</th>
+        <th class="text-right px-4 py-3 font-medium text-slate-500">Acción</th>
+      </tr></thead>
+      <tbody>
+        <tr *ngIf="usuarios.length === 0">
+          <td colspan="5" class="text-center py-8 text-slate-400 text-xs">Sin usuarios — agrega el primero con "+ Invitar Usuario"</td>
+        </tr>
+        <tr *ngFor="let u of usuarios" class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-3 font-bold">
+            {{ u.nombre }}
+            <span *ngIf="u.es_admin" class="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-1" style="background:#eef2ff;color:#6366f1">Admin</span>
+          </td>
+          <td class="px-4 py-3 text-slate-500">
+            {{ u.email || 'Sin correo (cajero)' }}
+            <span *ngIf="!u.email" class="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-1" [ngClass]="u.tiene_2fa ? 'badge-green' : 'badge-amber'">{{ u.tiene_2fa ? '2FA activo' : 'Sin 2FA' }}</span>
+          </td>
+          <td class="px-4 py-3">
+            <span *ngFor="let r of u.roles" class="text-[10px] font-semibold px-2 py-0.5 rounded-full mr-1" style="background:#f5f3ff;color:#7c3aed">{{ r }}</span>
+            <span *ngIf="!u.es_admin && (!u.roles || u.roles.length === 0)" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-50 text-slate-400">Sin rol</span>
+          </td>
+          <td class="px-4 py-3 text-center">
+            <select *ngIf="u.id_usuario === miIdUsuario" (change)="cambiarMiEstado($any($event.target).value)"
+              [ngClass]="estadoBadgeClase(u)" class="text-[11px] font-semibold pl-2.5 pr-1 py-1 rounded-full border-0 outline-none cursor-pointer w-[92px]">
+              <option value="activo" [selected]="u.estado !== 'ocupado'">Activo</option>
+              <option value="ocupado" [selected]="u.estado === 'ocupado'">Ocupado</option>
+            </select>
+            <select *ngIf="u.id_usuario !== miIdUsuario" (change)="cambiarEstado(u, $any($event.target).value)"
+              [ngClass]="estadoBadgeClase(u)" class="text-[11px] font-semibold pl-2.5 pr-1 py-1 rounded-full border-0 outline-none cursor-pointer w-[92px]">
+              <option value="activo" [selected]="u.estado === 'activo' || !u.estado">Activo</option>
+              <option value="ocupado" [selected]="u.estado === 'ocupado'">Ocupado</option>
+              <option value="suspendido" [selected]="u.estado === 'suspendido'">Suspendido</option>
+            </select>
+          </td>
+          <td class="px-4 py-3 text-right">
+            <div class="flex items-center justify-end gap-2 flex-wrap">
+              <button (click)="abrirEditarUsuario(u)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Editar</button>
+              <ng-container *ngIf="u.id_usuario !== miIdUsuario">
+                <button *ngIf="!u.email" (click)="u.tiene_2fa ? restablecerDosFa(u) : iniciarConfiguracion2fa(u)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">{{ u.tiene_2fa ? 'Restablecer 2FA' : 'Configurar 2FA' }}</button>
+                <button (click)="toggleAdmin(u)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">{{ u.es_admin ? 'Quitar admin' : 'Hacer admin' }}</button>
+                <button (click)="eliminarUsuario(u)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+              </ng-container>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- Esta terminal -->
+  <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <p class="text-sm font-bold m-0 text-slate-800">Esta terminal</p>
+      <p class="text-xs text-slate-500 m-0 mt-1 max-w-xl">El login rápido por 2FA de cajero solo aparece en dispositivos que vincules explícitamente a tu negocio. No lo actives en una computadora compartida con otras empresas.</p>
+      <p *ngIf="terminalVinculadaAOtroTenant" class="text-xs font-medium mt-2 mb-0" style="color:#b45309">Esta terminal está vinculada a otro negocio. Si la vinculás al tuyo, se reemplaza ese vínculo.</p>
+    </div>
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <span class="text-[11px] font-semibold px-3 py-1.5 rounded-full flex-shrink-0" [ngClass]="terminalVinculada ? 'badge-green' : 'bg-slate-50 text-slate-400'">
+        {{ terminalVinculada ? 'Vinculada a tu negocio' : 'Sin vincular' }}
+      </span>
+      <button *ngIf="!terminalVinculada" (click)="vincularTerminal()" class="text-xs font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer text-white hover:opacity-90 transition-opacity" style="background:#4f46e5">Configurar</button>
+      <button *ngIf="terminalVinculada" (click)="desvincularTerminal()" class="text-xs font-semibold px-3 py-1.5 rounded-lg border-0 cursor-pointer bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Quitar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: invitar usuario -->
+<div *ngIf="invitarOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="cerrarInvitar()"></div>
+<div *ngIf="invitarOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-md z-[101] shadow-2xl p-6 modal-in max-h-[90vh] overflow-y-auto">
+  <div class="flex items-center gap-3 mb-5">
+    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+    </div>
+    <h3 class="m-0 text-lg font-semibold flex-1">Invitar Usuario</h3>
+    <button (click)="cerrarInvitar()" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="flex flex-col gap-3.5">
+    <div class="flex gap-2">
+      <button type="button" (click)="modoInvitar='con_correo'; erroresNuevoUsuario={}"
+        class="flex-1 text-xs font-semibold px-3 py-2 rounded-lg border-0 cursor-pointer transition-colors"
+        [ngClass]="modoInvitar==='con_correo' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+        Con correo
+      </button>
+      <button type="button" (click)="modoInvitar='cajero'; erroresNuevoUsuario={}"
+        class="flex-1 text-xs font-semibold px-3 py-2 rounded-lg border-0 cursor-pointer transition-colors"
+        [ngClass]="modoInvitar==='cajero' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+        Cajero (sin correo, con 2FA)
+      </button>
+    </div>
+
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Nombre <span class="text-pink-500">*</span></span>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" [(ngModel)]="nuevoUsuario.nombre" placeholder="Nombre completo" [disabled]="limiteAlcanzado" />
+      <span *ngIf="erroresNuevoUsuario.nombre" class="text-[11px] font-medium text-red-600">{{ erroresNuevoUsuario.nombre }}</span>
+    </label>
+
+    <ng-container *ngIf="modoInvitar==='con_correo'">
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-medium text-slate-600">Email <span class="text-pink-500">*</span></span>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" [(ngModel)]="nuevoUsuario.email" placeholder="correo@empresa.com" [disabled]="limiteAlcanzado" />
+        <span *ngIf="erroresNuevoUsuario.email" class="text-[11px] font-medium text-red-600">{{ erroresNuevoUsuario.email }}</span>
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-medium text-slate-600">Contraseña <span class="text-pink-500">*</span></span>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" [(ngModel)]="nuevoUsuario.password" placeholder="Mínimo 6 caracteres" type="password" [disabled]="limiteAlcanzado" />
+        <span *ngIf="erroresNuevoUsuario.password" class="text-[11px] font-medium text-red-600">{{ erroresNuevoUsuario.password }}</span>
+      </label>
+    </ng-container>
+    <p *ngIf="modoInvitar==='cajero'" class="text-[11px] text-slate-400 m-0">
+      Al crearlo te vamos a mostrar un código QR para escanear con Google Authenticator (u otra app compatible) y activar su acceso.
+    </p>
+
+    <label class="flex flex-col gap-1.5">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-medium text-slate-600">Acceso / módulos</span>
+        <a (click)="goToRoles()" class="text-[11px] font-semibold cursor-pointer text-indigo-600 hover:underline">Gestionar roles</a>
+      </div>
+      <select [(ngModel)]="nuevoUsuario.id_rol" [disabled]="limiteAlcanzado"
+        class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100">
+        <option *ngFor="let r of rolesAsignables" [ngValue]="r.id_rol">{{ r.nombre }}</option>
+      </select>
+      <p *ngIf="modoInvitar==='cajero'" class="text-[11px] text-slate-400 m-0">
+        Un cajero (sin correo, con 2FA) solo ve el módulo POS automáticamente. El rol de acá afina qué puede hacer dentro de POS, no en qué módulo entra.
+      </p>
+    </label>
+
+    <button (click)="invitarUsuario()" [disabled]="limiteAlcanzado || invitando"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity mt-1"
+      style="background:#4f46e5">
+      {{ invitando ? 'Invitando…' : 'Invitar' }}
+    </button>
+  </div>
+</div>
+
+<!-- Modal: editar usuario -->
+<div *ngIf="dialogUsuarioOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="cerrarEditarUsuario()"></div>
+<div *ngIf="dialogUsuarioOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+  <div class="flex items-center gap-3 mb-5">
+    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </div>
+    <h3 class="m-0 text-lg font-semibold flex-1">Editar Usuario</h3>
+    <button (click)="cerrarEditarUsuario()" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div *ngIf="errorDialogUsuario" class="text-xs font-medium px-4 py-2.5 rounded-xl mb-3" style="background:#fef2f2;color:#dc2626">{{ errorDialogUsuario }}</div>
+
+  <div class="flex flex-col gap-3.5">
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Nombre <span class="text-pink-500">*</span></span>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" [(ngModel)]="formUsuario.nombre" placeholder="Nombre" />
+    </label>
+    <label *ngIf="editandoUsuario?.email" class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Email <span class="text-pink-500">*</span></span>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" [(ngModel)]="formUsuario.email" placeholder="Email" />
+    </label>
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Teléfono</span>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" [(ngModel)]="formUsuario.telefono" placeholder="Para alertas de WhatsApp" />
+    </label>
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Nueva contraseña</span>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" [(ngModel)]="formUsuario.password" placeholder="Opcional" type="password" />
+    </label>
+    <button *ngIf="editandoUsuario && !editandoUsuario.email" type="button"
+      (click)="editandoUsuario.tiene_2fa ? restablecerDosFa(editandoUsuario) : iniciarConfiguracion2fa(editandoUsuario)"
+      class="text-xs font-semibold px-4 py-2.5 rounded-lg border-0 cursor-pointer text-left bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+      {{ editandoUsuario.tiene_2fa ? '✅ 2FA activo — restablecer' : 'Configurar verificación en dos pasos' }}
+    </button>
+
+    <div class="flex gap-2 mt-1">
+      <button (click)="cerrarEditarUsuario()" class="flex-1 text-sm font-semibold px-4 py-2.5 rounded-lg border-0 cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Cancelar</button>
+      <button (click)="guardarUsuario()" [disabled]="guardandoUsuario"
+        class="flex-1 py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity"
+        style="background:#4f46e5">
+        {{ guardandoUsuario ? 'Guardando…' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: configurar/restablecer 2FA -->
+<div *ngIf="dialogDosFaOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="cerrarDialogDosFa()"></div>
+<div *ngIf="dialogDosFaOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[92%] max-w-md z-[101] shadow-2xl p-6 modal-in">
+  <div class="flex items-center gap-3 mb-1">
+    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <h3 class="m-0 text-lg font-semibold flex-1">Verificación en dos pasos</h3>
+    <button (click)="cerrarDialogDosFa()" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <p class="text-[11px] text-slate-400 m-0 mb-4 ml-[52px]">para {{ dosFaUsuario?.nombre }}</p>
+
+  <div *ngIf="errorDosFa" class="text-xs font-medium px-4 py-2.5 rounded-xl mb-3" style="background:#fef2f2;color:#dc2626">{{ errorDosFa }}</div>
+
+  <p *ngIf="cargandoDosFa" class="text-center text-xs m-0 text-slate-500">Generando código…</p>
+
+  <ng-container *ngIf="!cargandoDosFa && dosFaQr">
+    <p class="text-center text-xs m-0 mb-3 text-slate-500">
+      Escanea este código con Google Authenticator (u otra app compatible) desde el teléfono de {{ dosFaUsuario?.nombre }}.
+    </p>
+    <div class="flex justify-center mb-3">
+      <img [src]="dosFaQr" alt="Código QR de verificación en dos pasos" width="180" height="180" />
+    </div>
+    <p class="text-center text-[11px] m-0 mb-4 text-slate-400">
+      ¿No puedes escanear? Ingresa esta clave manualmente: <span class="font-mono font-semibold">{{ dosFaSecret }}</span>
+    </p>
+
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Código de 6 dígitos</span>
+      <input [(ngModel)]="dosFaCodigo" placeholder="000000" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+        class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
+    </label>
+  </ng-container>
+
+  <div class="flex gap-2 mt-5">
+    <button (click)="cerrarDialogDosFa()" class="flex-1 text-sm font-semibold px-4 py-2.5 rounded-lg border-0 cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+      {{ dosFaUsuario?.tiene_2fa === false ? 'Configurar más tarde' : 'Cancelar' }}
+    </button>
+    <button *ngIf="dosFaQr" (click)="confirmarConfiguracion2fa()" [disabled]="confirmandoDosFa || dosFaCodigo.length !== 6"
+      class="flex-1 py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity"
+      style="background:#4f46e5">
+      {{ confirmandoDosFa ? 'Confirmando…' : 'Confirmar' }}
+    </button>
+  </div>
+</div>
