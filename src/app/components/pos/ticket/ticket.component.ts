@@ -3,6 +3,9 @@ import { AuthService } from '../../../core/auth/authservices';
 import { ErpPedido } from '../../../models/erp.models';
 import { ItemCarrito } from '../carrito/carrito.component';
 import { modalLeave } from '../../shared/animations';
+import { REST_CANALES_LABELS, TIENDA_CANALES_LABELS } from '../../../core/services/nicho.service';
+
+const CANAL_VENTA_LABELS: Record<string, string> = { ...TIENDA_CANALES_LABELS, ...REST_CANALES_LABELS };
 
 function escapeHtml(value: string): string {
   const div = document.createElement('div');
@@ -49,8 +52,15 @@ export class PosTicketComponent {
     return this.items.reduce((s, i) => s + i.producto.precio * i.cantidad, 0).toFixed(2);
   }
 
+  get logoUrl(): string | null { return this.auth.session?.logo ?? null; }
+  get empresaNombre(): string { return this.auth.session?.empresa || ''; }
+
   get clienteNombre() { return this.pedido?.cliente?.nombre ?? 'Público General'; }
   get cajeroNombre() { return this.pedido?.cajero?.nombre ?? null; }
+  get canalNombre(): string | null {
+    const canal = this.pedido?.canal;
+    return canal ? (CANAL_VENTA_LABELS[canal] ?? canal) : null;
+  }
 
   get fechaHora(): string {
     const raw = this.pedido?.created_at ?? this.pedido?.fecha;
@@ -64,11 +74,13 @@ export class PosTicketComponent {
   }
 
   imprimir() {
-    const empresa = this.auth.session?.empresa || '';
+    const empresa = this.empresaNombre;
+    const logo = this.logoUrl;
     const fecha = this.fechaHora || new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
     const pedidoNum = this.pedido?.id ? `Venta #${this.pedido.id}` : '';
     const cliente = this.pedido ? this.clienteNombre : null;
     const cajero = this.cajeroNombre;
+    const canal = this.canalNombre;
     const metodos = this.metodosPagoTexto();
 
     const filas = this.filasTicket.map(item => `
@@ -94,6 +106,7 @@ export class PosTicketComponent {
     font-size: 12px;
     color: #000;
   }
+  .logo { display: block; max-width: 40mm; max-height: 20mm; margin: 0 auto 4px; }
   h1 { font-size: 14px; text-align: center; margin: 0 0 2px; }
   .sub { text-align: center; font-size: 11px; margin: 0 0 8px; }
   .linea { border-top: 1px dashed #000; margin: 6px 0; }
@@ -104,11 +117,13 @@ export class PosTicketComponent {
 </style>
 </head>
 <body>
+  ${logo ? `<img class="logo" src="${escapeHtml(logo)}" alt="${escapeHtml(empresa)}" />` : ''}
   <h1>${escapeHtml(empresa)}</h1>
   <p class="sub">${escapeHtml(fecha)}${pedidoNum ? ' · ' + escapeHtml(pedidoNum) : ''}</p>
   <div class="linea"></div>
   ${cliente ? `<p class="meta">Cliente: ${escapeHtml(cliente)}</p>` : ''}
   ${cajero ? `<p class="meta">Atendió: ${escapeHtml(cajero)}</p>` : ''}
+  ${canal ? `<p class="meta">Canal: ${escapeHtml(canal)}</p>` : ''}
   <div class="linea"></div>
   ${filas}
   <div class="linea"></div>

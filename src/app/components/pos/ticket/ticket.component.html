@@ -1,6 +1,7 @@
 <div *ngIf="visible" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-[100]" (click)="cerrar.emit()"></div>
 <div *ngIf="visible" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-80 p-6 shadow-2xl z-[101] modal-in" (click)="$event.stopPropagation()">
     <div class="text-center mb-4">
+      <img *ngIf="logoUrl" [src]="logoUrl" [alt]="empresaNombre" class="h-10 max-w-[140px] object-contain mx-auto mb-3" />
       <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
         <svg width="28" height="28" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
@@ -10,6 +11,7 @@
     <div *ngIf="pedido" class="flex flex-col gap-0.5 text-xs text-slate-500 mb-3">
       <p class="m-0"><span class="text-slate-400">Cliente:</span> <span class="font-medium text-slate-700">{{ clienteNombre }}</span></p>
       <p *ngIf="cajeroNombre" class="m-0"><span class="text-slate-400">Atendió:</span> <span class="font-medium text-slate-700">{{ cajeroNombre }}</span></p>
+      <p *ngIf="canalNombre" class="m-0"><span class="text-slate-400">Canal:</span> <span class="font-medium text-slate-700">{{ canalNombre }}</span></p>
       <p *ngIf="metodosPagoTexto()" class="m-0"><span class="text-slate-400">Pago:</span> <span class="font-medium text-slate-700">{{ metodosPagoTexto() }}</span></p>
     </div>
     <div class="border border-dashed border-slate-200 rounded-lg p-3 mb-4">
