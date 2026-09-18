@@ -1,10 +1,12 @@
 <button [type]="type" [disabled]="disabled || loading" [attr.aria-label]="ariaLabel || null"
   class="inline-flex items-center justify-center gap-2 font-semibold border-0 cursor-pointer transition-all rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
   [ngClass]="{
-    'btn-accent text-white hover:opacity-90': variant === 'primary',
+    'btn-accent': variant === 'primary',
+    'text-white': variant === 'primary' || variant === 'danger',
+    'hover:opacity-90': variant === 'primary',
     'bg-slate-100 text-slate-700 hover:bg-slate-200': variant === 'secondary',
     'bg-transparent text-slate-500 hover:bg-slate-100': variant === 'ghost',
-    'bg-red-600 text-white hover:bg-red-500': variant === 'danger',
+    'bg-red-600 hover:bg-red-500': variant === 'danger',
     'text-xs px-3 py-1.5': size === 'sm',
     'text-sm px-4 py-2.5': size === 'md',
     'text-base px-5 py-3': size === 'lg',
