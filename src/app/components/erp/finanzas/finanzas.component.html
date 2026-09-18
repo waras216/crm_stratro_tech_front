@@ -267,35 +267,53 @@
 <!-- ══════════════ MODAL: Nuevo Asiento ══════════════ -->
 <div *ngIf="dialogAsientoOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogAsientoOpen=false"></div>
 <div *ngIf="dialogAsientoOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
-  <div class="flex items-center justify-between mb-4">
-    <h3 class="m-0 text-lg font-semibold">Nuevo Asiento</h3>
+  <div class="flex items-center gap-3 mb-5">
+    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="7" y1="15" x2="10" y2="15"/></svg>
+    </div>
+    <h3 class="m-0 text-lg font-semibold flex-1">Nuevo Asiento</h3>
     <button (click)="dialogAsientoOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
-  <div class="flex flex-col gap-3">
-    <div class="grid grid-cols-2 gap-3">
-      <input type="date" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="asientoForm.fecha" />
-      <button type="button" (click)="modoAvanzado=!modoAvanzado" class="text-xs font-semibold text-amber-600 bg-transparent border-0 cursor-pointer hover:underline text-right">
+  <div class="flex flex-col gap-3.5">
+    <div class="grid grid-cols-2 gap-3 items-end">
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-medium text-slate-600">Fecha <span class="text-pink-500">*</span></span>
+        <input type="date" class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="asientoForm.fecha" />
+      </label>
+      <button type="button" (click)="modoAvanzado=!modoAvanzado" class="text-xs font-semibold text-amber-600 bg-transparent border-0 cursor-pointer hover:underline text-right pb-2">
         {{ modoAvanzado ? '← Modo simple' : 'Modo avanzado (varias cuentas) →' }}
       </button>
     </div>
-    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="asientoForm.concepto" placeholder="Concepto (ej. Pago de renta, Venta de mostrador)" />
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Concepto <span class="text-pink-500">*</span></span>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="asientoForm.concepto" placeholder="Concepto (ej. Pago de renta, Venta de mostrador)" />
+    </label>
 
     <!-- Modo simple -->
     <ng-container *ngIf="!modoAvanzado">
       <p class="text-xs text-slate-400 m-0">Para un ingreso o egreso simple de dinero. Recomendado para el día a día.</p>
       <div class="grid grid-cols-2 gap-3">
-        <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="asientoForm.tipoSimple" (ngModelChange)="onTipoSimpleChange()">
-          <option value="ingreso">Ingreso (entra a Caja)</option>
-          <option value="egreso">Egreso (sale de Caja)</option>
-        </select>
-        <input type="number" class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="asientoForm.monto" placeholder="Monto $" />
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-medium text-slate-600">Tipo</span>
+          <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="asientoForm.tipoSimple" (ngModelChange)="onTipoSimpleChange()">
+            <option value="ingreso">Ingreso (entra a Caja)</option>
+            <option value="egreso">Egreso (sale de Caja)</option>
+          </select>
+        </label>
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-medium text-slate-600">Monto</span>
+          <input type="number" class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="asientoForm.monto" placeholder="Monto $" />
+        </label>
       </div>
-      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="asientoForm.idCuentaContrapartida">
-        <option value="">{{ asientoForm.tipoSimple==='ingreso' ? '¿De dónde viene?...' : '¿En qué se gastó?...' }}</option>
-        <option *ngFor="let c of cuentasSimpleFiltradas" [value]="c.id">{{ c.nombre }}</option>
-      </select>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-medium text-slate-600">Contrapartida</span>
+        <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="asientoForm.idCuentaContrapartida">
+          <option value="">{{ asientoForm.tipoSimple==='ingreso' ? '¿De dónde viene?...' : '¿En qué se gastó?...' }}</option>
+          <option *ngFor="let c of cuentasSimpleFiltradas" [value]="c.id">{{ c.nombre }}</option>
+        </select>
+      </label>
     </ng-container>
 
     <!-- Modo avanzado -->
@@ -303,14 +321,14 @@
       <p class="text-xs text-slate-400 m-0">Para movimientos con más de dos cuentas. Cada línea lleva Debe o Haber, y ambas columnas deben sumar igual.</p>
       <div class="flex flex-col gap-2">
         <div *ngFor="let l of lineas; let i = index" class="grid grid-cols-[1fr_80px_80px_auto] gap-2 items-center">
-          <select class="px-2 py-2 border border-slate-200 rounded-lg text-xs" [(ngModel)]="l.id_cuenta">
+          <select class="px-2 py-2 border border-slate-200 rounded-lg text-xs outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="l.id_cuenta">
             <option value="">Cuenta...</option>
             <optgroup *ngFor="let grupo of tiposCuenta" [label]="grupo.label">
               <option *ngFor="let c of cuentasDeTipo(grupo.tipo)" [value]="c.id">{{ c.codigo }} — {{ c.nombre }}</option>
             </optgroup>
           </select>
-          <input type="number" class="px-2 py-2 border border-slate-200 rounded-lg text-xs" [(ngModel)]="l.debe" placeholder="Debe" title="Lo que entra o aumenta en esta cuenta" />
-          <input type="number" class="px-2 py-2 border border-slate-200 rounded-lg text-xs" [(ngModel)]="l.haber" placeholder="Haber" title="Lo que sale o disminuye en esta cuenta" />
+          <input type="number" class="px-2 py-2 border border-slate-200 rounded-lg text-xs outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="l.debe" placeholder="Debe" title="Lo que entra o aumenta en esta cuenta" />
+          <input type="number" class="px-2 py-2 border border-slate-200 rounded-lg text-xs outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="l.haber" placeholder="Haber" title="Lo que sale o disminuye en esta cuenta" />
           <button (click)="removeLinea(i)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">✕</button>
         </div>
         <button (click)="addLinea()" class="text-xs text-amber-600 font-medium bg-transparent border-0 cursor-pointer hover:underline text-left">+ Agregar línea</button>
@@ -324,34 +342,46 @@
     </ng-container>
 
     <p *ngIf="asientoError" class="text-xs text-red-600 m-0">{{ asientoError }}</p>
-    <button (click)="submitAsiento()" [disabled]="asientoSaving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ asientoSaving ? 'Guardando...' : 'Registrar Asiento' }}</button>
+    <button (click)="submitAsiento()" [disabled]="asientoSaving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed transition-opacity mt-1">{{ asientoSaving ? 'Guardando...' : 'Registrar Asiento' }}</button>
   </div>
 </div>
 
 <!-- ══════════════ MODAL: Nueva Cuenta ══════════════ -->
 <div *ngIf="dialogCuentaOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogCuentaOpen=false"></div>
 <div *ngIf="dialogCuentaOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
-  <div class="flex items-center justify-between mb-4">
-    <h3 class="m-0 text-lg font-semibold">Nueva Cuenta</h3>
+  <div class="flex items-center gap-3 mb-5">
+    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="7" y1="15" x2="10" y2="15"/></svg>
+    </div>
+    <h3 class="m-0 text-lg font-semibold flex-1">Nueva Cuenta</h3>
     <button (click)="dialogCuentaOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
-  <div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-3.5">
     <div class="grid grid-cols-2 gap-3">
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="cuentaForm.codigo" placeholder="Código" />
-      <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="cuentaForm.tipo" (ngModelChange)="onTipoCuentaChange()">
-        <option value="activo">Activo</option>
-        <option value="pasivo">Pasivo</option>
-        <option value="capital">Capital</option>
-        <option value="ingreso">Ingreso</option>
-        <option value="costo">Costo</option>
-        <option value="gasto">Gasto</option>
-      </select>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-medium text-slate-600">Código <span class="text-pink-500">*</span></span>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="cuentaForm.codigo" placeholder="Código" />
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-medium text-slate-600">Tipo</span>
+        <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="cuentaForm.tipo" (ngModelChange)="onTipoCuentaChange()">
+          <option value="activo">Activo</option>
+          <option value="pasivo">Pasivo</option>
+          <option value="capital">Capital</option>
+          <option value="ingreso">Ingreso</option>
+          <option value="costo">Costo</option>
+          <option value="gasto">Gasto</option>
+        </select>
+      </label>
     </div>
-    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="cuentaForm.nombre" placeholder="Nombre de la cuenta" />
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Nombre de la cuenta <span class="text-pink-500">*</span></span>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="cuentaForm.nombre" placeholder="Nombre de la cuenta" />
+    </label>
     <p class="text-xs text-slate-400 m-0">{{ naturalezaAmigable(cuentaForm.naturaleza) }} (naturaleza {{ cuentaForm.naturaleza }})</p>
     <p *ngIf="cuentaError" class="text-xs text-red-600 m-0">{{ cuentaError }}</p>
-    <button (click)="submitCuenta()" [disabled]="cuentaSaving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ cuentaSaving ? 'Guardando...' : 'Crear Cuenta' }}</button>
+    <button (click)="submitCuenta()" [disabled]="cuentaSaving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed transition-opacity mt-1">{{ cuentaSaving ? 'Guardando...' : 'Crear Cuenta' }}</button>
   </div>
 </div>

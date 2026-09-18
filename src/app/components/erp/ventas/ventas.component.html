@@ -165,41 +165,51 @@
 
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
 <div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-lg z-[101] shadow-2xl p-6 modal-in max-h-[85vh] overflow-y-auto">
-  <div class="flex items-center justify-between mb-4">
-    <h3 class="m-0 text-lg font-semibold">Nuevo Pedido</h3>
+  <div class="flex items-center gap-3 mb-5">
+    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    </div>
+    <h3 class="m-0 text-lg font-semibold flex-1">Nuevo Pedido</h3>
     <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
-  <div class="flex flex-col gap-3">
-    <div class="relative">
-      <input class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="clienteBusqueda" (ngModelChange)="buscarCliente()" placeholder="Buscar cliente por nombre..." />
-      <div *ngIf="clientesResultados.length > 0" class="absolute z-10 bg-white border border-slate-200 rounded-lg mt-1 w-full shadow-lg max-h-40 overflow-y-auto">
-        <div *ngFor="let c of clientesResultados" (click)="seleccionarCliente(c)" class="px-3 py-2 text-sm cursor-pointer hover:bg-slate-50">{{ c.nombre }}</div>
+  <div class="flex flex-col gap-3.5">
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Cliente</span>
+      <div class="relative">
+        <input class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="clienteBusqueda" (ngModelChange)="buscarCliente()" placeholder="Buscar cliente por nombre..." />
+        <div *ngIf="clientesResultados.length > 0" class="absolute z-10 bg-white border border-slate-200 rounded-lg mt-1 w-full shadow-lg max-h-40 overflow-y-auto">
+          <div *ngFor="let c of clientesResultados" (click)="seleccionarCliente(c)" class="px-3 py-2 text-sm cursor-pointer hover:bg-slate-50">{{ c.nombre }}</div>
+        </div>
+        <p *ngIf="clienteSeleccionado" class="text-xs text-emerald-600 mt-1 mb-0">Cliente seleccionado: {{ clienteSeleccionado.nombre }}</p>
+        <p *ngIf="busquedaClienteSinResultados && !clienteSeleccionado" class="text-xs text-amber-600 mt-1 mb-0">
+          No encontramos ningún cliente con ese nombre. Registralo primero en
+          <a (click)="irACrmClientes()" class="font-semibold underline cursor-pointer">CRM → Clientes</a> para poder facturarle.
+        </p>
       </div>
-      <p *ngIf="clienteSeleccionado" class="text-xs text-emerald-600 mt-1 mb-0">Cliente seleccionado: {{ clienteSeleccionado.nombre }}</p>
-      <p *ngIf="busquedaClienteSinResultados && !clienteSeleccionado" class="text-xs text-amber-600 mt-1 mb-0">
-        No encontramos ningún cliente con ese nombre. Registralo primero en
-        <a (click)="irACrmClientes()" class="font-semibold underline cursor-pointer">CRM → Clientes</a> para poder facturarle.
-      </p>
-    </div>
+    </label>
 
-    <select *ngIf="nicho.nicho==='hotel' && seccionesHotel.length" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.seccion">
-      <option value="">Sección — General / Hospedaje</option>
-      <option *ngFor="let s of seccionesHotel" [value]="s">{{ s }}</option>
-    </select>
+    <label *ngIf="nicho.nicho==='hotel' && seccionesHotel.length" class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Sección</span>
+      <select class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="form.seccion">
+        <option value="">Sección — General / Hospedaje</option>
+        <option *ngFor="let s of seccionesHotel" [value]="s">{{ s }}</option>
+      </select>
+    </label>
 
     <div class="flex flex-col gap-2">
+      <span class="text-xs font-medium text-slate-600">Productos</span>
       <ng-container *ngFor="let row of form.items; let i = index">
         <div class="grid grid-cols-[1fr_70px_90px_auto] gap-2 items-center">
-          <select class="px-2 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="row.id_producto" (ngModelChange)="onProductoChange(row)">
+          <select class="px-2 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" [(ngModel)]="row.id_producto" (ngModelChange)="onProductoChange(row)">
             <option value="">Producto...</option>
             <option *ngFor="let p of productos" [value]="p.id_productos" [disabled]="stockAlert.sinStock(p)">
               {{ p.nombre }} ({{ p.controla_stock === false ? 'sin límite' : (stockAlert.sinStock(p) ? 'sin stock' : 'stock: ' + p.stock) }})
             </option>
           </select>
-          <input class="px-2 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="row.cantidad" placeholder="Cant." />
-          <input class="px-2 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="row.precio_unitario" placeholder="P. Unit" />
+          <input class="px-2 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" type="number" [(ngModel)]="row.cantidad" placeholder="Cant." />
+          <input class="px-2 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-amber-400 focus:ring-2 focus:ring-amber-100" type="number" [(ngModel)]="row.precio_unitario" placeholder="P. Unit" />
           <button (click)="removeItemRow(i)" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-red-500 p-1">✕</button>
         </div>
         <p *ngIf="filaExcedeStock(row)" class="text-[10px] font-bold text-red-500 m-0 -mt-1.5">⚠ Solo hay {{ stockAlert.disponible(productoDe(row)!) }} disponibles</p>
@@ -209,7 +219,7 @@
 
     <p class="text-sm font-semibold text-slate-700 m-0 text-right">Total: ${{ totalFormulario.toLocaleString() }}</p>
     <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
-    <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed">{{ saving ? 'Guardando...' : 'Crear Pedido' }}</button>
+    <button (click)="submit()" [disabled]="saving" class="w-full py-2.5 bg-amber-600 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed transition-opacity mt-1">{{ saving ? 'Guardando...' : 'Crear Pedido' }}</button>
   </div>
 </div>
 

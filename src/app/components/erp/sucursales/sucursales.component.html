@@ -70,22 +70,37 @@
 <!-- Modal: nueva/editar sucursal -->
 <div *ngIf="dialogOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" (click)="dialogOpen=false"></div>
 <div *ngIf="dialogOpen" [@modalLeave] class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-[90%] max-w-sm z-[101] shadow-2xl p-6 modal-in">
-  <div class="flex items-center justify-between mb-4">
-    <h3 class="m-0 text-lg font-semibold">{{ sucursalEditando ? 'Editar Sucursal' : 'Nueva Sucursal' }}</h3>
+  <div class="flex items-center gap-3 mb-5">
+    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>
+    </div>
+    <h3 class="m-0 text-lg font-semibold flex-1">{{ sucursalEditando ? 'Editar Sucursal' : 'Nueva Sucursal' }}</h3>
     <button (click)="dialogOpen=false" class="bg-transparent border-0 cursor-pointer text-slate-400 hover:text-slate-600 p-1 -m-1">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
-  <div class="flex flex-col gap-3">
-    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.nombre" placeholder="Nombre de la sucursal" />
-    <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.direccion" placeholder="Dirección" />
+  <div class="flex flex-col gap-3.5">
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Nombre de la sucursal <span class="text-pink-500">*</span></span>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-pink-400 focus:ring-2 focus:ring-pink-100" [(ngModel)]="form.nombre" placeholder="Ej. Sucursal Centro" />
+    </label>
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-medium text-slate-600">Dirección</span>
+      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-pink-400 focus:ring-2 focus:ring-pink-100" [(ngModel)]="form.direccion" placeholder="Calle, número, ciudad" />
+    </label>
     <div class="grid grid-cols-2 gap-3">
-      <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" [(ngModel)]="form.telefono" placeholder="Teléfono" />
-      <app-selector-usuario [(value)]="form.responsable" placeholder="Responsable — sin asignar" clase="px-3 py-2 border border-slate-200 rounded-lg text-sm"></app-selector-usuario>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-medium text-slate-600">Teléfono</span>
+        <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-pink-400 focus:ring-2 focus:ring-pink-100" [(ngModel)]="form.telefono" placeholder="10 dígitos" />
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-medium text-slate-600">Responsable</span>
+        <app-selector-usuario [(value)]="form.responsable" placeholder="Sin asignar" clase="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none transition-colors focus:border-pink-400 focus:ring-2 focus:ring-pink-100 w-full"></app-selector-usuario>
+      </label>
     </div>
     <p *ngIf="error" class="text-xs text-red-600 m-0">{{ error }}</p>
     <button (click)="submit()" [disabled]="saving"
-      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+      class="w-full py-2.5 text-white rounded-lg border-0 cursor-pointer text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity mt-1"
       style="background:#ec4899">{{ saving ? 'Guardando...' : (sucursalEditando ? 'Guardar Cambios' : 'Crear Sucursal') }}</button>
   </div>
 </div>
