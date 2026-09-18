@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { ProductoPOS } from '../catalogo/catalogo.component';
 import { StockAlertService } from '../../../core/services/stock-alert.service';
+import { ErpPromocion, precioConDescuento } from '../../../models/erp.models';
 
 export interface ItemCarrito { producto: ProductoPOS; cantidad: number; }
 
@@ -14,13 +15,17 @@ export class PosCarritoComponent {
   private stockAlert = inject(StockAlertService);
 
   @Input() items: ItemCarrito[] = [];
+  @Input() promociones: ErpPromocion[] = [];
   @Output() cambiarCantidad = new EventEmitter<{ id: number; delta: number }>();
   @Output() establecerCantidad = new EventEmitter<{ id: number; cantidad: number }>();
   @Output() quitar = new EventEmitter<number>();
   @Output() cobrar = new EventEmitter<void>();
   @Output() limpiar = new EventEmitter<void>();
 
-  get total() { return this.items.reduce((s, i) => s + i.producto.precio * i.cantidad, 0); }
+  precioFinal(item: ItemCarrito): number { return precioConDescuento(item.producto, this.promociones); }
+  tieneDescuento(item: ItemCarrito): boolean { return this.precioFinal(item) < item.producto.precio; }
+
+  get total() { return this.items.reduce((s, i) => s + this.precioFinal(i) * i.cantidad, 0); }
   get totalItems() { return this.items.reduce((s, i) => s + i.cantidad, 0); }
   get totalItemsLabel() { return this.totalItems > 999 ? '999+' : String(this.totalItems); }
 

@@ -9,7 +9,7 @@ import { ErpService } from '../../core/services/erp-service';
 import { CrmService } from '../../core/services/crm-service';
 import { NotifyService } from '../../core/services/notify.service';
 import { StockAlertService } from '../../core/services/stock-alert.service';
-import { ErpPedido, PedidoPago } from '../../models/erp.models';
+import { ErpPedido, PedidoPago, precioConDescuento } from '../../models/erp.models';
 import { Cliente } from '../../models/crm.models';
 
 @Component({
@@ -97,6 +97,7 @@ import { Cliente } from '../../models/crm.models';
           <div class="w-full lg:w-80 lg:flex-shrink-0">
             <app-pos-carrito
               [items]="carrito"
+              [promociones]="erpService.promociones"
               (cambiarCantidad)="onCambiarCantidad($event)"
               (establecerCantidad)="onEstablecerCantidad($event)"
               (quitar)="quitarItem($event)"
@@ -214,6 +215,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.canalVenta = this.nicho.tiendaCanales[0] || null;
+    this.erpService.cargarPromociones().subscribe();
     this.erpService.cargarMiTurno().subscribe({
       next: () => { this.cargandoTurno = false; this.cdr.detectChanges(); },
       error: () => { this.cargandoTurno = false; this.cdr.detectChanges(); },
@@ -301,7 +303,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
   limpiarCarrito()         { this.carrito = []; }
 
   get totalCarrito(): number {
-    return this.carrito.reduce((s, i) => s + i.producto.precio * i.cantidad, 0);
+    return this.carrito.reduce((s, i) => s + precioConDescuento(i.producto, this.erpService.promociones) * i.cantidad, 0);
   }
 
   cobrar() {
@@ -332,7 +334,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
         items: this.carrito.map(i => ({
           id_producto: i.producto.id_productos,
           cantidad: i.cantidad,
-          precio_unitario: i.producto.precio,
+          precio_unitario: precioConDescuento(i.producto, this.erpService.promociones),
         })),
       } as Partial<ErpPedido>)),
     ).subscribe({

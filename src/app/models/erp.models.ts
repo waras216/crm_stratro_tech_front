@@ -559,6 +559,25 @@ export interface ErpPromocion {
   activo: boolean;
 }
 
+/** Precio de un producto tras aplicar la mejor promoción activa y vigente (por producto, por categoría, o todo el catálogo). */
+export function precioConDescuento(producto: Producto, promociones: ErpPromocion[]): number {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const vigentes = promociones.filter(p => {
+    if (!p.activo) return false;
+    if (p.fecha_inicio && hoy < p.fecha_inicio.slice(0, 10)) return false;
+    if (p.fecha_fin && hoy > p.fecha_fin.slice(0, 10)) return false;
+    if (p.id_producto) return p.id_producto === producto.id_productos;
+    if (p.id_categorias) return p.id_categorias === producto.id_categorias;
+    return true; // "Todo el catálogo": sin producto ni categoría asignados
+  });
+  if (!vigentes.length) return producto.precio;
+
+  const mejor = Math.min(...vigentes.map(p => p.tipo === 'porcentaje'
+    ? producto.precio * (1 - p.valor / 100)
+    : producto.precio - p.valor));
+  return Math.max(0, Math.round(mejor * 100) / 100);
+}
+
 export interface ErpDevolucion {
   id: number;
   id_tenant?: number;
