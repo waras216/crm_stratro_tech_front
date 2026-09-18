@@ -141,16 +141,6 @@ const CRM_SIDEBAR: SidebarSection[] = [
       { label: 'Integraciones',  svg: S(`<rect x="2" y="2" width="6" height="6"/><rect x="16" y="2" width="6" height="6"/><rect x="2" y="16" width="6" height="6"/><path d="M5 8v12h12V8"/><path d="M5 5h14"/>`),                  route: '/crm/integraciones' },
     ],
   },
-  {
-    label: 'Administración',
-    items: [
-      // Global: módulo propio de administración de usuarios (independiente
-      // de Configuración) sin importar nicho o tenant — item tipo "route",
-      // no "erpTab"/"posTab", así que no lo toca el filtro por nicho de
-      // ERP_TABS_OCULTOS_POR_NICHO.
-      { label: 'Usuarios', svg: S(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`), route: '/admin/usuarios' },
-    ],
-  },
 ];
 
 const ERP_SIDEBAR: SidebarSection[] = [
