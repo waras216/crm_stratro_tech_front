@@ -53,7 +53,8 @@
           <tr *ngIf="turnos.length === 0">
             <td colspan="8" class="text-center py-8 text-slate-400 text-xs">Sin turnos registrados todavía.</td>
           </tr>
-          <tr *ngFor="let t of turnos" class="border-b border-slate-100 hover:bg-slate-50">
+          <ng-container *ngFor="let t of turnos">
+          <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" (click)="toggleDetalleTurno(t)">
             <td class="px-4 py-3 font-medium">{{ t.caja?.nombre }}</td>
             <td class="px-4 py-3 text-slate-500">{{ t.cajero?.nombre || '—' }}</td>
             <td class="px-4 py-3 text-slate-500">{{ t.fecha_apertura | date:'dd/MM/yy, HH:mm' }}</td>
@@ -65,6 +66,18 @@
               <span class="px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="t.estado==='abierto' ? 'badge-green' : 'badge-slate'">{{ t.estado }}</span>
             </td>
           </tr>
+          <tr *ngIf="expandidoId === t.id_turno" class="border-b border-slate-100 bg-slate-50">
+            <td colspan="8" class="px-4 py-3">
+              <div *ngIf="!resumenesPorTurno[t.id_turno]" class="text-xs text-slate-400">Calculando ventas del turno...</div>
+              <div *ngIf="resumenesPorTurno[t.id_turno] as r" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div><p class="text-slate-400 m-0">Ventas</p><p class="font-semibold text-slate-700 m-0">{{ r.num_ventas }} · ${{ r.total_ventas.toLocaleString() }}</p></div>
+                <div><p class="text-slate-400 m-0">Efectivo</p><p class="font-semibold text-slate-700 m-0">${{ r.total_efectivo.toLocaleString() }}</p></div>
+                <div><p class="text-slate-400 m-0">Tarjeta débito</p><p class="font-semibold text-slate-700 m-0">${{ r.total_tarjeta_debito.toLocaleString() }}</p></div>
+                <div><p class="text-slate-400 m-0">Tarjeta crédito</p><p class="font-semibold text-slate-700 m-0">${{ r.total_tarjeta_credito.toLocaleString() }}</p></div>
+              </div>
+            </td>
+          </tr>
+          </ng-container>
         </tbody>
       </table>
       </div>
@@ -123,7 +136,15 @@
     </button>
   </div>
   <div class="flex flex-col gap-3">
-    <p class="text-xs text-slate-500 m-0">Monto inicial: ${{ turnoParaCerrar?.monto_apertura?.toLocaleString() }}</p>
+    <p *ngIf="cargandoResumenCerrar" class="text-xs text-slate-400 m-0">Calculando ventas del turno...</p>
+    <div *ngIf="resumenCerrar" class="rounded-lg bg-slate-50 p-3 flex flex-col gap-1.5 text-xs">
+      <div class="flex justify-between text-slate-500"><span>Monto inicial</span><span class="font-medium text-slate-700">${{ turnoParaCerrar?.monto_apertura?.toLocaleString() }}</span></div>
+      <div class="flex justify-between text-slate-500"><span>Ventas del turno ({{ resumenCerrar.num_ventas }})</span><span class="font-medium text-slate-700">${{ resumenCerrar.total_ventas.toLocaleString() }}</span></div>
+      <div class="flex justify-between text-slate-500 pl-3"><span>· Efectivo</span><span>${{ resumenCerrar.total_efectivo.toLocaleString() }}</span></div>
+      <div class="flex justify-between text-slate-500 pl-3"><span>· Tarjeta débito</span><span>${{ resumenCerrar.total_tarjeta_debito.toLocaleString() }}</span></div>
+      <div class="flex justify-between text-slate-500 pl-3"><span>· Tarjeta crédito</span><span>${{ resumenCerrar.total_tarjeta_credito.toLocaleString() }}</span></div>
+      <div class="flex justify-between font-semibold text-slate-800 border-t border-slate-200 pt-1.5 mt-0.5"><span>Efectivo esperado en caja</span><span>${{ resumenCerrar.efectivo_esperado.toLocaleString() }}</span></div>
+    </div>
     <label class="text-xs font-medium text-slate-500">Monto final contado en caja</label>
     <input class="px-3 py-2 border border-slate-200 rounded-lg text-sm" type="number" [(ngModel)]="montoCierre" placeholder="0.00" />
     <p *ngIf="cerrarError" class="text-xs text-red-600 m-0">{{ cerrarError }}</p>

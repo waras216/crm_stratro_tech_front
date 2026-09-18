@@ -4,12 +4,14 @@ import { debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/o
 import { ProductoPOS } from './catalogo/catalogo.component';
 import { ItemCarrito } from './carrito/carrito.component';
 import { ModuleService, PosTab } from '../../core/services/module.service';
-import { NichoService, TIENDA_CANALES_LABELS } from '../../core/services/nicho.service';
+import { NichoService, REST_CANALES_LABELS, TIENDA_CANALES_LABELS } from '../../core/services/nicho.service';
+
+const CANAL_VENTA_LABELS: Record<string, string> = { ...TIENDA_CANALES_LABELS, ...REST_CANALES_LABELS };
 import { ErpService } from '../../core/services/erp-service';
 import { CrmService } from '../../core/services/crm-service';
 import { NotifyService } from '../../core/services/notify.service';
 import { StockAlertService } from '../../core/services/stock-alert.service';
-import { ErpPedido, PedidoPago, precioConDescuento } from '../../models/erp.models';
+import { ErpPedido, PedidoPago, precioConDescuento, ResumenTurno } from '../../models/erp.models';
 import { Cliente } from '../../models/crm.models';
 
 @Component({
@@ -129,7 +131,7 @@ import { Cliente } from '../../models/crm.models';
           [style.animation-delay]="(i*0.04)+'s'">
           <div>
             <p class="text-sm font-medium text-slate-700 m-0">Venta #{{ v.id }} — {{ v.cliente?.nombre ?? 'Público General' }}</p>
-            <p class="text-[10px] text-slate-400 m-0">{{ v.items.length }} productos · {{ v.fecha }}{{ v.cajero ? ' · ' + v.cajero.nombre : '' }}{{ v.pagos?.length ? ' · ' + metodoPagoLabel(v.pagos![0].metodo_pago) : '' }}</p>
+            <p class="text-[10px] text-slate-400 m-0">{{ v.items.length }} productos · {{ v.fecha }}{{ v.cajero ? ' · ' + v.cajero.nombre : '' }}{{ v.pagos?.length ? ' · ' + metodoPagoLabel(v.pagos![0].metodo_pago) : '' }}{{ v.canal ? ' · ' + canalLabel(v.canal) : '' }}</p>
           </div>
           <span class="text-sm font-bold text-emerald-600">\${{ v.total.toLocaleString() }}</span>
         </div>
@@ -145,6 +147,15 @@ import { Cliente } from '../../models/crm.models';
     <div *ngIf="cierreCajaOpen" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl w-96 p-6 shadow-2xl z-[101]" (click)="$event.stopPropagation()">
       <h3 class="m-0 mb-4 text-lg font-bold text-slate-800 text-center">Cerrar caja</h3>
       <div class="flex flex-col gap-3">
+        <p *ngIf="cargandoResumenCierre" class="text-xs text-slate-400 m-0 text-center">Calculando ventas del turno...</p>
+        <div *ngIf="resumenCierre" class="rounded-lg bg-slate-50 p-3 flex flex-col gap-1.5 text-xs">
+          <div class="flex justify-between text-slate-500"><span>Monto inicial</span><span class="font-medium text-slate-700">\${{ erpService.turnoActivo?.monto_apertura?.toLocaleString() }}</span></div>
+          <div class="flex justify-between text-slate-500"><span>Ventas del turno ({{ resumenCierre.num_ventas }})</span><span class="font-medium text-slate-700">\${{ resumenCierre.total_ventas.toLocaleString() }}</span></div>
+          <div class="flex justify-between text-slate-500 pl-3"><span>· Efectivo</span><span>\${{ resumenCierre.total_efectivo.toLocaleString() }}</span></div>
+          <div class="flex justify-between text-slate-500 pl-3"><span>· Tarjeta débito</span><span>\${{ resumenCierre.total_tarjeta_debito.toLocaleString() }}</span></div>
+          <div class="flex justify-between text-slate-500 pl-3"><span>· Tarjeta crédito</span><span>\${{ resumenCierre.total_tarjeta_credito.toLocaleString() }}</span></div>
+          <div class="flex justify-between font-semibold text-slate-800 border-t border-slate-200 pt-1.5 mt-0.5"><span>Efectivo esperado en caja</span><span>\${{ resumenCierre.efectivo_esperado.toLocaleString() }}</span></div>
+        </div>
         <div>
           <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Monto de cierre (efectivo contado)</label>
           <input type="number" min="0" step="0.01" [(ngModel)]="montoCierre"
@@ -188,6 +199,8 @@ export class PosPageComponent implements OnInit, OnDestroy {
   montoCierre = 0;
   notasCierre = '';
   cerrandoCaja = false;
+  resumenCierre: ResumenTurno | null = null;
+  cargandoResumenCierre = false;
 
   private destroy$ = new Subject<void>();
 
@@ -201,7 +214,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
     private stockAlert: StockAlertService,
   ) {}
 
-  canalLabel(id: string): string { return TIENDA_CANALES_LABELS[id] || id; }
+  canalLabel(id: string): string { return CANAL_VENTA_LABELS[id] || id; }
 
   get puedeAdministrarErp(): boolean {
     return this.moduleService.modules.some(m => m.id === 'erp');
@@ -363,7 +376,16 @@ export class PosPageComponent implements OnInit, OnDestroy {
   abrirCierreCaja() {
     this.montoCierre = 0;
     this.notasCierre = '';
+    this.resumenCierre = null;
     this.cierreCajaOpen = true;
+
+    const turno = this.erpService.turnoActivo;
+    if (!turno) return;
+    this.cargandoResumenCierre = true;
+    this.erpService.cargarResumenTurno(turno.id_turno).subscribe({
+      next: r => { this.resumenCierre = r; this.cargandoResumenCierre = false; this.cdr.detectChanges(); },
+      error: () => { this.cargandoResumenCierre = false; this.cdr.detectChanges(); },
+    });
   }
 
   cerrarCaja() {

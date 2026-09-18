@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ErpService } from '../../../core/services/erp-service';
 import { NotifyService } from '../../../core/services/notify.service';
-import { ErpCaja, ErpSucursal, ErpTurnoCaja } from '../../../models/erp.models';
+import { ErpCaja, ErpSucursal, ErpTurnoCaja, ResumenTurno } from '../../../models/erp.models';
 import { modalLeave } from '../../shared/animations';
 
 @Component({
@@ -33,6 +33,11 @@ export class ErpCajasTurnosComponent implements OnInit {
   montoCierre = '';
   cerrarSaving = false;
   cerrarError = '';
+  resumenCerrar: ResumenTurno | null = null;
+  cargandoResumenCerrar = false;
+
+  expandidoId: number | null = null;
+  resumenesPorTurno: Record<number, ResumenTurno> = {};
 
   constructor(private erpService: ErpService, private notify: NotifyService, private cdr: ChangeDetectorRef) {}
 
@@ -102,7 +107,23 @@ export class ErpCajasTurnosComponent implements OnInit {
     this.turnoParaCerrar = t;
     this.montoCierre = '';
     this.cerrarError = '';
+    this.resumenCerrar = null;
     this.dialogCerrarOpen = true;
+
+    this.cargandoResumenCerrar = true;
+    this.erpService.cargarResumenTurno(t.id_turno).subscribe({
+      next: r => { this.resumenCerrar = r; this.cargandoResumenCerrar = false; this.cdr.detectChanges(); },
+      error: () => { this.cargandoResumenCerrar = false; this.cdr.detectChanges(); },
+    });
+  }
+
+  toggleDetalleTurno(t: ErpTurnoCaja) {
+    if (this.expandidoId === t.id_turno) { this.expandidoId = null; return; }
+    this.expandidoId = t.id_turno;
+    if (this.resumenesPorTurno[t.id_turno]) return;
+    this.erpService.cargarResumenTurno(t.id_turno).subscribe({
+      next: r => { this.resumenesPorTurno[t.id_turno] = r; this.cdr.detectChanges(); },
+    });
   }
 
   submitCerrarTurno() {

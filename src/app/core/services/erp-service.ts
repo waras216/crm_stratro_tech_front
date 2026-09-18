@@ -7,7 +7,7 @@ import {
   Producto, Categoria, Proveedor, ErpOrdenCompra, ErpMovimiento, ErpPedido, ErpEmpleado,
   ErpOrdenProduccion, ErpEnvio, ErpProyecto, ErpProyectoTarea, ErpProyectoHora, ErpInteraccion, ErpCrmResumen,
   ErpDashboardResumen, ErpReportesResumen, ErpMovimientoStock, ErpMesa, ErpHabitacion, ErpHabitacionIncidencia, ErpSolicitudHuesped, ErpEstadia, ErpReserva, ErpHistorialCliente, ErpDisponibilidad, ErpReporteOcupacion, ErpTarifaTemporada, ErpEstimadoHospedaje, ErpReceta, PedidoPago, ErpFactura,
-  ErpSucursal, ErpCaja, ErpTurnoCaja, ErpTransferencia, ErpPromocion, ErpDevolucion, ErpClienteCredito, ErpMovimientoCredito
+  ErpSucursal, ErpCaja, ErpTurnoCaja, ResumenTurno, ErpTransferencia, ErpPromocion, ErpDevolucion, ErpClienteCredito, ErpMovimientoCredito
 } from '../../models/erp.models';
 
 const API = environment.apiUrl;
@@ -985,6 +985,11 @@ export class ErpService {
         if (this.turnoActivo?.id_turno === id) this._turnoActivo.next(null);
       })
     );
+  }
+
+  /** Desglose de ventas del turno (por método de pago) para el corte de caja — sirve tanto en vivo (turno abierto) como de un turno ya cerrado. */
+  cargarResumenTurno(id: number): Observable<ResumenTurno> {
+    return this.http.get<ResumenTurno>(`${API}/erp/turnos-caja/${id}/resumen`);
   }
 
   // ════════════════════════════════════════════════════════════════════

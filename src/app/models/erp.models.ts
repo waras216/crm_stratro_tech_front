@@ -506,6 +506,16 @@ export interface ErpCaja {
   activo?: boolean;
 }
 
+export interface ResumenTurno {
+  num_ventas: number;
+  total_ventas: number;
+  total_efectivo: number;
+  total_tarjeta_debito: number;
+  total_tarjeta_credito: number;
+  /** Efectivo que debería haber en caja: monto_apertura + total_efectivo. */
+  efectivo_esperado: number;
+}
+
 export interface ErpTurnoCaja {
   id_turno: number;
   id_tenant?: number;
@@ -520,6 +530,8 @@ export interface ErpTurnoCaja {
   diferencia?: number | null;
   estado: 'abierto' | 'cerrado';
   notas?: string | null;
+  /** Solo viene poblado en la respuesta de cerrar-turno. Para el resumen en vivo de un turno abierto, usar ErpService.cargarResumenTurno(). */
+  resumen?: ResumenTurno;
 }
 
 export interface ErpTransferenciaItem {
